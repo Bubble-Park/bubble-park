@@ -49,9 +49,9 @@ fun makeGameC(): Game {
                 "'_HTJ" +
                 "|.() " +
                 "L#[] ")
-    val tileMap = TiledArea(SpriteSheet[Res.drawable.decor],map)
+    val tileMap = TiledArea(Res.drawable.decor,map)
 
-    val sprite = BasicSprite(SpriteSheet[Res.drawable.perso],3.5f*tileMap.w,2f*tileMap.h)
+    val sprite = BasicSprite(Res.drawable.perso,3.5f*tileMap.w,2f*tileMap.h)
     val game = Game(background = tileMap,
         spriteList = spriteListOf(sprite),
         transform = GenericTransform(

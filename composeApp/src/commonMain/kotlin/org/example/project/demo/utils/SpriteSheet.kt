@@ -2,12 +2,17 @@ package fr.iutlens.mmi.demo.utils
 
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
+import kmptest.composeapp.generated.resources.Res
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.imageResource
 
@@ -45,20 +50,39 @@ class SpriteSheet(
 
     fun paint(drawScope: DrawScope, ndx : Int, x : Int, y : Int){
       //  if (spriteSheet==null) throw NoSuchElementException("No SpriteSheet for this image resource. Use SpriteSheet.load(resource)")
-        drawScope.drawImage(bitmap, offset(ndx), size, IntOffset(x,y))
+        drawScope.drawImage(bitmap, offset(ndx), size, IntOffset(x,y),
+            alpha = 1f,
+            filterQuality = FilterQuality.None)
     }
 
     companion object {
-        private val map =  HashMap<DrawableResource, SpriteSheet>()
+         val map =  mutableStateMapOf<DrawableResource, SpriteSheet>()
+
+        val values get() = map.values.toTypedArray()
+
+         fun isLoaded(vararg res : DrawableResource) = res.all { it in map  && map[it]!!.sizeX>0}
 
         @Composable
         fun load(drawableResource: DrawableResource, sizeX: Int, sizeY: Int, padding : Int = 0) {
-                map[drawableResource] = SpriteSheet(imageResource(drawableResource), sizeX, sizeY,padding)
+            val bitmap = imageResource(drawableResource)
+            map[drawableResource] = SpriteSheet(bitmap, sizeX, sizeY,padding)
+        }
+
+        fun load(drawableResource: DrawableResource, image : ImageBitmap, sizeX: Int, sizeY: Int, padding : Int = 0) {
+            //if (map.containsKey(drawableResource)) return
+            map[drawableResource] = SpriteSheet(image, sizeX, sizeY,padding)
         }
 
         operator fun get(drawableResource: DrawableResource): SpriteSheet = map[drawableResource]
                 ?: throw NoSuchElementException("No SpriteSheet for this image resource. Use SpriteSheet.load(resource)")
 
+    }
+}
+
+@Composable
+fun OnceSpriteLoaded(vararg res: DrawableResource, content : @Composable ()-> Unit){
+    if (SpriteSheet.isLoaded(*res)){
+        content()
     }
 }
 

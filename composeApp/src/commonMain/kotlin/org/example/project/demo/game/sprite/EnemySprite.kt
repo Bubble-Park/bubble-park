@@ -2,15 +2,16 @@ package fr.iutlens.mmi.demo.game.sprite
 
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.SpriteSheet
+import org.jetbrains.compose.resources.DrawableResource
 import kotlin.math.floor
 
 
-class EnemySprite( spriteSheet: SpriteSheet,
+class EnemySprite( res: DrawableResource,
                   x : Float,
                   y : Float,
                   val distanceMap: DistanceMap,
                   var speed: Float =0.1f
-) : BasicSprite(spriteSheet,x,y) {
+) : BasicSprite(res,x,y) {
 
     private var target : Pair<Int,Int>? = null
     var dx = 0f

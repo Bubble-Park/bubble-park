@@ -48,17 +48,17 @@ fun makeGameA(): Game {
                    "L#[] ")
 
     val doubleMap = map.compose(0,map.sizeY,map) // Etend map en ajoutant une copie de map en 0,map.sizeY
-    val tileMap = TiledArea(SpriteSheet[Res.drawable.decor],doubleMap)
-    val sprite = BasicSprite(SpriteSheet[Res.drawable.perso],3.5f*tileMap.w,3.5f*tileMap.h)
+    val tileMap = TiledArea(Res.drawable.decor,doubleMap)
+    val sprite = BasicSprite(Res.drawable.perso,3.5f*tileMap.w,3.5f*tileMap.h)
 
     // Création de la carte des distances
     val distance = tileMap.distanceMap(sprite){ i,j -> get(i,j) == 11}
 
     //On construit la liste de sprites, avec des ennemis
     val spriteList = spriteListOf(sprite,
-        EnemySprite(SpriteSheet[Res.drawable.perso],23.5f*tileMap.w,1.5f*tileMap.h,distance,0.05f),
-        EnemySprite(SpriteSheet[Res.drawable.perso],3.5f*tileMap.w,13.5f*tileMap.h,distance),
-        EnemySprite(SpriteSheet[Res.drawable.perso],23.5f*tileMap.w,13.5f*tileMap.h,distance),
+        EnemySprite(Res.drawable.perso,23.5f*tileMap.w,1.5f*tileMap.h,distance,0.05f),
+        EnemySprite(Res.drawable.perso,3.5f*tileMap.w,13.5f*tileMap.h,distance),
+        EnemySprite(Res.drawable.perso,23.5f*tileMap.w,13.5f*tileMap.h,distance),
         )
 
     val game =  Game(background = tileMap,
@@ -78,7 +78,6 @@ fun makeGameA(): Game {
             }
 
         }
-        //invalidate()
     }
 
     // Animation toutes les 20ms (pour bouger les ennemis)

@@ -3,6 +3,7 @@ package fr.iutlens.mmi.demo.game.sprite
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import fr.iutlens.mmi.demo.utils.SpriteSheet
+import org.jetbrains.compose.resources.DrawableResource
 
 /**
  * Une tiled area représente une grille de sprite définie à partir d'une feuille de sprite
@@ -16,16 +17,18 @@ import fr.iutlens.mmi.demo.utils.SpriteSheet
  * @constructor Crée une grille de sprite à partir de la feuille de sprite (spriteSheet) et d'un
  * tableau des numéros de sprites (data)
  */
-class TiledArea(private val sprite: SpriteSheet, private val data: TileMap) : Sprite, TileMap by data {
+class TiledArea( var res : DrawableResource, private val data: TileMap) : Sprite, TileMap by data {
+
+    val sprite get() = SpriteSheet[res]
     /**
      * W largeur d'une case, en pixels
      */
-    val w  = sprite.spriteWidth
+    val w  get() = sprite.spriteWidth
 
     /**
      * H hauteur d'une case, en pixels
      */
-    val h  = sprite.spriteHeight
+    val h  get() = sprite.spriteHeight
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         for (y in 0 until sizeY) {
@@ -40,7 +43,7 @@ class TiledArea(private val sprite: SpriteSheet, private val data: TileMap) : Sp
         }
     }
 
-    override val boundingBox = Rect(0f,0f,w*sizeX.toFloat(),h*sizeY.toFloat())
+    override val boundingBox get() = Rect(0f,0f,w*sizeX.toFloat(),h*sizeY.toFloat())
     override fun update() {
     }
 }
@@ -50,4 +53,4 @@ class TiledArea(private val sprite: SpriteSheet, private val data: TileMap) : Sp
  *
  * @param data
  */
-fun SpriteSheet.tiledArea(data: TileMap) = TiledArea(this,data)
+fun DrawableResource.tiledArea(data: TileMap) = TiledArea(this,data)

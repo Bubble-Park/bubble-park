@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
@@ -97,14 +98,18 @@ dependencies {
 }
 
 compose.desktop {
+
     application {
         mainClass = "org.example.project.MainKt"
 
+        buildTypes.release.proguard {
+            version.set("7.3.0")
+        }
+
         nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
+            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
             packageName = "org.example.project"
             packageVersion = "1.0.0"
-
         }
     }
 }

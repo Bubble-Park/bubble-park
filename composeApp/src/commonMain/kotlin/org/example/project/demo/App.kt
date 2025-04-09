@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.Button
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -17,46 +18,55 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.ImageBitmapConfig
 import androidx.compose.ui.unit.dp
+import fr.iutlens.mmi.demo.utils.OnceSpriteLoaded
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 import kmptest.composeapp.generated.resources.Res
 import kmptest.composeapp.generated.resources.decor
 import kmptest.composeapp.generated.resources.perso
+import org.jetbrains.compose.resources.imageResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
 @Preview
 fun MyApp(){
-    SpriteSheet.load(Res.drawable.decor, 5, 4, 1)
-    SpriteSheet.load(Res.drawable.perso, 3, 1)
 
+    SpriteSheet.load(Res.drawable.decor,  5, 4, 1)
+    SpriteSheet.load(Res.drawable.perso,  3, 1)
 
-    val gameA = remember({makeGameA()})
-    val gameB = remember({makeGameB()})
-    val gameC = remember({makeGameC()})
+    val gameA = remember(SpriteSheet[Res.drawable.decor]) { makeGameA() }
+    val gameB = remember(SpriteSheet[Res.drawable.decor]) { makeGameB() }
+    val gameC = remember(SpriteSheet[Res.drawable.decor]) { makeGameC() }
 
-    var game by remember{ mutableStateOf(gameA) }
-    Box(Modifier.fillMaxSize()){
-        game.View(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.Black))
+    var game by remember(gameA) { mutableStateOf(gameA) }
+    Box(Modifier.fillMaxSize()) {
+        game.View(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black)
+        )
         game.padAction?.let { action ->
             Pad(
                 Modifier
                     .size(200.dp)
                     .align(Alignment.BottomStart)
                     .padding(16.dp),
-                action = action)
+                action = action
+            )
         }
-        if (game == gameC){
-            Joystick(modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.BottomStart)
-                .padding(16.dp),
-                ) { game.joystickPosition = it }
+        if (game == gameC) {
+            Joystick(
+                modifier = Modifier
+                    .size(200.dp)
+                    .align(Alignment.BottomStart)
+                    .padding(16.dp),
+            ) { game.joystickPosition = it }
         }
     }
-    Row( horizontalArrangement = Arrangement.SpaceBetween){
+
+    Row(horizontalArrangement = Arrangement.SpaceBetween) {
         Button(modifier = Modifier.padding(4.dp), onClick = { game = gameA }) {
             Text(text = "Game A")
         }
@@ -67,6 +77,7 @@ fun MyApp(){
             Text(text = "Game C")
         }
     }
+
 }
 
 

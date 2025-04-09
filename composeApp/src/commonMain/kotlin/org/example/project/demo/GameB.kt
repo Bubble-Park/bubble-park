@@ -38,13 +38,12 @@ fun makeGameB(): Game {
                 "6789A" +
                 "BCDEF" +
                 "GHIJK")
-    val tileMap = TiledArea(SpriteSheet[Res.drawable.decor],map)
+    val tileMap = TiledArea(Res.drawable.decor,map)
    // val sprite = BasicSprite(R.drawable.car,3.5f*tileMap.w,2.5f*tileMap.h)
     val list = mutableSpriteListOf<BasicSprite>() // Notre liste de sprites
     repeat(7){ // On crée plusieurs sprites aléatoires
         list.add(
-            BasicSprite(
-                SpriteSheet[Res.drawable.perso],
+            BasicSprite(Res.drawable.perso,
             (tileMap.sizeX*Random.nextFloat()*tileMap.w),
             (tileMap.sizeY*Random.nextFloat()*tileMap.h),
             (0..2).random())

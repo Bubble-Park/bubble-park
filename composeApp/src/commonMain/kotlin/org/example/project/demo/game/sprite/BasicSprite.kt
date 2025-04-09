@@ -5,6 +5,7 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.utils.SpriteSheet
+import org.jetbrains.compose.resources.DrawableResource
 
 
 /**
@@ -20,14 +21,16 @@ import fr.iutlens.mmi.demo.utils.SpriteSheet
  * de l'image dans la feuille. On peut préciser en plus une action à réaliser entre deux images pour
  * animer le sprite
  */
-open class BasicSprite(val spriteSheet: SpriteSheet,
+open class BasicSprite(var res : DrawableResource,
                        var x: Float, var y: Float,
                        var ndx : Int = 0,
                        var action: (BasicSprite.()->Unit)? = null) : Sprite {
 
+    val spriteSheet get() =  SpriteSheet[res]
+
     // taille du sprite en pixels, divisée par deux (pour le centrage)
-    private val w2 = spriteSheet.spriteWidth / 2
-    private val h2 = spriteSheet.spriteHeight / 2
+    private val w2 get() = spriteSheet.spriteWidth / 2
+    private val h2 get() = spriteSheet.spriteHeight / 2
 
     override fun paint(drawScope: DrawScope, elapsed: Long) =
         drawScope.withTransform({translate(x,y)}){
