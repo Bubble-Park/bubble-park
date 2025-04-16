@@ -58,7 +58,9 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.lexilabs.basic.sound)
         }
+
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
@@ -67,11 +69,11 @@ kotlin {
 }
 
 android {
-    namespace = "org.example.project"
+    namespace = "fr.iutlens.mmi.demo"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "org.example.project"
+        applicationId = "fr.iutlens.mmi.demo"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
@@ -100,7 +102,7 @@ dependencies {
 compose.desktop {
 
     application {
-        mainClass = "org.example.project.MainKt"
+        mainClass = "fr.iutlens.mmi.demo.MainKt"
 
         buildTypes.release.proguard {
             version.set("7.3.0")
@@ -108,8 +110,14 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
-            packageName = "org.example.project"
+            packageName = "fr.iutlens.mmi.demo"
             packageVersion = "1.0.0"
         }
     }
+}
+
+compose.resources {
+    publicResClass = false
+    packageOfResClass = "fr.iutlens.mmi.demo"
+    generateResClass = auto
 }
