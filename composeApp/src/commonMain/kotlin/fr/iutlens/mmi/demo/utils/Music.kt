@@ -8,11 +8,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import app.lexilabs.basic.sound.Audio
-import app.lexilabs.basic.sound.AudioByte
-import app.lexilabs.basic.sound.AudioState
-import app.lexilabs.basic.sound.ExperimentalBasicSound
 import fr.iutlens.mmi.demo.Res
+import fr.iutlens.mmi.demo.utils.Music.mute
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 expect @Composable fun getContext() : Any?
@@ -30,25 +27,12 @@ object Music {
     /**
      * Sound pool gère les bruitages (jusqu'à 10 en simultané ici)
      */
-    private val soundPool = AudioByte()
+    private val soundPool = SoundPool()
 
-    /**
-     * Sound map est un tableau associatif permettant de faire la correspondance
-     * entre les id des ressources (R.assets.jungle par exemple) et les
-     * id utilisés par soundPool
-     */
-    private val soundMap = mutableMapOf<String,Any>()
 
-    /**
-     * Load sound charge un fichier son (.ogg) pour être joué ensuite à la demande
-     *
-     * @param context
-     * @param id
-     */
-    @OptIn(ExperimentalResourceApi::class)
     @Composable
     fun loadSound(res: String){
-        soundMap.getOrPut(res) { soundPool.load(getContext() ?: this, Res.getUri(res)) }
+        soundPool.load(getContext(),res)
     }
 
     /**
@@ -69,39 +53,21 @@ object Music {
                   rate: Float = 1f
                   ){
         if (mute) return
-        soundMap[id]?.let { soundId -> soundPool.play(soundId) }
+        soundPool.play(id, leftVolume,rightVolume,priority,loop,rate)
     }
 
 
-    @OptIn(ExperimentalBasicSound::class, ExperimentalResourceApi::class)
     @Composable
     operator fun invoke(id: String){
         val context = getContext() ?: this
-        val musicPlayer by remember(id){
-            mutableStateOf(Audio(context, Res.getUri(id),!mute))
-        }
-        val audioState by musicPlayer.audioState.collectAsState()
-        println(audioState)
-        when (audioState) {
-            is AudioState.NONE -> musicPlayer.load()
-            is AudioState.READY -> if (!mute) musicPlayer.play()
-            is AudioState.ERROR -> println((audioState as AudioState.ERROR).message)
-            is AudioState.PAUSED -> if (!mute) musicPlayer.play()
-            is AudioState.PLAYING -> if (mute) musicPlayer.pause()
-            else -> {
-                /** DO NOTHING **/
-            }
-        }
-        /*
-        DisposableEffect(id, mute) {
 
-            val audioState by musicPlayer.audioState.collectAsState()
-            //if (!mute) musicPlayer.play()
+        DisposableEffect(id, mute) {
+            val musicPlayer = MusicPlayer(context, id,!mute)
 
             onDispose {
                 musicPlayer.stop()
                 musicPlayer.release()
             }
-        }*/
+        }
     }
 }
