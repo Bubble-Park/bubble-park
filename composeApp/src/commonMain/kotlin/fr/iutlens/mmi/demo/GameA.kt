@@ -20,6 +20,7 @@ import fr.iutlens.mmi.demo.game.sprite.spriteListOf
 import fr.iutlens.mmi.demo.game.sprite.toMutableTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
+import fr.iutlens.mmi.demo.utils.Music
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 import fr.iutlens.mmi.demo.utils.distanceMap
 
@@ -71,6 +72,7 @@ fun makeGameA(): Game {
                 distance.update() // Mise à jour des distances
                 invalidate()
             }
+            Music.playSound("files/message.mp3")
 
         }
     }

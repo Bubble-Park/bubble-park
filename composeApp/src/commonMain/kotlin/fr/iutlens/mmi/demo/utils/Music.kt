@@ -3,14 +3,10 @@ package fr.iutlens.mmi.demo.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import fr.iutlens.mmi.demo.Res
-import fr.iutlens.mmi.demo.utils.Music.mute
-import org.jetbrains.compose.resources.ExperimentalResourceApi
+
 
 expect @Composable fun getContext() : Any?
 /**
@@ -22,7 +18,7 @@ object Music {
     /**
      * mute permet d'activer ou désactiver le son joué par l'application
      */
-    var mute by mutableStateOf(false)
+    var mute by mutableStateOf(true)
 
     /**
      * Sound pool gère les bruitages (jusqu'à 10 en simultané ici)

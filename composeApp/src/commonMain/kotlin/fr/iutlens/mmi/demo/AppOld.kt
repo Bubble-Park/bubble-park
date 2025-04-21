@@ -4,10 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Button
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -19,9 +21,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.utils.Music
+import fr.iutlens.mmi.demo.utils.Music.mute
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 
 import org.jetbrains.compose.resources.ExperimentalResourceApi
+import org.jetbrains.compose.resources.painterResource
 
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
@@ -31,12 +35,11 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun MyApp(){
     SpriteSheet.load(Res.drawable.decor,  5, 4, 1)
     SpriteSheet.load(Res.drawable.perso,  3, 1)
-
+    Music.loadSound("files/message.mp3")
+    Music("files/jungle.mp3")
     val gameA = remember(SpriteSheet[Res.drawable.decor]) { makeGameA() }
     val gameB = remember(SpriteSheet[Res.drawable.decor]) { makeGameB() }
     val gameC = remember(SpriteSheet[Res.drawable.decor]) { makeGameC() }
-
-
 
     var game by remember(gameA) { mutableStateOf(gameA) }
     Box(Modifier.fillMaxSize()) {
@@ -55,8 +58,6 @@ fun MyApp(){
             )
         }
         if (game == gameC) {
-            Music("files/jungle.mp3")
-           // Music("assets/jungle.ogg")
             Joystick(
                 modifier = Modifier
                     .size(200.dp)
@@ -75,6 +76,12 @@ fun MyApp(){
         }
         Button(modifier = Modifier.padding(4.dp), onClick = { game = gameC }) {
             Text(text = "Game C")
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Button(modifier = Modifier.padding(4.dp), onClick = { mute = !mute }) {
+            Icon(painter = painterResource(
+                if (mute) Res.drawable.volume_mute
+                else Res.drawable.volume_full),"")
         }
     }
 
