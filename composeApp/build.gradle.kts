@@ -1,3 +1,4 @@
+import com.android.build.gradle.ProguardFiles.getDefaultProguardFile
 import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
@@ -10,6 +11,12 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+}
+
+repositories {
+    mavenCentral()
+    google()
+    maven { url = uri("https://jitpack.io") }
 }
 
 kotlin {
@@ -63,6 +70,7 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
+            implementation("com.github.umjammer:jlayer:1.0.3")
         }
     }
 }
@@ -100,11 +108,14 @@ dependencies {
 
 compose.desktop {
 
+
     application {
         mainClass = "fr.iutlens.mmi.demo.MainKt"
 
+
         buildTypes.release.proguard {
             version.set("7.3.0")
+            //configurationFiles.from(file("proguard-rules.pro"))
         }
 
         nativeDistributions {
@@ -120,3 +131,4 @@ compose.resources {
     packageOfResClass = "fr.iutlens.mmi.demo"
     generateResClass = auto
 }
+

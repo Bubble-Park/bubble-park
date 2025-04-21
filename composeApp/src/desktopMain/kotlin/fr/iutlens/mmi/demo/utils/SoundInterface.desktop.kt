@@ -1,48 +1,76 @@
 package fr.iutlens.mmi.demo.utils
 
 import fr.iutlens.mmi.demo.Res
+import javazoom.jl.player.JavaSoundAudioDeviceFactory
+import javazoom.jl.player.Player
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
 import org.jetbrains.compose.resources.ExperimentalResourceApi
-import java.io.BufferedInputStream
-import java.io.InputStream
-import javax.sound.sampled.AudioSystem
-import javax.sound.sampled.Clip
 
 @OptIn(ExperimentalResourceApi::class)
+open class SoundResource(res : String){
+    @OptIn(ExperimentalResourceApi::class)
+    val path = '/'+Res.getUri(res).substringAfter("!/")
+    val stream get() = javaClass.getResourceAsStream(path).buffered()
+    val player get() = Player(stream, JavaSoundAudioDeviceFactory().createAudioDevice())
+}
+
 actual open class MusicPlayer actual constructor(
     context: Any?,
     resource: String,
-    autoplay: Boolean
-) {
+    val autoplay: Boolean
+) : SoundResource(resource){
 
-    init {
-        val uri = Res.getUri(resource)
-        val resourcePath = uri.substringAfter("!/") // getting the route inside the jar
-        val resourceStream: InputStream? = javaClass.getResourceAsStream("/$resourcePath")
+    var currentPlayer: Player? = null
+    var currentJob: Job? = null
 
-        resourceStream?.let {
-            val bufferedIn: InputStream = BufferedInputStream(resourceStream) // adding buffer for mark/reset support
-            val audioInputStream = AudioSystem.getAudioInputStream(bufferedIn)
-            val clip: Clip = AudioSystem.getClip()
-            clip.open(audioInputStream)
-            clip.start()
+    init { if (autoplay) start() }
+
+
+    actual fun start() {
+        release()
+        currentJob = CoroutineScope( Dispatchers.IO).launch {
+            do {
+                yield()
+                currentPlayer = player
+                currentPlayer?.play()
+            } while(autoplay)
+        }.apply {
+            invokeOnCompletion{
+                currentPlayer = null
+                currentJob = null
+            }
         }
     }
 
-    actual fun start() {
-    }
-
+/** TODO : save actual position **/
     actual fun pause() {
+        stop()
     }
 
     actual fun release() {
+        currentJob?.apply {
+            if (isActive){
+                cancel()
+                currentPlayer?.close()
+            }
+        }
     }
 
     actual fun stop(){
+        release()
     }
 }
 
 actual open class SoundPool actual constructor() {
+
+    val map = mutableMapOf<String,SoundResource>()
+
     actual fun load(context: Any?, res: String) {
+        map[res] = SoundResource(res)
     }
 
     actual fun play(
@@ -53,5 +81,9 @@ actual open class SoundPool actual constructor() {
         loop: Int,
         rate: Float
     ) {
+        val soundResource = map[resource] ?: return
+        CoroutineScope( Dispatchers.IO).launch {
+            soundResource.player.play()
+        }
     }
 }
