@@ -31,7 +31,9 @@ fun App() {
         SpriteSheet.load(Res.drawable.decor,  5, 4, 1)
         SpriteSheet.load(Res.drawable.perso,  3, 1)
         Music.loadSound("files/message.mp3")
+
         Music("files/jungle.mp3")
+
         val gameA = remember(SpriteSheet[Res.drawable.decor]) { makeGameA() }
         val gameB = remember(SpriteSheet[Res.drawable.decor]) { makeGameB() }
         val gameC = remember(SpriteSheet[Res.drawable.decor]) { makeGameC() }
