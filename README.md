@@ -1,4 +1,4 @@
-This is a Kotlin Multiplatform project targeting Android, Web, Desktop.
+This is a Kotlin Multiplatform project targeting Android, iOS, Web, Desktop.
 
 * `/composeApp` is for code that will be shared across your Compose Multiplatform applications.
   It contains several subfolders:
@@ -16,8 +16,18 @@ We would appreciate your feedback on Compose/Web and Kotlin/Wasm in the public S
 If you face any issues, please report them on [GitHub](https://github.com/JetBrains/compose-multiplatform/issues).
 
 You can open the web application by running the `:composeApp:wasmJsBrowserDevelopmentRun` Gradle task.
+
+-------
+
+
 You can launch wep app and desktop app fom the command line : 
 
 `./gradlew runReleaseDistributable`  
 
 `./gradlew wasmJsBrowserDevelopmentRun`
+
+Distributable files and directories location :
+
+- Desktop App : build/binaries/main-release/app (executable created only for current OS, run on different computer for others)
+- Web : build/dist/wasmJS/productionExecutable (create with `./gradlew wasmJsBrowserDistribution` and put files on some server)
+- Android : build/outputs/apk/release
