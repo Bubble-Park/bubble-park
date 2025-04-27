@@ -16,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.utils.Music
 import fr.iutlens.mmi.demo.utils.Music.mute
@@ -29,7 +30,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun App() {
     MaterialTheme {
         SpriteSheet.load(Res.drawable.decor,  5, 4, 1)
-        SpriteSheet.load(Res.drawable.perso,  3, 1)
+        SpriteSheet.load(Res.drawable.perso,  3, 1, filterQuality = FilterQuality.High)
         Music.loadSound("files/message.mp3")
 
         Music("files/jungle.mp3")

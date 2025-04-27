@@ -24,7 +24,8 @@ import org.jetbrains.compose.resources.imageResource
 class SpriteSheet(
     val bitmap: ImageBitmap,
     val sizeX: Int, val sizeY: Int,
-    val padding: Int) {
+    val padding: Int,
+    val filterQuality: FilterQuality? = null) {
 
     private val _rawSpriteWidth =  bitmap.width/sizeX
     private val _rawSpriteHeight = bitmap.height/sizeY
@@ -47,26 +48,26 @@ class SpriteSheet(
       //  if (spriteSheet==null) throw NoSuchElementException("No SpriteSheet for this image resource. Use SpriteSheet.load(resource)")
         drawScope.drawImage(bitmap, offset(ndx), size, IntOffset(x,y),
             alpha = 1f,
-            filterQuality = FilterQuality.None)
+            filterQuality = filterQuality ?: defaultFilterQuality)
     }
 
     companion object {
+        var defaultFilterQuality = FilterQuality.None
          val map =  mutableStateMapOf<DrawableResource, SpriteSheet>()
 
-        val values get() = map.values.toTypedArray()
 
          fun isLoaded(vararg res : DrawableResource) = res.all { it in map  && map[it]!!.sizeX>0}
 
         @Composable
-        fun load(drawableResource: DrawableResource, sizeX: Int, sizeY: Int, padding : Int = 0) {
+        fun load(drawableResource: DrawableResource, sizeX: Int, sizeY: Int, padding : Int = 0,
+                 filterQuality: FilterQuality? = null) {
             val bitmap = imageResource(drawableResource)
-            map[drawableResource] = SpriteSheet(bitmap, sizeX, sizeY,padding)
+            map[drawableResource] = SpriteSheet(bitmap, sizeX, sizeY,padding,filterQuality)
         }
-
+/*
         fun load(drawableResource: DrawableResource, image : ImageBitmap, sizeX: Int, sizeY: Int, padding : Int = 0) {
-            //if (map.containsKey(drawableResource)) return
             map[drawableResource] = SpriteSheet(image, sizeX, sizeY,padding)
-        }
+        }*/
 
         operator fun get(drawableResource: DrawableResource): SpriteSheet = map[drawableResource]
                 ?: throw NoSuchElementException("No SpriteSheet for this image resource. Use SpriteSheet.load(resource)")
