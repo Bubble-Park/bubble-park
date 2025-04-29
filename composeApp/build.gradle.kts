@@ -19,6 +19,11 @@ repositories {
     maven { url = uri("https://jitpack.io") }
 }
 
+val myPackage = "fr.iutlens.mmi.demo"
+val myVersionCode = 1
+val myVersionName = "1.0.0" // major.minor.patch
+val myBaseName = "ComposeApp"
+
 kotlin {
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
@@ -35,19 +40,19 @@ kotlin {
         iosSimulatorArm64()
     ).forEach { iosTarget ->
         iosTarget.binaries.framework {
-            baseName = "ComposeApp"
+            baseName = myBaseName
             isStatic = true
         }
     }
     
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        moduleName = "composeApp"
+        outputModuleName = myBaseName
         browser {
             val rootDirPath = project.rootDir.path
             val projectDirPath = project.projectDir.path
             commonWebpackConfig {
-                outputFileName = "composeApp.js"
+                outputFileName = "$myBaseName.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
                     static = (static ?: mutableListOf()).apply {
                         // Serve sources to debug inside browser
@@ -84,21 +89,22 @@ kotlin {
         desktopMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutines.swing)
-            implementation("com.github.umjammer:jlayer:1.0.3")
+            implementation(libs.jlayer)
         }
     }
 }
 
+
 android {
-    namespace = "fr.iutlens.mmi.demo"
+    namespace = myPackage
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
     defaultConfig {
-        applicationId = "fr.iutlens.mmi.demo"
+        applicationId = myPackage
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = myVersionCode
+        versionName = myVersionName
     }
     packaging {
         resources {
@@ -124,7 +130,7 @@ compose.desktop {
 
 
     application {
-        mainClass = "fr.iutlens.mmi.demo.MainKt"
+        mainClass = "$myPackage.MainKt"
 
 
         buildTypes.release.proguard {
@@ -134,15 +140,15 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
-            packageName = "fr.iutlens.mmi.demo"
-            packageVersion = "1.0.0"
+            packageName = myPackage
+            packageVersion = myVersionName
         }
     }
 }
 
 compose.resources {
     publicResClass = false
-    packageOfResClass = "fr.iutlens.mmi.demo"
+    packageOfResClass = myPackage
     generateResClass = auto
 }
 
