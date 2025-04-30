@@ -17,7 +17,7 @@ import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 
 import fr.iutlens.mmi.demo.game.sprite.spriteListOf
-import fr.iutlens.mmi.demo.game.sprite.toMutableTileMap
+import fr.iutlens.mmi.demo.game.sprite.toTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
@@ -38,7 +38,7 @@ fun makeGameC(): Game {
             '__[]____[]____[]__|..L__[]____[]__
             ###################!^¨I############
             ###################'HTJ############
-        """.trimIndent().toMutableTileMap(
+        """.trimIndent().toTileMap(
         "!-^¨I" +
                 "'_HTJ" +
                 "|.() " +

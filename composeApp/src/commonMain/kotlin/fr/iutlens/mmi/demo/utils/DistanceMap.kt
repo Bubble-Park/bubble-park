@@ -3,6 +3,7 @@ package fr.iutlens.mmi.demo.utils
 import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.game.sprite.TileMap
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
+import fr.iutlens.mmi.demo.game.sprite.contains
 import kotlin.math.floor
 
 /**
@@ -96,7 +97,7 @@ fun TileMap.neighbor(valid : TileMap.(Int,Int) -> Boolean = { _,_ ->true}) =
     for(dir in Direction.entries){
         val i = pos.first + dir.vec.first
         val j = pos.second +  dir.vec.second
-        if (i in 0..<this.sizeX && j in 0..<this.sizeY && this.valid(i,j)){
+        if ((i to j) in this.geometry && this.valid(i,j)){
             visit(i to j)
         }
     }
@@ -111,4 +112,4 @@ fun TileMap.neighbor(valid : TileMap.(Int,Int) -> Boolean = { _,_ ->true}) =
  * @receiver
  */
 fun TiledArea.distanceMap(target : Sprite, valid : TileMap.(Int,Int) -> Boolean) =
-    DistanceMap(this, target, this.neighbor(valid))
+    DistanceMap(this, target, this.tileMap.neighbor(valid))

@@ -14,10 +14,11 @@ import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.game.Game
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
+import fr.iutlens.mmi.demo.game.sprite.RectangleGeometry
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.game.sprite.compose
 import fr.iutlens.mmi.demo.game.sprite.spriteListOf
-import fr.iutlens.mmi.demo.game.sprite.toMutableTileMap
+import fr.iutlens.mmi.demo.game.sprite.toTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.utils.Music
@@ -36,37 +37,36 @@ fun makeGameA(): Game {
             #####...#.#######.#...#.#####
             #.....#.....#...#.#.#.......#
             #.###.#####.#.#.#.#.#.#####.#
-            #.............#.............#
-        """.trimIndent().toMutableTileMap(
+            #.............#.............#""".trimIndent().toTileMap(
               "!-^¨I" +
                    "'_HTJ" +
                    "|.() " +
                    "L#[] ")
 
-    val doubleMap = map.compose(0,map.sizeY,map) // Etend map en ajoutant une copie de map en 0,map.sizeY
-    val tileMap = TiledArea(Res.drawable.decor,doubleMap)
-    val sprite = BasicSprite(Res.drawable.perso,3.5f*tileMap.w,3.5f*tileMap.h)
+    val doubleMap = map.compose(0,map.geometry.sizeY,map) // Etend map en ajoutant une copie de map en 0,map.sizeY
+    val tiledArea = TiledArea(Res.drawable.decor,doubleMap)
+    val sprite = BasicSprite(Res.drawable.perso,3.5f*tiledArea.w,3.5f*tiledArea.h)
 
     // Création de la carte des distances
-    val distance = tileMap.distanceMap(sprite){ i,j -> get(i,j) == 11}
+    val distance = tiledArea.distanceMap(sprite){ i, j -> get(i,j) == 11}
 
     //On construit la liste de sprites, avec des ennemis
     val spriteList = spriteListOf(sprite,
-        EnemySprite(Res.drawable.perso,23.5f*tileMap.w,1.5f*tileMap.h,distance,0.05f),
-        EnemySprite(Res.drawable.perso,3.5f*tileMap.w,13.5f*tileMap.h,distance),
-        EnemySprite(Res.drawable.perso,23.5f*tileMap.w,13.5f*tileMap.h,distance),
+        EnemySprite(Res.drawable.perso,23.5f*tiledArea.w,1.5f*tiledArea.h,distance,0.05f),
+        EnemySprite(Res.drawable.perso,3.5f*tiledArea.w,13.5f*tiledArea.h,distance),
+        EnemySprite(Res.drawable.perso,23.5f*tiledArea.w,13.5f*tiledArea.h,distance),
         )
 
-    val game =  Game(background = tileMap,
+    val game =  Game(background = tiledArea,
         spriteList = spriteList,
         transform = GenericTransform(
-            Constraint.Fill(tileMap) // sprite est centré (verticalement), et on affiche au moins 8 cases
+            Constraint.Fill(tiledArea) // sprite est centré (verticalement), et on affiche au moins 8 cases
             )
     ).apply {
         padAction = {(dx,dy) ->
-            val nextX = sprite.x + dx * tileMap.w
-            val nextY = sprite.y + dy * tileMap.h
-            if (tileMap.possible(nextX,nextY)){
+            val nextX = sprite.x + dx * tiledArea.w
+            val nextY = sprite.y + dy * tiledArea.h
+            if (tiledArea.possible(nextX,nextY)){
                 sprite.x = nextX
                 sprite.y = nextY
                 distance.update() // Mise à jour des distances
@@ -90,8 +90,8 @@ fun makeGameA(): Game {
 fun TiledArea.possible(x: Float, y: Float): Boolean {
     val i =  floor(x / w).toInt()
     val j =  floor(y / h).toInt()
-    if ( i !in 0..< sizeX || j !in 0 ..< sizeY) return false
-    val code = get(i,j)
+    if ( i !in 0..< tileMap.geometry.sizeX || j !in 0 ..< tileMap.geometry.sizeY) return false
+    val code = tileMap.get(i,j)
     return code == 11
 }
 

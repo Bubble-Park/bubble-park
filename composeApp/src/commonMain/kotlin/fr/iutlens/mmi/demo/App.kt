@@ -30,6 +30,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 fun App() {
     MaterialTheme {
         SpriteSheet.load(Res.drawable.decor,  5, 4, 1)
+        SpriteSheet.load(Res.drawable.hex,  2, 1, 1)
         SpriteSheet.load(Res.drawable.perso,  3, 1, filterQuality = FilterQuality.High)
         Music.loadSound("files/message.mp3")
 
@@ -38,6 +39,7 @@ fun App() {
         val gameA = remember(SpriteSheet[Res.drawable.decor]) { makeGameA() }
         val gameB = remember(SpriteSheet[Res.drawable.decor]) { makeGameB() }
         val gameC = remember(SpriteSheet[Res.drawable.decor]) { makeGameC() }
+        val gameD = remember(SpriteSheet[Res.drawable.decor]) { makeGameD() }
 
         var game by remember(gameA) { mutableStateOf(gameA) }
         Box(Modifier.fillMaxSize()) {
@@ -67,13 +69,16 @@ fun App() {
 
         Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.padding(horizontal = 4.dp)) {
             Button(modifier = Modifier.padding(4.dp), onClick = { game = gameA }) {
-                Text(text = "Game A")
+                Text(text = "A")
             }
             Button(modifier = Modifier.padding(4.dp), onClick = { game = gameB }) {
-                Text(text = "Game B")
+                Text(text = "B")
             }
             Button(modifier = Modifier.padding(4.dp), onClick = { game = gameC }) {
-                Text(text = "Game C")
+                Text(text = "C")
+            }
+            Button(modifier = Modifier.padding(4.dp), onClick = { game = gameD }) {
+                Text(text = "D")
             }
             Spacer(modifier = Modifier.weight(1f))
             Button(modifier = Modifier.padding(4.dp), onClick = { mute = !mute }) {

@@ -17,7 +17,7 @@ import org.jetbrains.compose.resources.DrawableResource
  * @constructor Crée une grille de sprite à partir de la feuille de sprite (spriteSheet) et d'un
  * tableau des numéros de sprites (data)
  */
-class TiledArea( var res : DrawableResource, private val data: TileMap) : Sprite, TileMap by data {
+class TiledArea(var res : DrawableResource,  val  tileMap: TileMap) : Sprite {
 
     val sprite get() = SpriteSheet[res]
     /**
@@ -31,19 +31,20 @@ class TiledArea( var res : DrawableResource, private val data: TileMap) : Sprite
     val h  get() = sprite.spriteHeight
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
-        for (y in 0 until sizeY) {
-            for (x in 0 until sizeX) {
+        tileMap.foreach{x,y, value ->
                 sprite.paint(
                     drawScope,
-                    data[x, y],
-                    (x * w),
-                    (y * h)
+                    value,
+                    (x * w) / tileMap.tileSizeX,
+                    (y * h) / tileMap.tileSizeY
                 )
-            }
         }
+
     }
 
-    override val boundingBox get() = Rect(0f,0f,w*sizeX.toFloat(),h*sizeY.toFloat())
+    override val boundingBox get() = Rect(0f,0f,
+        (w*tileMap.xMax / tileMap.tileSizeX).toFloat(),
+        (h*tileMap.yMax /tileMap.tileSizeY).toFloat())
     override fun update() {
     }
 }

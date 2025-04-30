@@ -11,7 +11,7 @@ import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.game.sprite.get
 import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
-import fr.iutlens.mmi.demo.game.sprite.toMutableTileMap
+import fr.iutlens.mmi.demo.game.sprite.toTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.utils.SpriteSheet
@@ -31,7 +31,7 @@ fun makeGameB(): Game {
             BCCCCCCCCCCCG
             122DE222DE225
             677IJ777IJ77A
-        """.trimIndent().toMutableTileMap(
+        """.trimIndent().toTileMap(
            "12345" +
                 "6789A" +
                 "BCDEF" +
@@ -43,8 +43,8 @@ fun makeGameB(): Game {
         list.add(
             BasicSprite(
                 Res.drawable.perso,
-            (tileMap.sizeX*Random.nextFloat()*tileMap.w),
-            (tileMap.sizeY*Random.nextFloat()*tileMap.h),
+            (tileMap.tileMap.geometry.sizeX*Random.nextFloat()*tileMap.w),
+            (tileMap.tileMap.geometry.sizeY*Random.nextFloat()*tileMap.h),
             (0..2).random())
         )
     }
