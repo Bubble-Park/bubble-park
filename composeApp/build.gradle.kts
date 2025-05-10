@@ -23,6 +23,7 @@ val myPackage = "fr.iutlens.mmi.demo"
 val myVersionCode = 1
 val myVersionName = "1.0.0" // major.minor.patch
 val myBaseName = "ComposeApp"
+val myBaseNameWasm = "composeApp"
 
 kotlin {
     androidTarget {
@@ -47,12 +48,12 @@ kotlin {
     
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        outputModuleName = myBaseName
+        outputModuleName = myBaseNameWasm
         browser {
             val rootDirPath = project.rootDir.path
             val projectDirPath = project.projectDir.path
             commonWebpackConfig {
-                outputFileName = "$myBaseName.js"
+                outputFileName = "$myBaseNameWasm.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
                     static = (static ?: mutableListOf()).apply {
                         // Serve sources to debug inside browser
