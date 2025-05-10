@@ -5,6 +5,7 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.pointer.pointerInput
@@ -22,6 +23,13 @@ fun Pad(modifier: Modifier, image: DrawableResource = Res.drawable.pad, action: 
         if (p<-0.1) return -1f
         if (p>0.1) return 1f
         return 0f
+    }
+
+    DisposableEffect(action){
+        currentPadAction = action
+        onDispose {
+            currentPadAction = null
+        }
     }
 
     Image( painterResource(resource = image), null,modifier = modifier.aspectRatio(1f)
@@ -45,3 +53,5 @@ fun Pad(modifier: Modifier, image: DrawableResource = Res.drawable.pad, action: 
 fun PadPreview(){
     Pad(modifier = Modifier.width(200.dp)){_ -> }
 }
+
+var currentPadAction : ((Offset) -> Unit)? = null

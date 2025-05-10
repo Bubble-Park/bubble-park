@@ -20,7 +20,7 @@ You can open the web application by running the `:composeApp:wasmJsBrowserDevelo
 -------
 
 
-You can launch wep app and desktop app fom the command line : 
+You can launch wep app and desktop app from the command line : 
 
 `./gradlew runReleaseDistributable`  
 

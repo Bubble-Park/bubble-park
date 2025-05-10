@@ -26,8 +26,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 
 
 @Composable
-@Preview
-fun App() {
+fun App(modifier: Modifier = Modifier) {
     MaterialTheme {
         SpriteSheet.load(Res.drawable.decor,  5, 4, 1)
         SpriteSheet.load(Res.drawable.hex,  2, 1, 1)
@@ -42,7 +41,7 @@ fun App() {
         val gameD = remember(SpriteSheet[Res.drawable.decor]) { makeGameD() }
 
         var game by remember(gameA) { mutableStateOf(gameA) }
-        Box(Modifier.fillMaxSize()) {
+        Box(modifier.fillMaxSize()) {
             game.View(
                 modifier = Modifier
                     .fillMaxSize()
