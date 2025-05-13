@@ -85,6 +85,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.multiplatform.settings.no.arg)
         }
 
         desktopMain.dependencies {
@@ -136,7 +137,7 @@ compose.desktop {
 
         buildTypes.release.proguard {
             version.set("7.3.0")
-            //configurationFiles.from(file("proguard-rules.pro"))
+            configurationFiles.from(file("proguard-rules.pro"))
         }
 
         nativeDistributions {
