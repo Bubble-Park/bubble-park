@@ -5,11 +5,13 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.russhwolf.settings.Settings
+import com.russhwolf.settings.get
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
 
@@ -35,6 +37,8 @@ class MutableSettings {
                 }
             }
         }
+
+        fun load(name : String, defaultValue: T) : T = getter(name) ?: defaultValue
 
         fun flow(name : String, defaultValue: T) : MutableStateFlow<T>{
             var flow = map[name]
