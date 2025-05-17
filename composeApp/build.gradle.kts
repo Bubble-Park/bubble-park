@@ -23,6 +23,7 @@ val myPackage = "fr.iutlens.mmi.demo"
 val myVersionCode = 1
 val myVersionName = "1.0.0" // major.minor.patch
 val myBaseName = "ComposeApp"
+val myBaseNameWasm = "composeApp"
 
 kotlin {
     androidTarget {
@@ -47,12 +48,13 @@ kotlin {
     
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        outputModuleName = "composeApp"
+        outputModuleName = myBaseNameWasm
+
         browser {
             val rootDirPath = project.rootDir.path
             val projectDirPath = project.projectDir.path
             commonWebpackConfig {
-                outputFileName = "composeApp.js"
+                outputFileName = "$myBaseNameWasm.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
                     static = (static ?: mutableListOf()).apply {
                         // Serve sources to debug inside browser
@@ -84,6 +86,7 @@ kotlin {
             implementation(compose.components.uiToolingPreview)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
+            implementation(libs.multiplatform.settings.no.arg)
         }
 
         desktopMain.dependencies {
@@ -135,7 +138,7 @@ compose.desktop {
 
         buildTypes.release.proguard {
             version.set("7.3.0")
-            //configurationFiles.from(file("proguard-rules.pro"))
+            configurationFiles.from(file("proguard-rules.pro"))
         }
 
         nativeDistributions {

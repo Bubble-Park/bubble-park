@@ -21,8 +21,10 @@ import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.utils.Music
 import fr.iutlens.mmi.demo.utils.Music.mute
 import fr.iutlens.mmi.demo.utils.SpriteSheet
+import fr.iutlens.mmi.demo.utils.settings
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
+
 
 
 @Composable
@@ -39,6 +41,7 @@ fun App(modifier: Modifier = Modifier) {
         val gameB = remember(SpriteSheet[Res.drawable.decor]) { makeGameB() }
         val gameC = remember(SpriteSheet[Res.drawable.decor]) { makeGameC() }
         val gameD = remember(SpriteSheet[Res.drawable.decor]) { makeGameD() }
+        var count by remember { settings.int["count", 0] }
 
         var game by remember(gameA) { mutableStateOf(gameA) }
         Box(modifier.fillMaxSize()) {
@@ -78,6 +81,9 @@ fun App(modifier: Modifier = Modifier) {
             }
             Button(modifier = Modifier.padding(4.dp), onClick = { game = gameD }) {
                 Text(text = "D")
+            }
+            Button(modifier = Modifier.padding(4.dp), onClick = { count++}) {
+                Text(text = "$count")
             }
             Spacer(modifier = Modifier.weight(1f))
             Button(modifier = Modifier.padding(4.dp), onClick = { mute = !mute }) {
