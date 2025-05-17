@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.yield
@@ -22,51 +23,41 @@ class MutableSettings {
     inner class Saveable<T>(
             val setter : (String,T) -> Unit,
             val getter : (String) -> T?,
-            val map : MutableMap<String,MutableStateFlow<T>> = mutableMapOf()
+            val map : MutableMap<String,MutableState<T>> = mutableMapOf()
                 ) {
 
         fun save(name : String, value : T){
             setter(name,value)
-            var flow = map[name]
-            if (flow == null){
-                flow = MutableStateFlow(value)
-                map[name] = flow
+            var state = map[name]
+            if (state == null){
+                state = mutableStateOf(value)
             } else {
-                CoroutineScope(Dispatchers.Main).launch{
-                    flow.emit(value)
-                }
+                state.value = value
             }
+            map[name] = state
         }
 
         fun load(name : String, defaultValue: T) : T = getter(name) ?: defaultValue
 
-        fun flow(name : String, defaultValue: T) : MutableStateFlow<T>{
-            var flow = map[name]
-            if (flow == null) {
+        fun state(name : String, defaultValue: T) : MutableState<T>{
+            var state = map[name]
+            if (state == null) {
                 val value = getter(name) ?: defaultValue
-                flow = MutableStateFlow(value)
-                map[name] = flow
+                state = mutableStateOf(value)
+                map[name] = state
             }
-            return flow
+            return state
         }
 
-        operator fun get(name: String, default : T) = object : MutableState<T>{
-            var current by mutableStateOf(default)
-            override var value: T
+        operator fun get(name: String, default : T) = object : MutableState<T> {
+            val state = state(name,default)
+            override var value
                 get() = component1()
-                set(value) = component2()(value)
+                set(v)  = component2()(v)
 
-            override fun component1(): T = current
-
+            override fun component1(): T = state.value
             override fun component2(): (T) -> Unit  = { save(name,it) }
 
-            init {
-                CoroutineScope(Dispatchers.Main).launch {
-                    flow(name,default).collect({
-                            current = it
-                        })
-                }
-            }
         }
     }
 
