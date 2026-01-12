@@ -52,8 +52,10 @@ open class RectangleGeometry(override  val sizeX : Int, override val sizeY: Int)
  *   / \_/ \_/ \
  *   \5/ \_/ \_/
  *
- *   /\/\
+ *    /\/\
+ *   | | |
  *   \/\/
+ *   | |
  */
 
 
