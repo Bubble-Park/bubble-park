@@ -1,22 +1,15 @@
 package fr.iutlens.mmi.demo.utils
 
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import com.russhwolf.settings.Settings
-import com.russhwolf.settings.get
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.last
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.yield
 
+/*
+MutableSettings représente un ensemble de clés/valeurs persitantes (sauvegardées)
 
+L'accès se fait via des propriétés nommées selon le type (int, string etc..) utilisables
+comme tableaux associatifs (map)
+ */
 class MutableSettings {
     val settings: Settings = Settings()
 
@@ -67,6 +60,17 @@ class MutableSettings {
     val float = Saveable(settings::putFloat, settings::getFloatOrNull)
     val double = Saveable(settings::putDouble, settings::getDoubleOrNull)
     val string = Saveable(settings::putString, settings::getStringOrNull)
+
+    inline operator fun<reified T :  Comparable<*>> get(key : String, default : T) : MutableState<T> =
+        when (T::class) {
+            Boolean::class -> boolean[key, default as Boolean]
+            Int::class -> int[key, default as Int]
+            Long::class -> long[key, default as Long]
+            Float::class -> float[key, default as Float]
+            Double::class -> double[key, default as Double]
+            String::class -> string[key, default as String]
+            else -> throw RuntimeException("Type not saveable")
+        } as MutableState<T>
 }
 
-val settings by lazy { MutableSettings() }
+val savedSettings by lazy { MutableSettings() }
