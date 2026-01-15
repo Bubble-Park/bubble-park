@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 
 import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.game.Game
+import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
 import fr.iutlens.mmi.demo.game.sprite.RectangleGeometry
@@ -24,24 +25,38 @@ import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.utils.Music
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 import fr.iutlens.mmi.demo.utils.distanceMap
+import org.jetbrains.compose.ui.tooling.preview.Preview
 
 
 import kotlin.math.floor
 
-fun makeGameA(): Game {
+
+class GameA : GameData() {
+
+    fun possible(x: Float, y: Float): Boolean {
+        with(tiledArea) {
+            val i =  floor(x / w).toInt()
+            val j =  floor(y / h).toInt()
+            if ( i !in 0..< tileMap.geometry.sizeX || j !in 0 ..< tileMap.geometry.sizeY) return false
+            val code = tileMap.get(i,j)
+            return code == 11
+        }
+    }
+
+
     val map = """
-            ####.################.#######
-            #.............#.....#.......#
-            #.#####.#####...###.#.#.###.#
-            #.....#.#.....#...#.#.#.....#
-            #####...#.#######.#...#.#####
-            #.....#.....#...#.#.#.......#
-            #.###.#####.#.#.#.#.#.#####.#
-            #.............#.............#""".trimIndent().toTileMap(
-              "!-^¨I" +
-                   "'_HTJ" +
-                   "|.() " +
-                   "L#[] ")
+        ####.################.#######
+        #.............#.....#.......#
+        #.#####.#####...###.#.#.###.#
+        #.....#.#.....#...#.#.#.....#
+        #####...#.#######.#...#.#####
+        #.....#.....#...#.#.#.......#
+        #.###.#####.#.#.#.#.#.#####.#
+        #.............#.............#""".trimIndent().toTileMap(
+        "!-^¨I" +
+                "'_HTJ" +
+                "|.() " +
+                "L#[] ")
 
     val doubleMap = map.compose(0,map.geometry.sizeY,map) // Etend map en ajoutant une copie de map en 0,map.sizeY
     val tiledArea = TiledArea(Res.drawable.decor,doubleMap)
@@ -55,45 +70,42 @@ fun makeGameA(): Game {
         EnemySprite(Res.drawable.perso,23.5f*tiledArea.w,1.5f*tiledArea.h,distance,0.05f),
         EnemySprite(Res.drawable.perso,3.5f*tiledArea.w,13.5f*tiledArea.h,distance),
         EnemySprite(Res.drawable.perso,23.5f*tiledArea.w,13.5f*tiledArea.h,distance),
+    )
+
+    init {
+
+            createGame(background = tiledArea,
+            spriteList = spriteList,
+            transform = GenericTransform(
+                Constraint.Fill(tiledArea) // sprite est centré (verticalement), et on affiche au moins 8 cases
+            )
         )
 
-    val game =  Game(background = tiledArea,
-        spriteList = spriteList,
-        transform = GenericTransform(
-            Constraint.Fill(tiledArea) // sprite est centré (verticalement), et on affiche au moins 8 cases
-            )
-    ).apply {
-        padAction = {(dx,dy) ->
+        game.padAction = {(dx,dy) ->
             val nextX = sprite.x + dx * tiledArea.w
             val nextY = sprite.y + dy * tiledArea.h
-            if (tiledArea.possible(nextX,nextY)){
+            if (possible(nextX,nextY)){
                 sprite.x = nextX
                 sprite.y = nextY
                 distance.update() // Mise à jour des distances
-                invalidate()
+                game.invalidate()
             }
             Music.playSound("files/message.mp3")
 
         }
-    }
 
-    // Animation toutes les 20ms (pour bouger les ennemis)
-    game.animationDelayMs = 20
-    game.update = {
-        spriteList.update()
-        game.invalidate()
+        // Animation toutes les 20ms (pour bouger les ennemis)
+        game.animationDelayMs = 20
+        game.update = {
+            spriteList.update()
+            game.invalidate()
+        }
     }
-    return game
-
 }
 
-fun TiledArea.possible(x: Float, y: Float): Boolean {
-    val i =  floor(x / w).toInt()
-    val j =  floor(y / h).toInt()
-    if ( i !in 0..< tileMap.geometry.sizeX || j !in 0 ..< tileMap.geometry.sizeY) return false
-    val code = tileMap.get(i,j)
-    return code == 11
-}
+fun makeGameA() = GameA().game
+
+
 
 
 //@Preview(showBackground = true, device = "spec:width=1280dp,height=800dp,dpi=240")

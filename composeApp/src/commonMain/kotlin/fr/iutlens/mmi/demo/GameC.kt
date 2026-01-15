@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.game.Game
+import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 
@@ -24,8 +25,9 @@ import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 
 
-fun makeGameC(): Game {
-    val map = """
+class GameC : GameData() {
+    init {
+        val map = """
             ----^------^-----^--^¨--¨-------¨--
             ____H______H_____H__HT__T_______T__
             ...................................
@@ -39,34 +41,35 @@ fun makeGameC(): Game {
             ###################!^¨I############
             ###################'HTJ############
         """.trimIndent().toTileMap(
-        "!-^¨I" +
-                "'_HTJ" +
-                "|.() " +
-                "L#[] ")
-    val tileMap = TiledArea(Res.drawable.decor,map)
+            "!-^¨I" +
+                    "'_HTJ" +
+                    "|.() " +
+                    "L#[] ")
+        val tileMap = TiledArea(Res.drawable.decor,map)
 
-    val sprite = BasicSprite(Res.drawable.perso,3.5f*tileMap.w,2f*tileMap.h)
-    val game = Game(background = tileMap,
-        spriteList = spriteListOf(sprite),
-        transform = GenericTransform(
-            Constraint.Focus(tileMap,sprite,10)
+        val sprite = BasicSprite(Res.drawable.perso,3.5f*tileMap.w,2f*tileMap.h)
+        createGame(background = tileMap,
+            spriteList = spriteListOf(sprite),
+            transform = GenericTransform(
+                Constraint.Focus(tileMap,sprite,10)
+            )
         )
-    )
 
-    game.animationDelayMs = 20
-    game.update = { it ->
-        it.joystickPosition?.let { position ->
-            if (!position.isCentered){
-                sprite.x += position.x*tileMap.w/4
-                sprite.y += position.y*tileMap.h/4
+        game.animationDelayMs = 20
+        game.update = { it ->
+            it.joystickPosition?.let { position ->
+                if (!position.isCentered){
+                    sprite.x += position.x*tileMap.w/4
+                    sprite.y += position.y*tileMap.h/4
+                }
             }
+            it.invalidate()
         }
-        it.invalidate()
+        game.animationDelayMs = 20
     }
-    game.animationDelayMs = 20
-
-    return game
 }
+
+fun makeGameC() = GameC().game
 
 
 
@@ -87,5 +90,4 @@ fun GameCPreview() {
                 .padding(16.dp),
             ) { game.joystickPosition = it }
         }
-
 }
