@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.unit.dp
+import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.utils.Music
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 
@@ -23,20 +24,21 @@ fun MultiGame(modifier : Modifier = Modifier, selection : Int){
     Music.loadSound("files/message.mp3")
 
 
-    val gameA = remember(SpriteSheet[Res.drawable.decor]) { makeGameA() }
-    val gameB = remember(SpriteSheet[Res.drawable.decor]) { makeGameB() }
-    val gameC = remember(SpriteSheet[Res.drawable.decor]) { makeGameC() }
-    val gameD = remember(SpriteSheet[Res.drawable.decor]) { makeGameD() }
+    val gameA = remember(SpriteSheet[Res.drawable.decor]) { GameA() }
+    val gameB = remember(SpriteSheet[Res.drawable.decor]) { GameB() }
+    val gameC = remember(SpriteSheet[Res.drawable.decor]) { GameC() }
+    val gameD = remember(SpriteSheet[Res.drawable.decor]) { GameD() }
     val game = arrayOf(gameA,gameB,gameC,gameD)[selection]
 
 
     Box(modifier) {
-        game.View(
+        GameView(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black)
+                .background(Color.Black),
+            game
         )
-        game.padAction?.let { action ->
+        game.game.padAction?.let { action ->
             Pad(
                 Modifier
                     .size(200.dp)
@@ -51,7 +53,7 @@ fun MultiGame(modifier : Modifier = Modifier, selection : Int){
                     .size(200.dp)
                     .align(Alignment.BottomStart)
                     .padding(16.dp),
-            ) { game.joystickPosition = it }
+            ) { game.game.joystickPosition = it }
         }
     }
 }

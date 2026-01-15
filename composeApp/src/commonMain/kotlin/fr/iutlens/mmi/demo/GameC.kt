@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.game.Game
 import fr.iutlens.mmi.demo.game.GameData
+import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 
@@ -69,25 +70,22 @@ class GameC : GameData() {
     }
 }
 
-fun makeGameC() = GameC().game
-
-
-
 @Composable
 fun GameCPreview() {
     SpriteSheet.load(Res.drawable.decor, 5, 4)
     SpriteSheet.load(Res.drawable.perso, 3, 1)
-    val game = makeGameC()
+    val game = GameC()
 
-        Box(Modifier.fillMaxSize()){
-            game.View(modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black))
+    Box(Modifier.fillMaxSize()){
+        GameView(modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+            game)
 
-            Joystick(modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.BottomStart)
-                .padding(16.dp),
-            ) { game.joystickPosition = it }
-        }
+        Joystick(modifier = Modifier
+            .size(200.dp)
+            .align(Alignment.BottomStart)
+            .padding(16.dp),
+        ) { game.game.joystickPosition = it }
+    }
 }

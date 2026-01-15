@@ -36,4 +36,3 @@ class GameD : GameData() {
     }
 }
 
-fun makeGameD() = GameD().game

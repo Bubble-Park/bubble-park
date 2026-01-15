@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.game.Game
 import fr.iutlens.mmi.demo.game.GameData
+import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
 import fr.iutlens.mmi.demo.game.sprite.RectangleGeometry
@@ -113,12 +114,13 @@ fun makeGameA() = GameA().game
 fun GameAPreview() {
     SpriteSheet.load(Res.drawable.decor, 5, 4)
     SpriteSheet.load(Res.drawable.perso, 3, 1)
-    val game = makeGameA()
+    val game = GameA()
     Box(Modifier.fillMaxSize()){
-        game.View(modifier = androidx.compose.ui.Modifier
+        GameView(modifier = androidx.compose.ui.Modifier
             .fillMaxSize()
-            .background(androidx.compose.ui.graphics.Color.Black))
-        val action = game.padAction ?: return@Box
+            .background(androidx.compose.ui.graphics.Color.Black),
+            game)
+        val action = game.game.padAction ?: return@Box
         Pad(
             Modifier
                 .size(200.dp)

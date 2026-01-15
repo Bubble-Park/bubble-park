@@ -7,6 +7,7 @@ import androidx.compose.ui.Modifier
 
 import fr.iutlens.mmi.demo.game.Game
 import fr.iutlens.mmi.demo.game.GameData
+import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
@@ -76,15 +77,12 @@ class GameB : GameData() {
     }
 }
 
-fun makeGameB() = GameC().game
-
-
 @Composable
 fun GameBPreview() {
     SpriteSheet.load(Res.drawable.decor, 5, 4)
     SpriteSheet.load(Res.drawable.perso, 3, 1)
-    val game = makeGameB()
+    val game = GameB()
 
-    game.View(modifier = Modifier.fillMaxSize())
+    GameView(modifier = Modifier.fillMaxSize(),game)
 
 }
