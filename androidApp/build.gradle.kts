@@ -15,6 +15,13 @@ android {
     namespace = myPackage
     compileSdk {
         version = release(36)
+        // compileSdkVersion(libs.versions.android.compileSdk.get().toInt())
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
     }
 
     defaultConfig {
@@ -45,6 +52,8 @@ android {
         compose = true
     }
     kotlin { jvmToolchain(11) }
+
+    buildToolsVersion = "36.1.0"
 }
 
 dependencies {
