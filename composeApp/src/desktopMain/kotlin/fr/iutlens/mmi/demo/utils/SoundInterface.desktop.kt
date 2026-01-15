@@ -11,9 +11,14 @@ import kotlinx.coroutines.yield
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 
 @OptIn(ExperimentalResourceApi::class)
-open class SoundResource(res : String){
+open class SoundResource(val res : String){
     @OptIn(ExperimentalResourceApi::class)
-    val path = '/'+Res.getUri(res).substringAfter("!/")
+    val path = '/'+ Res.getUri(res).substringAfter("!/")
+
+    init {
+        println("res : $res   path : $path   uri:" + Res.getUri(res))
+    }
+
     val stream get() = javaClass.getResourceAsStream(path).buffered()
     val player get() = Player(stream, JavaSoundAudioDeviceFactory().createAudioDevice())
 }

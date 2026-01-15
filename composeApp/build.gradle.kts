@@ -1,16 +1,15 @@
-import com.android.build.gradle.ProguardFiles.getDefaultProguardFile
-import org.gradle.kotlin.dsl.support.kotlinCompilerOptions
+import com.android.build.api.dsl.androidLibrary
+import org.gradle.kotlin.dsl.invoke
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
-    alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.androidLibrary)
 }
 
 repositories {
@@ -25,15 +24,36 @@ val myVersionName = "1.0.0" // major.minor.patch
 val myBaseName = "ComposeApp"
 val myBaseNameWasm = "composeApp"
 
+
+
 kotlin {
+    androidLibrary {
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        namespace = myPackage
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+        packaging {
+            resources {
+                excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            }
+        }
+        experimentalProperties["android.experimental.kmp.enableAndroidResources"] = true
+    }
+
+    /*
     androidTarget {
         @OptIn(ExperimentalKotlinGradlePluginApi::class)
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
         }
-    }
+    } */
     
-    jvm("desktop")
+    jvm("desktop"){
+        compilerOptions{
+            jvmTarget.set(JvmTarget.JVM_11)
+        }
+    }
 
     listOf(
         iosX64(),
@@ -56,11 +76,13 @@ kotlin {
             commonWebpackConfig {
                 outputFileName = "$myBaseNameWasm.js"
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
+                    static(rootDirPath)
+                    static(projectDirPath)
+              /*      static = (static ?: mutableListOf()).apply {
                         // Serve sources to debug inside browser
                         add(rootDirPath)
                         add(projectDirPath)
-                    }
+                    } */
                 }
             }
         }
@@ -97,10 +119,10 @@ kotlin {
     }
 }
 
-
-android {
+/*
+androidLibrary {
     namespace = myPackage
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
+    compileSdkVersion(libs.versions.android.compileSdk.get().toInt())
 
     defaultConfig {
         applicationId = myPackage
@@ -123,12 +145,14 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+
+    buildToolsVersion = "36.1.0"
 }
 
 dependencies {
     debugImplementation(compose.uiTooling)
 }
-
+*/
 compose.desktop {
 
 
@@ -138,6 +162,7 @@ compose.desktop {
 
         buildTypes.release.proguard {
             version.set("7.3.0")
+            isEnabled = false
             configurationFiles.from(file("proguard-rules.pro"))
         }
 
@@ -150,8 +175,8 @@ compose.desktop {
 }
 
 compose.resources {
-    publicResClass = false
+    publicResClass = true
     packageOfResClass = myPackage
-    generateResClass = auto
+    generateResClass = always
 }
 
