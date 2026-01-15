@@ -27,8 +27,10 @@ kotlin {
     androidLibrary {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         namespace = myPackage
+
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)
+            minSdk = 24
         }
         packaging {
             resources {
