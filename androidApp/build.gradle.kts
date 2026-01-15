@@ -5,18 +5,24 @@ plugins {
     alias(libs.plugins.composeCompiler)
 }
 
+val myPackage =  providers.gradleProperty("myPackage").get()
+val myAndroidId =  providers.gradleProperty("myAndroidId").get()
+val myVersionCode = providers.gradleProperty("myVersionCode").get().toInt()
+val myVersionName = providers.gradleProperty("myVersionName").get()
+
+
 android {
-    namespace = "fr.iutlens.mmi.demo"
+    namespace = myPackage
     compileSdk {
         version = release(36)
     }
 
     defaultConfig {
-        applicationId = "fr.iutlens.mmi.demo"
+        applicationId = myAndroidId
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = myVersionCode
+        versionName = myVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

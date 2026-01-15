@@ -1,5 +1,3 @@
-import com.android.build.api.dsl.androidLibrary
-import org.gradle.kotlin.dsl.invoke
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
@@ -18,12 +16,11 @@ repositories {
     maven { url = uri("https://jitpack.io") }
 }
 
-val myPackage = "fr.iutlens.mmi.demo"
-val myVersionCode = 1
-val myVersionName = "1.0.0" // major.minor.patch
-val myBaseName = "ComposeApp"
-val myBaseNameWasm = "composeApp"
 
+val myPackage =  providers.gradleProperty("myPackage").get()
+val myVersionName = providers.gradleProperty("myVersionName").get()
+val myBaseName = providers.gradleProperty("myBaseName").get()
+val myBaseNameWasm = providers.gradleProperty("myBaseNameWasm").get()
 
 
 kotlin {
@@ -78,11 +75,6 @@ kotlin {
                 devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
                     static(rootDirPath)
                     static(projectDirPath)
-              /*      static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(rootDirPath)
-                        add(projectDirPath)
-                    } */
                 }
             }
         }
