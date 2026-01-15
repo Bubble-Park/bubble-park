@@ -27,28 +27,30 @@ import fr.iutlens.mmi.demo.utils.SpriteSheet
 
 
 class GameC : GameData() {
-    init {
-        val map = """
-            ----^------^-----^--^¨--¨-------¨--
-            ____H______H_____H__HT__T_______T__
-            ...................................
-            ...................................
-            !---^-I----^-I---^-|..L-¨----!--¨--
-            '___H_J____H_J___H_|..L_T____'__T__
-            |.....L......L.....|..L......|.....
-            |.....L......L.....|..L......|.....
-            !--()----()----()--|..L--()----()--
-            '__[]____[]____[]__|..L__[]____[]__
-            ###################!^¨I############
-            ###################'HTJ############
-        """.trimIndent().toTileMap(
-            "!-^¨I" +
-                    "'_HTJ" +
-                    "|.() " +
-                    "L#[] ")
-        val tileMap = TiledArea(Res.drawable.decor,map)
 
-        val sprite = BasicSprite(Res.drawable.perso,3.5f*tileMap.w,2f*tileMap.h)
+    val map = """
+        ----^------^-----^--^¨--¨-------¨--
+        ____H______H_____H__HT__T_______T__
+        ...................................
+        ...................................
+        !---^-I----^-I---^-|..L-¨----!--¨--
+        '___H_J____H_J___H_|..L_T____'__T__
+        |.....L......L.....|..L......|.....
+        |.....L......L.....|..L......|.....
+        !--()----()----()--|..L--()----()--
+        '__[]____[]____[]__|..L__[]____[]__
+        ###################!^¨I############
+        ###################'HTJ############
+    """.trimIndent().toTileMap(
+        "!-^¨I" +
+                "'_HTJ" +
+                "|.() " +
+                "L#[] ")
+    val tileMap = TiledArea(Res.drawable.decor,map)
+
+    val sprite = BasicSprite(Res.drawable.perso,3.5f*tileMap.w,2f*tileMap.h)
+
+    init {
         createGame(background = tileMap,
             spriteList = spriteListOf(sprite),
             transform = GenericTransform(

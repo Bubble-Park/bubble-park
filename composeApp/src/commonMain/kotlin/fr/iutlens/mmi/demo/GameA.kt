@@ -75,11 +75,11 @@ class GameA : GameData() {
 
     init {
 
-            createGame(background = tiledArea,
-            spriteList = spriteList,
-            transform = GenericTransform(
-                Constraint.Fill(tiledArea) // sprite est centré (verticalement), et on affiche au moins 8 cases
-            )
+        createGame(background = tiledArea,
+        spriteList = spriteList,
+        transform = GenericTransform(
+            Constraint.Fill(tiledArea) // sprite est centré (verticalement), et on affiche au moins 8 cases
+             )
         )
 
         game.padAction = {(dx,dy) ->
@@ -103,10 +103,6 @@ class GameA : GameData() {
         }
     }
 }
-
-fun makeGameA() = GameA().game
-
-
 
 
 //@Preview(showBackground = true, device = "spec:width=1280dp,height=800dp,dpi=240")

@@ -10,17 +10,17 @@ import fr.iutlens.mmi.demo.game.transform.GenericTransform
 
 
 class GameD : GameData() {
-    init {
-        val map = """
+    val map = """
         .....
         ....o
         .o...
         ..o..
         .....
         """.trimIndent().toHexTileMap("o.")
-        val tiledArea = Res.drawable.hex.tiledArea(map)
-        val list = mutableSpriteListOf<BasicSprite>() // Notre liste de sprites
+    val tiledArea = Res.drawable.hex.tiledArea(map)
+    val list = mutableSpriteListOf<BasicSprite>() // Notre liste de sprites
 
+    init {
         createGame(
             background = tiledArea,
             spriteList = list,

@@ -22,27 +22,29 @@ import kotlin.random.Random
 
 
 class GameB : GameData() {
+
+    val map = """
+        1222232222225
+        677778777777A
+        BCCCCCCCCCCCG
+        BCCCCCCCCCCCG
+        BCCCCCCCCCCCG
+        BCCCCCCCCCCCG
+        BCCCCCCCCCCCG
+        BCCCCCCCCCCCG
+        BCCCCCCCCCCCG
+        122DE222DE225
+        677IJ777IJ77A
+    """.trimIndent().toTileMap(
+        "12345" +
+                "6789A" +
+                "BCDEF" +
+                "GHIJK")
+    val tileMap = TiledArea(Res.drawable.decor,map)
+    // val sprite = BasicSprite(R.drawable.car,3.5f*tileMap.w,2.5f*tileMap.h)
+    val list = mutableSpriteListOf<BasicSprite>() // Notre liste de sprites
+
     init {
-        val map = """
-            1222232222225
-            677778777777A
-            BCCCCCCCCCCCG
-            BCCCCCCCCCCCG
-            BCCCCCCCCCCCG
-            BCCCCCCCCCCCG
-            BCCCCCCCCCCCG
-            BCCCCCCCCCCCG
-            BCCCCCCCCCCCG
-            122DE222DE225
-            677IJ777IJ77A
-        """.trimIndent().toTileMap(
-            "12345" +
-                    "6789A" +
-                    "BCDEF" +
-                    "GHIJK")
-        val tileMap = TiledArea(Res.drawable.decor,map)
-        // val sprite = BasicSprite(R.drawable.car,3.5f*tileMap.w,2.5f*tileMap.h)
-        val list = mutableSpriteListOf<BasicSprite>() // Notre liste de sprites
         repeat(7){ // On crée plusieurs sprites aléatoires
             list.add(
                 BasicSprite(
@@ -52,7 +54,6 @@ class GameB : GameData() {
                     (0..2).random())
             )
         }
-
 
         createGame(background = tileMap,
             spriteList = list,
