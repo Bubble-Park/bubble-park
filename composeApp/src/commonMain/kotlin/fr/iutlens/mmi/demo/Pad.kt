@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.dp
 
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
-import org.jetbrains.compose.ui.tooling.preview.Preview
 import kotlin.math.abs
 
 @Composable
@@ -49,7 +48,6 @@ fun Pad(modifier: Modifier, image: DrawableResource = Res.drawable.pad, action: 
 
 
 @Composable
-@Preview
 fun PadPreview(){
     Pad(modifier = Modifier.width(200.dp)){_ -> }
 }

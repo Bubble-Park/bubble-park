@@ -21,10 +21,10 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun App(modifier: Modifier = Modifier) {
     MaterialTheme {
+        Music("files/jungle.mp3")
 
         var count by remember { savedSettings["count", 0] }
         var selection by remember { mutableStateOf(0) }
-        Music("files/jungle.mp3")
 
         MultiGame(Modifier.fillMaxSize(), selection)
 

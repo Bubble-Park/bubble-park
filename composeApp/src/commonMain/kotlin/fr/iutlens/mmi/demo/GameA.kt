@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 
 import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.game.GameData
@@ -100,7 +101,7 @@ class GameA : GameData() {
 }
 
 
-//@Preview(showBackground = true, device = "spec:width=1280dp,height=800dp,dpi=240")
+@Preview(showBackground = true, device = "spec:width=1280dp,height=800dp,dpi=240")
 @Composable
 fun GameAPreview() {
     SpriteSheet.load(Res.drawable.decor, 5, 4)

@@ -4,6 +4,7 @@ package fr.iutlens.mmi.demo
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 
 import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.GameView
@@ -76,12 +77,12 @@ class GameB : GameData() {
     }
 }
 
+@Preview
 @Composable
 fun GameBPreview() {
     SpriteSheet.load(Res.drawable.decor, 5, 4)
     SpriteSheet.load(Res.drawable.perso, 3, 1)
-    val game = GameB()
+    val gameData = GameB()
 
-    GameView(modifier = Modifier.fillMaxSize(),game)
-
+    GameView(modifier = Modifier.fillMaxSize(),gameData)
 }

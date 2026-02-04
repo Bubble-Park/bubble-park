@@ -1,4 +1,8 @@
+
+import org.gradle.kotlin.dsl.kotlin
+import org.gradle.kotlin.dsl.sourceSets
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
@@ -24,7 +28,7 @@ val myBaseNameWasm = providers.gradleProperty("myBaseNameWasm").get()
 
 
 kotlin {
-    android {
+    androidLibrary {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         namespace = myPackage
 
@@ -84,19 +88,19 @@ kotlin {
             implementation(libs.androidx.media3.exoplayer)
             implementation(libs.androidx.media3.common)
             implementation(libs.androidx.media3.datasource)
+
         }
         commonMain.dependencies {
-            implementation(compose.runtime)
-            implementation(compose.foundation)
-            implementation(compose.material)
-            implementation(compose.ui)
-            implementation(compose.components.resources)
-            implementation(compose.components.uiToolingPreview)
+            implementation(libs.runtime)
+            implementation(libs.foundation)
+            implementation(libs.material)
+            implementation(libs.components.resources)
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.multiplatform.settings.no.arg)
-            //androidRuntimeClasspath(libs.androidx.compose.ui.tooling)
-            //androidRuntimeClasspath(libs.compose.uiTooling)
+            implementation(libs.ui.tooling.preview)
+
+
         }
 
         desktopMain.dependencies {
@@ -104,7 +108,13 @@ kotlin {
             implementation(libs.kotlinx.coroutines.swing)
             implementation(libs.jlayer)
         }
+
+
     }
+}
+
+dependencies {
+    androidRuntimeClasspath(libs.jetbrains.ui.tooling)
 }
 
 compose.desktop {
