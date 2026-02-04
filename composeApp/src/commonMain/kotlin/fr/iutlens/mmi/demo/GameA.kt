@@ -76,7 +76,7 @@ class GameA : GameData() {
         createGame(background = tiledArea,
         spriteList = spriteList,
         transform = GenericTransform(
-            Constraint.Fill(tiledArea) // sprite est centré (verticalement), et on affiche au moins 8 cases
+            Constraint.Fill(tiledArea) // Le décor remplit l'écran
              )
         )
 

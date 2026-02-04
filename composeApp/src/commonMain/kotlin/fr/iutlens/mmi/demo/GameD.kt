@@ -24,7 +24,7 @@ class GameD : GameData() {
         ..o..
         .....
         """.trimIndent().toHexTileMap("o.")
-    val tiledArea = Res.drawable.hex.tiledArea(map)
+    val tiledArea = Res.drawable.hex.tiledArea(map) // Le décor remplit l'écran
 
     init {
         createGame(

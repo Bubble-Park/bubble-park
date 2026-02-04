@@ -56,6 +56,10 @@ class GameC : GameData() {
             spriteList = spriteListOf(sprite),
             transform = GenericTransform(
                 Constraint.Focus(tiledArea,sprite,10)
+                // Centré sur sprite, avec 10 cases visibles minium dans chaque direction
+
+                // Si on veut rester dans le décor (pas de zone noire) :
+                //, keepInside = tiledArea
             )
         )
 

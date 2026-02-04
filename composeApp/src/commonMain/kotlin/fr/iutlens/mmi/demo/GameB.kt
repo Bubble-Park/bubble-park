@@ -57,7 +57,7 @@ class GameB : GameData() {
         createGame(background = tiledArea,
             spriteList = spriteList,
             transform = GenericTransform(
-                Constraint.Fill(tiledArea)
+                Constraint.Fill(tiledArea) // Le décor remplit l'écran
             )
         )
 
