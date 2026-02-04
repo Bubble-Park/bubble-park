@@ -16,7 +16,7 @@ open class SoundResource(val res : String){
     val path = '/'+ Res.getUri(res).substringAfter("!/")
 
     init {
-        println("res : $res   path : $path   uri:" + Res.getUri(res))
+        //println("res : $res   path : $path   uri:" + Res.getUri(res))
     }
 
     val stream get() = javaClass.getResourceAsStream(path).buffered()

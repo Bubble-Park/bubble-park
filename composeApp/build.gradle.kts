@@ -111,6 +111,8 @@ compose.desktop {
     application {
         mainClass = "$myPackage.MainKt"
 
+        jvmArgs("--enable-native-access=ALL-UNNAMED")
+
 
         buildTypes.release.proguard {
             version.set("7.3.0")

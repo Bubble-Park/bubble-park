@@ -1,5 +1,6 @@
 package fr.iutlens.mmi.demo
 
+import androidx.compose.ui.geometry.Offset
 import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
@@ -27,12 +28,16 @@ class GameD : GameData() {
             transform = GenericTransform(
                 Constraint.Fill(tiledArea)
             )
-        ) { (x, y) ->
-            val i = x / tiledArea.w
-            val j = y / tiledArea.h
-            val value = tiledArea.tileMap[i, j]
-            if (value != null) map[i, j] = 1 - value
-        }
+        )
+        game.onTap = ::changeState
+    }
+
+    fun changeState(coord : Offset){
+        val (x,y) = coord
+        val i = x / tiledArea.w
+        val j = y / tiledArea.h
+        val value = tiledArea.tileMap[i, j]
+        if (value != null) map[i, j] = 1 - value
     }
 }
 

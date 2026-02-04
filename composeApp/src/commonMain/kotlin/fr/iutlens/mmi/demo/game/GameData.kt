@@ -14,12 +14,9 @@ open class GameData {
     fun createGame(
         background : Sprite,
         spriteList : SpriteList<*>,
-        transform: CameraTransform,
-        onDragStart: (Game.(Offset) -> Unit)? = null,
-        onDragMove:  (Game.(Offset) -> Unit)? = null,
-        onTap: (Game.(Offset)-> Unit)? = null
+        transform: CameraTransform
     ) : Game {
-        game = Game(background,spriteList,transform,onDragStart,onDragMove,onTap)
+        game = Game(background,spriteList,transform)
         return game
     }
 }

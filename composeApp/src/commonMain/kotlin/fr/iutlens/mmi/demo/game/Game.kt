@@ -25,9 +25,6 @@ import kotlin.time.TimeSource
  * @property background Le sprite à afficher en le fond
  * @property spriteList Les sprites à afficher (dans l'ordre de la liste)
  * @property transform La transformation (changement de coordonnées, déplacement) à appliquer
- * @property onDragStart Action à réaliser quand commence un drag and drop. Icompatible avec onTap
- * @property onDragMove Action à réaliser quand on bouge pendant le drag and drop. Incompatible avec onTap
- * @property onTap Action à réaliser quand on clique. Incompatible avec onDrag
  * @constructor Créé un jeu définit par sprite de fond (background), une liste de sprite à afficher
  * par dessus (spriteList) et un point de vue (transform)
  * Il est possible de préciser en plus les interactions (onDrag/onTap)
@@ -35,10 +32,10 @@ import kotlin.time.TimeSource
 class Game(val background : Sprite,
            val spriteList : SpriteList<*>,
            val transform: CameraTransform,
-           var onDragStart: (Game.(Offset) -> Unit)? = null,
-           var onDragMove:  (Game.(Offset) -> Unit)? = null,
-           var onTap: (Game.(Offset)-> Unit)? = null
         ) {
+    var onDragStart: ((Offset) -> Unit)? = null
+    var onDragMove:  ((Offset) -> Unit)? = null
+    var onTap: ((Offset)-> Unit)? = null
     var padAction: ((Offset) -> Unit)? = null
     var joystickPosition: JoystickPosition? = null
 
@@ -62,7 +59,12 @@ class Game(val background : Sprite,
     /**
      * Update : action à réaliser entre deux images
      */
-    var update: ((Game)-> Unit)? = null
+    var update: (()-> Unit)? = null
+
+    fun animation(delayMs : Int, update : () -> Unit){
+        animationDelayMs = delayMs
+        this.update = update
+    }
 
     /**
      * Invalidate demande une nouvelle image, en général parce que les données du jeu ont changé
@@ -93,9 +95,9 @@ class Game(val background : Sprite,
         if (onDragMove!= null) {
             m = m.pointerInput(key1 = onDragStart to onDragMove){
                 detectDragGestures(onDragStart = {
-                    onDragStart?.invoke(this@Game,transform.getPoint(it))
+                    onDragStart?.invoke(transform.getPoint(it))
                 }) { change, dragAmount ->
-                    onDragMove?.invoke(this@Game,transform.getPoint(change.position))
+                    onDragMove?.invoke(transform.getPoint(change.position))
                 }
             }
         }
@@ -116,7 +118,7 @@ class Game(val background : Sprite,
                     val current = (timeSource.markNow()-start).inWholeMilliseconds
                     val next = elapsed+ delay
                     if (next>current) delay(next-current)
-                    myUpdate(this@Game)
+                    myUpdate()
                 }
             }
         }

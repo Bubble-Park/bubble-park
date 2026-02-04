@@ -92,12 +92,10 @@ class GameA : GameData() {
                 game.invalidate()
             }
             Music.playSound("files/message.mp3")
-
         }
 
         // Animation toutes les 20ms (pour bouger les ennemis)
-        game.animationDelayMs = 20
-        game.update = {
+        game.animation(20) {
             spriteList.update()
             game.invalidate()
         }

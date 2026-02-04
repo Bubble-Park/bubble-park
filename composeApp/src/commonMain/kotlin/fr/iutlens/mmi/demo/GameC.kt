@@ -58,18 +58,15 @@ class GameC : GameData() {
             )
         )
 
-        game.animationDelayMs = 20
-        game.update = { it ->
-            it.joystickPosition?.let { position ->
-                if (!position.isCentered){
+        game.animation(20)  {
+            val position = game.joystickPosition ?: return@animation
+            if (!position.isCentered){
                     sprite.x += position.x*tileMap.w/4
                     sprite.y += position.y*tileMap.h/4
                 }
+            game.invalidate()
             }
-            it.invalidate()
         }
-        game.animationDelayMs = 20
-    }
 }
 
 @Composable

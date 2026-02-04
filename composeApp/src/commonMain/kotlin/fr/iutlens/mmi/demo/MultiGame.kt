@@ -23,13 +23,11 @@ fun MultiGame(modifier : Modifier = Modifier, selection : Int){
     SpriteSheet.load(Res.drawable.perso,  3, 1, filterQuality = FilterQuality.High)
     Music.loadSound("files/message.mp3")
 
-
     val gameA = remember(SpriteSheet[Res.drawable.decor]) { GameA() }
     val gameB = remember(SpriteSheet[Res.drawable.decor]) { GameB() }
     val gameC = remember(SpriteSheet[Res.drawable.decor]) { GameC() }
     val gameD = remember(SpriteSheet[Res.drawable.decor]) { GameD() }
     val game = arrayOf(gameA,gameB,gameC,gameD)[selection]
-
 
     Box(modifier) {
         GameView(
