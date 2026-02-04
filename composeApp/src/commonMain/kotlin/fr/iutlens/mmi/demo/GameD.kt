@@ -4,6 +4,7 @@ import androidx.compose.ui.geometry.Offset
 import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
+import fr.iutlens.mmi.demo.game.sprite.spriteListOf
 import fr.iutlens.mmi.demo.game.sprite.tiledArea
 import fr.iutlens.mmi.demo.game.sprite.toHexTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
@@ -19,12 +20,11 @@ class GameD : GameData() {
         .....
         """.trimIndent().toHexTileMap("o.")
     val tiledArea = Res.drawable.hex.tiledArea(map)
-    val list = mutableSpriteListOf<BasicSprite>() // Notre liste de sprites
 
     init {
         createGame(
             background = tiledArea,
-            spriteList = list,
+            spriteList = spriteListOf<BasicSprite>(),
             transform = GenericTransform(
                 Constraint.Fill(tiledArea)
             )

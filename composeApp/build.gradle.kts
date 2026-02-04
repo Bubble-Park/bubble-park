@@ -24,7 +24,7 @@ val myBaseNameWasm = providers.gradleProperty("myBaseNameWasm").get()
 
 
 kotlin {
-    androidLibrary {
+    android {
         compileSdk = libs.versions.android.compileSdk.get().toInt()
         namespace = myPackage
 
@@ -95,6 +95,8 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodel)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(libs.multiplatform.settings.no.arg)
+            //androidRuntimeClasspath(libs.androidx.compose.ui.tooling)
+            //androidRuntimeClasspath(libs.compose.uiTooling)
         }
 
         desktopMain.dependencies {

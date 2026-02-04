@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 
 import androidx.compose.ui.unit.dp
-import fr.iutlens.mmi.demo.game.Game
 import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
@@ -24,6 +23,7 @@ import fr.iutlens.mmi.demo.game.transform.Constraint
 
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.utils.SpriteSheet
+
 
 
 class GameC : GameData() {
@@ -46,28 +46,29 @@ class GameC : GameData() {
                 "'_HTJ" +
                 "|.() " +
                 "L#[] ")
-    val tileMap = TiledArea(Res.drawable.decor,map)
+    val tiledArea = TiledArea(Res.drawable.decor,map)
 
-    val sprite = BasicSprite(Res.drawable.perso,3.5f*tileMap.w,2f*tileMap.h)
+    val sprite = BasicSprite(Res.drawable.perso,3.5f*tiledArea.w,2f*tiledArea.h)
 
     init {
-        createGame(background = tileMap,
+        createGame(background = tiledArea,
             spriteList = spriteListOf(sprite),
             transform = GenericTransform(
-                Constraint.Focus(tileMap,sprite,10)
+                Constraint.Focus(tiledArea,sprite,10)
             )
         )
 
         game.animation(20)  {
+            game.invalidate()
             val position = game.joystickPosition ?: return@animation
             if (!position.isCentered){
-                    sprite.x += position.x*tileMap.w/4
-                    sprite.y += position.y*tileMap.h/4
+                    sprite.x += position.x*tiledArea.w/4
+                    sprite.y += position.y*tiledArea.h/4
                 }
-            game.invalidate()
             }
         }
 }
+
 
 @Composable
 fun GameCPreview() {

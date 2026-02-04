@@ -11,12 +11,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 import androidx.compose.ui.unit.dp
-import fr.iutlens.mmi.demo.game.Game
 import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
-import fr.iutlens.mmi.demo.game.sprite.RectangleGeometry
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.game.sprite.compose
 import fr.iutlens.mmi.demo.game.sprite.spriteListOf
@@ -26,7 +24,6 @@ import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.utils.Music
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 import fr.iutlens.mmi.demo.utils.distanceMap
-import org.jetbrains.compose.ui.tooling.preview.Preview
 
 
 import kotlin.math.floor
@@ -108,13 +105,13 @@ class GameA : GameData() {
 fun GameAPreview() {
     SpriteSheet.load(Res.drawable.decor, 5, 4)
     SpriteSheet.load(Res.drawable.perso, 3, 1)
-    val game = GameA()
+    val gameData = GameA()
     Box(Modifier.fillMaxSize()){
         GameView(modifier = androidx.compose.ui.Modifier
             .fillMaxSize()
             .background(androidx.compose.ui.graphics.Color.Black),
-            game)
-        val action = game.game.padAction ?: return@Box
+            gameData)
+        val action = gameData.game.padAction ?: return@Box
         Pad(
             Modifier
                 .size(200.dp)

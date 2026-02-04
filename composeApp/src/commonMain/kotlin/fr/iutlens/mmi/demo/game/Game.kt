@@ -64,6 +64,7 @@ class Game(val background : Sprite,
     fun animation(delayMs : Int, update : () -> Unit){
         animationDelayMs = delayMs
         this.update = update
+        invalidate()
     }
 
     /**
