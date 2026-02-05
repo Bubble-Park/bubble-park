@@ -10,24 +10,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.BubblePark
-import fr.iutlens.mmi.demo.Joystick
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.sprites_bubblepark_map_v1
+import fr.iutlens.mmi.demo.ui.Controllers
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 
 @Composable
 fun GameScreen(onExit: () -> Unit) {
-    // Chargement des ressources nécessaires pour ce niveau
     SpriteSheet.load(Res.drawable.sprites_bubblepark_map_v1, 3, 1)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
 
-    // Initialisation persistante du moteur de jeu
     val gameData = remember { BubblePark() }
 
     Box(Modifier.fillMaxSize()) {
-        // Vue du jeu
         GameView(
             modifier = Modifier
                 .fillMaxSize()
@@ -36,15 +33,11 @@ fun GameScreen(onExit: () -> Unit) {
         )
 
         // Contrôles
-        Joystick(
-            modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.BottomStart)
-                .padding(32.dp)
-        ) { 
-            gameData.game.joystickPosition = it 
-        }
-        
-        // Ici on pourrait ajouter d'autres éléments d'UI (Score, Bouton Pause, etc.)
+        Controllers(
+            modifier = Modifier.fillMaxSize(),
+            onJoystickChange = { gameData.game.joystickPosition = it },
+            onActionA = { pressed -> /* Action A (Saut ?) */ },
+            onActionB = { pressed -> /* Action B (Attaque ?) */ }
+        )
     }
 }
