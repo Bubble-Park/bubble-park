@@ -1,91 +1,52 @@
 package fr.iutlens.mmi.demo.components
 
 import fr.iutlens.mmi.demo.JoystickPosition
-import fr.iutlens.mmi.demo.game.sprite.BasicSprite
+import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import org.jetbrains.compose.resources.DrawableResource
-import kotlin.math.floor
-import kotlin.math.max
-import kotlin.math.min
 
 class Player(
     res: DrawableResource,
     x: Float,
     y: Float,
-    val mapArea: TiledArea,
+    mapArea: TiledArea,
     val joystickProvider: () -> JoystickPosition?
-) : BasicSprite(res, x, y) {
+) : PhysicsSprite(res, x, y, mapArea, gravity = 2f, jumpForce = -55f) {
 
     private var frameCounter = 0
-    private var vy = 0f
-    private val gravity = 2f
-    private val jumpForce = -55f
-    private var isOnGround = false
 
-    private fun isWall(x: Float, y: Float): Boolean {
-        with(mapArea) {
-            val i = floor(x / w).toInt()
-            val j = floor(y / h).toInt()
-            if (i !in 0..<tileMap.geometry.sizeX) return true
-            if (j < 0) return false
-            if (j >= tileMap.geometry.sizeY) return true
-            return tileMap.get(i, j) != 0
-        }
-    }
+    private val jumpRisingFrame = 21
+    private val jumpFallingFrame = 23
 
     override fun update() {
-        super.update()
         val position = joystickProvider() ?: return
-        val h2 = spriteSheet.spriteHeight / 2f
-        val w2 = spriteSheet.spriteWidth / 2f
-
-        vy += gravity
-        val nextY = y + vy
-
-        if (vy > 0) {
-            if (!isWall(x - w2/4, nextY + h2) && !isWall(x + w2/4, nextY + h2)) {
-                y = nextY
-                if (vy > gravity * 2) isOnGround = false
-            } else {
-                isOnGround = true
-                val tileJ = floor((nextY + h2) / mapArea.h).toInt()
-                y = tileJ * mapArea.h - h2 - 0.1f
-                vy = 0f
-            }
-        } else if (vy < 0) {
-            if (!isWall(x, nextY - h2)) {
-                y = nextY
-            } else {
-                vy = 0f
-            }
-        }
-
-        if (isOnGround && position.y < -0.6f) {
-            vy = jumpForce
-            isOnGround = false
-            y -= 2f
+        
+        if (position.y < -0.6f) {
+            jump()
         }
 
         val speed = position.x * mapArea.w / 4
-        val maxSpeed = 45f
-        val nextX = x + max(min(speed, maxSpeed), -maxSpeed)
+        moveX(speed)
 
-        if (!isWall(nextX + if (speed > 0) w2/2 else -w2/2, y)) {
-            x = nextX
-        }
-
+        applyPhysics()
+        
         if (!isOnGround) {
-            ndx = if (vy < 0) 21 else 23
+            ndx = if (vy < 0) jumpRisingFrame else jumpFallingFrame
         } else if (!position.isCentered && speed != 0f) {
             frameCounter++
             val animFrame = (frameCounter / 4) % 3
+            
+            val isRunningFast = (speed > 15f || speed < -15f) 
+
             if (speed > 0) {
-                ndx = if (speed > maxSpeed/3) 10 + animFrame else 0 + animFrame
+                ndx = if (isRunningFast) 10 + animFrame else 0 + animFrame
             } else {
-                ndx = if (speed < -(maxSpeed/3)) 13 + animFrame else 3 + animFrame
+                ndx = if (isRunningFast) 13 + animFrame else 3 + animFrame
             }
         } else {
             ndx = if (ndx in 13..15 || ndx == 3 || speed < 0) 13 else 10
         }
+        
+        super.update()
     }
 }
