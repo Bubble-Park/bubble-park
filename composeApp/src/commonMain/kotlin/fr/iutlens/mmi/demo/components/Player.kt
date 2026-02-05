@@ -18,10 +18,9 @@ class Player(
 
     private var frameCounter = 0
     private var vy = 0f
-    private val gravity = 1.5f
-    private val jumpForce = -25f
+    private val gravity = 2f
+    private val jumpForce = -55f
     private var isOnGround = false
-    private var jumpReleased = true
 
     private fun isWall(x: Float, y: Float): Boolean {
         with(mapArea) {
@@ -61,12 +60,9 @@ class Player(
             }
         }
 
-        if (position.y >= -0.2f) jumpReleased = true
-        
-        if (isOnGround && position.y < -0.6f && jumpReleased) {
+        if (isOnGround && position.y < -0.6f) {
             vy = jumpForce
             isOnGround = false
-            jumpReleased = false
             y -= 2f
         }
 
