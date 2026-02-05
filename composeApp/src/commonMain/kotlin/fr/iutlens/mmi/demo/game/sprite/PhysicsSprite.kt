@@ -62,9 +62,8 @@ open class PhysicsSprite(
         }
     }
 
-    fun moveX(speed: Float) {
+    fun moveX(speed: Float, maxSpeed: Float) {
         val w2 = spriteSheet.spriteWidth / 2f
-        val maxSpeed = 45f 
         val clampedSpeed = max(min(speed, maxSpeed), -maxSpeed)
         
         val nextX = x + clampedSpeed

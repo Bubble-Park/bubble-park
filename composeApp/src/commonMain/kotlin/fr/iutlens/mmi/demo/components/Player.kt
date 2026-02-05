@@ -11,57 +11,52 @@ class Player(
     y: Float,
     mapArea: TiledArea,
     val joystickProvider: () -> JoystickPosition?
-) : PhysicsSprite(res, x, y, mapArea, gravity = 5f, jumpForce = -90f) {
+) : PhysicsSprite(res, x, y, mapArea, gravity = 8f, jumpForce = -110f) {
 
     private var frameCounter = 0
+    private var facingRight = true
 
-    // Définition simple des animations de saut
     private val jumpRisingFrame = 21
     private val jumpFallingFrame = 23
+    private val jumpRisingFrameLeft = 26
+    private val jumpFallingFrameLeft = 29
 
     override fun update() {
-        // --- 1. Gestion des Inputs ---
         val position = joystickProvider() ?: return
         
-        // Saut : Si joystick vers le haut
         if (position.y < -0.6f) {
             jump()
         }
 
-        // Déplacement Horizontal
         val speed = position.x * mapArea.w / 4
-        moveX(speed)
+        if (speed > 0) facingRight = true
+        if (speed < 0) facingRight = false
 
-        // --- 2. Physique (Gérée par le parent) ---
+        moveX(speed, 60f)
+
         applyPhysics()
         
-        // --- 3. Animation ---
         if (!isOnGround) {
-            // En l'air
-            ndx = if (vy < 0) jumpRisingFrame else jumpFallingFrame
+            if (facingRight) {
+                ndx = if (vy < 0) jumpRisingFrame else jumpFallingFrame
+            } else {
+                ndx = if (vy < 0) jumpRisingFrameLeft else jumpFallingFrameLeft
+            }
         } else if (!position.isCentered && speed != 0f) {
-            // Marche au sol
             frameCounter++
             val animFrame = (frameCounter / 4) % 3
             
-            // On peut récupérer maxSpeed du moveX si on voulait être précis,
-            // ici on utilise une approximation pour savoir si on court vite
-            val maxSpeed = 30f // Valeur locale pour l'animation
-            val isRunning = (speed > maxSpeed || speed < -maxSpeed)
+            val isRunning = (speed > 20f || speed < -20f)
 
-            if (speed > 0) {
+            if (facingRight) {
                 ndx = if (isRunning) 10 + animFrame else 0 + animFrame
             } else {
                 ndx = if (isRunning) 13 + animFrame else 3 + animFrame
             }
         } else {
-            // Immobile au sol
-            // Si on était en marche gauche (13..15) ou statique gauche (3) ou si vitesse négative, on reste à gauche
-            ndx = if (ndx in 13..15 || ndx == 3 || speed < 0) 13 else 10
+            ndx = if (facingRight) 10 else 13
         }
         
-        // Nécessaire pour mettre à jour la position visuelle dans BasicSprite si elle n'est pas automatique
-        // (BasicSprite utilise x et y pour le paint, qui sont modifiés par moveX et applyPhysics)
         super.update()
     }
 }
