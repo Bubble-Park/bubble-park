@@ -56,7 +56,7 @@ class BubblePark : GameData() {
             """.trimIndent(),
             tileSetRes = Res.drawable.sprites_bubblepark_map_v1,
             startX = 1.5f,
-            startY = 21.5f,
+            startY = 2.5f,
             mapCode = ".#|"
         )
     )
@@ -69,7 +69,8 @@ class BubblePark : GameData() {
         val player = Player(
             res = Res.drawable.bubblechtein_sprites,
             x = levelData.startX * tileArea.w,
-            y = levelData.startY * tileArea.h,
+            // Inversion : startY représente maintenant la hauteur depuis le bas
+            y = (tileMap.geometry.sizeY - levelData.startY) * tileArea.h,
             mapArea = tileArea,
             joystickProvider = { game.joystickPosition }
         )
