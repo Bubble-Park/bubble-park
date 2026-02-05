@@ -26,6 +26,7 @@ class Player(
         }
 
         val speed = position.x * mapArea.w / 4
+        val maxSpeed = 30f
         moveX(speed)
 
         applyPhysics()
@@ -36,12 +37,12 @@ class Player(
             frameCounter++
             val animFrame = (frameCounter / 4) % 3
             
-            val isRunningFast = (speed > 15f || speed < -15f) 
+            val isRunning = (speed > maxSpeed || speed < -maxSpeed)
 
             if (speed > 0) {
-                ndx = if (isRunningFast) 10 + animFrame else 0 + animFrame
+                ndx = if (isRunning) 10 + animFrame else 0 + animFrame
             } else {
-                ndx = if (isRunningFast) 13 + animFrame else 3 + animFrame
+                ndx = if (isRunning) 13 + animFrame else 3 + animFrame
             }
         } else {
             ndx = if (ndx in 13..15 || ndx == 3 || speed < 0) 13 else 10
