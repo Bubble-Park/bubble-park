@@ -6,7 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.tooling.preview.Preview
 import fr.iutlens.mmi.demo.App
-import fr.iutlens.mmi.demo.GameCPreview
+import fr.iutlens.mmi.demo.BubbleParkPreview
 import fr.iutlens.mmi.demo.utils.Music.mute
 
 class MainActivity : ComponentActivity() {
@@ -41,5 +41,5 @@ fun AppAndroidPreview() {
 @Preview
 @Composable
 fun AndroidPreview(){
-    GameCPreview()
+    BubbleParkPreview()
 }
