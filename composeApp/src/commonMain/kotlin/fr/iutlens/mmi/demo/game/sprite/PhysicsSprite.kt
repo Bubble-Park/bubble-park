@@ -17,14 +17,21 @@ open class PhysicsSprite(
     var vy = 0f
     var isOnGround = false
 
-    protected fun isWall(x: Float, y: Float): Boolean {
+    protected fun isWall(x: Float, y: Float, checkPlatform: Boolean = true): Boolean {
         with(mapArea) {
             val i = floor(x / w).toInt()
             val j = floor(y / h).toInt()
             if (i !in 0..<tileMap.geometry.sizeX) return true
             if (j < 0) return false
             if (j >= tileMap.geometry.sizeY) return true
-            return tileMap.get(i, j) != 0
+            
+            val code = tileMap.get(i, j) ?: 0
+            
+            return when (code) {
+                0 -> false
+                1, 2 -> checkPlatform
+                else -> true
+            }
         }
     }
 
@@ -35,18 +42,19 @@ open class PhysicsSprite(
         vy += gravity
         val nextY = y + vy
 
-        if (vy > 0) { // Chute
-            if (!isWall(x - w2/4, nextY + h2) && !isWall(x + w2/4, nextY + h2)) {
+        if (vy > 0) {
+            if (!isWall(x - w2/4, nextY + h2, checkPlatform = true) &&
+                !isWall(x + w2/4, nextY + h2, checkPlatform = true)) {
                 y = nextY
                 if (vy > gravity * 2) isOnGround = false
-            } else { // Atterrissage
+            } else {
                 isOnGround = true
                 val tileJ = floor((nextY + h2) / mapArea.h).toInt()
                 y = tileJ * mapArea.h - h2 - 0.1f
                 vy = 0f
             }
         } else if (vy < 0) { // Montée
-            if (!isWall(x, nextY - h2)) {
+            if (!isWall(x, nextY - h2, checkPlatform = false)) {
                 y = nextY
             } else {
                 vy = 0f
@@ -56,13 +64,12 @@ open class PhysicsSprite(
 
     fun moveX(speed: Float) {
         val w2 = spriteSheet.spriteWidth / 2f
-        // Limitation arbitraire de vitesse max (peut être surchargée ou paramétrée si besoin)
         val maxSpeed = 45f 
         val clampedSpeed = max(min(speed, maxSpeed), -maxSpeed)
         
         val nextX = x + clampedSpeed
 
-        if (!isWall(nextX + if (clampedSpeed > 0) w2/2 else -w2/2, y)) {
+        if (!isWall(nextX + if (clampedSpeed > 0) w2/2 else -w2/2, y, checkPlatform = false)) {
             x = nextX
         }
     }
