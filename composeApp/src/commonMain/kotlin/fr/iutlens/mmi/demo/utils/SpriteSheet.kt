@@ -38,7 +38,7 @@ class SpriteSheet(
      * SpriteHeight : hauteur d'un sprite
      */
     val spriteHeight = _rawSpriteHeight-padding*2
-    val size = IntSize(spriteWidth+1,spriteHeight+1)
+    val size = IntSize(spriteWidth,spriteHeight)
 
     fun left(ndx : Int) = (ndx%sizeX)* _rawSpriteWidth+padding
     fun top(ndx: Int) = (ndx/sizeX)* _rawSpriteHeight+padding
