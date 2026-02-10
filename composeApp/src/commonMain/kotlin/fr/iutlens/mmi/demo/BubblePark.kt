@@ -33,6 +33,8 @@ class BubblePark : GameData() {
     private lateinit var player: Player
     private lateinit var tileArea: TiledArea
 
+    private var nextShotTime = 0L
+
     private val levels = listOf(
         LevelData(
             mapString = """
@@ -97,7 +99,11 @@ class BubblePark : GameData() {
         }
     }
 
-    fun shoot(enableCollisions: Boolean = false) {
+    fun shoot(enableCollisions: Boolean = false, delayMs: Long = 300) {
+        val now = game.elapsed
+        if (now < nextShotTime) return
+        nextShotTime = now + delayMs
+
         val step = PI / 4
         val quantizedAngle = round(player.lastAngle / step) * step
         val bullet = Bullet(player.x, player.y, quantizedAngle, tileArea, collides = enableCollisions)
