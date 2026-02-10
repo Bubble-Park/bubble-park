@@ -53,9 +53,6 @@ fun GameScreen(onExit: () -> Unit) {
         if (Key.DirectionDown in keys) dy += 1f
         if (Key.DirectionUp in keys) dy -= 1f
         
-        // Simule un joystick centré (1,1) dans une boite 2x2.
-        // Si dx=1 (droite) -> Offset(2,1) -> (2*2/2 - 1) = 1 -> X=1
-        // Si vide -> Offset(1,1) -> (2*1/2 - 1) = 0 -> X=0
         if (keys.isEmpty()) {
              gameData.game.joystickPosition = null
         } else {
@@ -74,6 +71,9 @@ fun GameScreen(onExit: () -> Unit) {
             .onKeyEvent { event ->
                 // Boutons
                 if (event.key == Key.A) {
+                    if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
+                         gameData.shoot()
+                    }
                     gameData.game.actionButtonA = (event.type == KeyEventType.KeyDown)
                     return@onKeyEvent true
                 }
@@ -82,7 +82,6 @@ fun GameScreen(onExit: () -> Unit) {
                     return@onKeyEvent true
                 }
                 
-                // Directions
                 if (event.key in listOf(Key.DirectionUp, Key.DirectionDown, Key.DirectionLeft, Key.DirectionRight)) {
                     val newKeys = keyState.toMutableSet()
                     if (event.type == KeyEventType.KeyDown) newKeys.add(event.key)
@@ -102,11 +101,13 @@ fun GameScreen(onExit: () -> Unit) {
             gameData = gameData
         )
 
-        // Contrôles
         Controllers(
             modifier = Modifier.fillMaxSize(),
             onJoystickChange = { gameData.game.joystickPosition = it },
-            onActionA = { pressed -> gameData.game.actionButtonA = pressed },
+            onActionA = { pressed ->
+                if (pressed && !gameData.game.actionButtonA) gameData.shoot()
+                gameData.game.actionButtonA = pressed
+            },
             onActionB = { pressed -> gameData.game.actionButtonB = pressed }
         )
     }

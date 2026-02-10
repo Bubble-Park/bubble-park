@@ -22,8 +22,14 @@ class Player(
     private val jumpRisingFrameLeft = 26
     private val jumpFallingFrameLeft = 29
 
+    var lastAngle = 0.0
+
     override fun update() {
         val position = joystickProvider() ?: JoystickPosition.centered
+
+        if (!position.isCentered) {
+            lastAngle = position.angle
+        }
         
         if (jumpActionProvider()) {
             jump()
