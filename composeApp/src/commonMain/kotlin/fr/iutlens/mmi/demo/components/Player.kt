@@ -10,7 +10,8 @@ class Player(
     x: Float,
     y: Float,
     mapArea: TiledArea,
-    val joystickProvider: () -> JoystickPosition?
+    val joystickProvider: () -> JoystickPosition?,
+    val jumpActionProvider: () -> Boolean
 ) : PhysicsSprite(res, x, y, mapArea, gravity = 8f, jumpForce = -110f) {
 
     private var frameCounter = 0
@@ -22,9 +23,9 @@ class Player(
     private val jumpFallingFrameLeft = 29
 
     override fun update() {
-        val position = joystickProvider() ?: return
+        val position = joystickProvider() ?: JoystickPosition.centered
         
-        if (position.y < -0.6f) {
+        if (jumpActionProvider()) {
             jump()
         }
 

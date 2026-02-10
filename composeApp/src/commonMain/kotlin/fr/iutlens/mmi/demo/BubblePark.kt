@@ -72,7 +72,8 @@ class BubblePark : GameData() {
             // Inversion : startY représente maintenant la hauteur depuis le bas
             y = (tileMap.geometry.sizeY - levelData.startY) * tileArea.h,
             mapArea = tileArea,
-            joystickProvider = { game.joystickPosition }
+            joystickProvider = { game.joystickPosition },
+            jumpActionProvider = { game.actionButtonB }
         )
 
         createGame(
