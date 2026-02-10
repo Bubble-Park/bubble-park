@@ -38,6 +38,8 @@ class Game(val background : Sprite,
     var onTap: ((Offset)-> Unit)? = null
     var padAction: ((Offset) -> Unit)? = null
     var joystickPosition: JoystickPosition? = null
+    var actionButtonA = false
+    var actionButtonB = false
 
     val timeSource = TimeSource.Monotonic
 
