@@ -20,7 +20,7 @@ class Player(
     private val jumpRisingFrame = 21
     private val jumpFallingFrame = 23
     private val jumpRisingFrameLeft = 26
-    private val jumpFallingFrameLeft = 29
+    private val jumpFallingFrameLeft = 28
 
     var lastAngle = 0.0
 

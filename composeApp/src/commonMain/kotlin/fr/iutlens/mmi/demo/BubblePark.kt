@@ -31,6 +31,7 @@ import kotlin.math.round
 class BubblePark : GameData() {
 
     private lateinit var player: Player
+    private lateinit var tileArea: TiledArea
 
     private val levels = listOf(
         LevelData(
@@ -70,7 +71,7 @@ class BubblePark : GameData() {
     fun loadLevel(index: Int) {
         val levelData = levels[index]
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
-        val tileArea = TiledArea(levelData.tileSetRes, tileMap)
+        tileArea = TiledArea(levelData.tileSetRes, tileMap)
         
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
@@ -96,10 +97,10 @@ class BubblePark : GameData() {
         }
     }
 
-    fun shoot() {
+    fun shoot(enableCollisions: Boolean = false) {
         val step = PI / 4
         val quantizedAngle = round(player.lastAngle / step) * step
-        val bullet = Bullet(player.x, player.y, quantizedAngle)
+        val bullet = Bullet(player.x, player.y, quantizedAngle, tileArea, collides = enableCollisions)
         (game.spriteList as? MutableList<Sprite>)?.add(bullet)
     }
 
