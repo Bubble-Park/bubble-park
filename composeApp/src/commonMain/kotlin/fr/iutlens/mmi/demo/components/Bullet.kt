@@ -28,7 +28,7 @@ class Bullet(
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.drawCircle(
-            color = Color.Yellow,
+            color = Color.White,
             radius = radius,
             center = Offset(x, y)
         )
@@ -72,7 +72,7 @@ class Bullet(
         
         // Décélération
         vx *= 0.96f
-        vy *= 0.99f
+        vy *= 0.985f
     }
     
     val isStopped: Boolean
