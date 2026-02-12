@@ -1,6 +1,7 @@
 package fr.iutlens.mmi.demo
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
@@ -20,7 +21,7 @@ fun App(modifier: Modifier = Modifier) {
     var currentState by remember { mutableStateOf(GameState.MENU) }
 
     MaterialTheme {
-        Box(modifier = modifier.size(width = 852.dp, height = 393.dp)) {
+        Box(modifier = modifier.fillMaxSize()) {
             when (currentState) {
                 GameState.MENU -> MainMenu(
                     onPlayClick = { currentState = GameState.PLAYING }

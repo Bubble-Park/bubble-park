@@ -16,6 +16,7 @@ class Player(
 
     private var frameCounter = 0
     private var facingRight = true
+    private var life = 3
 
     private val jumpRisingFrame = 21
     private val jumpFallingFrame = 23

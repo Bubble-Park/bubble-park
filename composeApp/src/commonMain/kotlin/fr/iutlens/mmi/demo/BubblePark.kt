@@ -119,7 +119,7 @@ class BubblePark : GameData() {
 @Preview(showBackground = true, device = "spec:width=852dp,height=393dp,dpi=240")
 @Composable
 fun BubbleParkPreview() {
-    SpriteSheet.load(Res.drawable.sprites_bubblepark_map_v1, 3, 1)
+    SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
     val gameData = BubblePark()
