@@ -119,16 +119,26 @@ class BubblePark : GameData() {
 @Preview(showBackground = true, device = "spec:width=852dp,height=393dp,dpi=240")
 @Composable
 fun BubbleParkPreview() {
+    SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
     SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
     val gameData = BubblePark()
 
     Box(Modifier.fillMaxSize()) {
-        GameView(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.DarkGray),
-            gameData)
+
+        androidx.compose.foundation.Image(
+            painter = org.jetbrains.compose.resources.painterResource(Res.drawable.niveau1_fond),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = androidx.compose.ui.layout.ContentScale.FillBounds
+        )
+
+        GameView(
+            modifier = Modifier.fillMaxSize(), // On a retiré .background(Color.DarkGray)
+            gameData = gameData
+        )
+
         Joystick(modifier = Modifier
             .size(200.dp)
             .align(Alignment.BottomStart)
