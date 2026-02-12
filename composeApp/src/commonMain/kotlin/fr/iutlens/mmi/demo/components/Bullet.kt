@@ -76,5 +76,5 @@ class Bullet(
     }
     
     val isStopped: Boolean
-        get() = (vx * vx + vy * vy) < 5f
+        get() = (vx * vx + vy * vy) < 15f
 }
