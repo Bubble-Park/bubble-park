@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.plateformes_spritesheet
+import fr.iutlens.mmi.demo.ui.ShowLife
 
 @Composable
 fun GameScreen(onExit: () -> Unit) {
@@ -103,6 +104,8 @@ fun GameScreen(onExit: () -> Unit) {
                 .background(Color.DarkGray),
             gameData = gameData
         )
+
+        ShowLife(gameData.player.life)
 
         Controllers(
             modifier = Modifier.fillMaxSize(),

@@ -24,13 +24,14 @@ import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
 import fr.iutlens.mmi.demo.game.sprite.toTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
+import fr.iutlens.mmi.demo.ui.ShowLife
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 import kotlin.math.PI
 import kotlin.math.round
 
 class BubblePark : GameData() {
 
-    private lateinit var player: Player
+    lateinit var player: Player
     private lateinit var tileArea: TiledArea
 
     private var nextShotTime = 0L
