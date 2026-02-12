@@ -31,7 +31,7 @@ import kotlin.math.round
 
 class BubblePark : GameData() {
 
-    private lateinit var player: Player
+    lateinit var player: Player
     private lateinit var tileArea: TiledArea
 
     private var nextShotTime = 0L

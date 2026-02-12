@@ -103,7 +103,6 @@ fun MainMenu(onPlayClick: () -> Unit) {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .fillMaxHeight(.75f)
-                .width(300.dp)
         )
 
         // Contenu du menu
