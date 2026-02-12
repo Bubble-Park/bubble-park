@@ -106,7 +106,7 @@ class BubblePark : GameData() {
 
         val step = PI / 4
         val quantizedAngle = round(player.lastAngle / step) * step
-        val bullet = Bullet(player.x, player.y, quantizedAngle, tileArea, collides = enableCollisions)
+        val bullet = Bullet(player.x, player.y, quantizedAngle, tileArea, collides = enableCollisions, res = Res.drawable.bubble_sprite)
         (game.spriteList as? MutableList<Sprite>)?.add(bullet)
     }
 
@@ -121,6 +121,7 @@ class BubblePark : GameData() {
 fun BubbleParkPreview() {
     SpriteSheet.load(Res.drawable.sprites_bubblepark_map_v1, 3, 1)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
     val gameData = BubblePark()
 
     Box(Modifier.fillMaxSize()) {
