@@ -34,10 +34,11 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.bubble_sprite
+import fr.iutlens.mmi.demo.plateformes_spritesheet
 
 @Composable
 fun GameScreen(onExit: () -> Unit) {
-    SpriteSheet.load(Res.drawable.sprites_bubblepark_map_v1, 3, 1)
+    SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
 
