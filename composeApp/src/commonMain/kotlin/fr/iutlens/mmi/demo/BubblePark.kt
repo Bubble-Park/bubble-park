@@ -24,6 +24,7 @@ import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
 import fr.iutlens.mmi.demo.game.sprite.toTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
+import fr.iutlens.mmi.demo.ui.ShowLife
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 import kotlin.math.PI
 import kotlin.math.round
@@ -112,37 +113,5 @@ class BubblePark : GameData() {
 
     init {
         loadLevel(0)
-    }
-}
-
-
-@Preview(showBackground = true, device = "spec:width=852dp,height=393dp,dpi=240")
-@Composable
-fun BubbleParkPreview() {
-    SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
-    SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
-    SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
-    val gameData = BubblePark()
-
-    Box(Modifier.fillMaxSize()) {
-
-        androidx.compose.foundation.Image(
-            painter = org.jetbrains.compose.resources.painterResource(Res.drawable.niveau1_fond),
-            contentDescription = null,
-            modifier = Modifier.fillMaxSize(),
-            contentScale = androidx.compose.ui.layout.ContentScale.FillBounds
-        )
-
-        GameView(
-            modifier = Modifier.fillMaxSize(), // On a retiré .background(Color.DarkGray)
-            gameData = gameData
-        )
-
-        Joystick(modifier = Modifier
-            .size(200.dp)
-            .align(Alignment.BottomStart)
-            .padding(32.dp)
-        ) { gameData.game.joystickPosition = it }
     }
 }
