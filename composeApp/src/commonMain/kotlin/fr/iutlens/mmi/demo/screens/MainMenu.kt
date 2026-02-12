@@ -99,18 +99,20 @@ fun MainMenu(onPlayClick: () -> Unit) {
         Image (
             painter = painterResource(Res.drawable.menu_content_fond),
             contentDescription = null,
+            alignment = Alignment.BottomEnd,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .fillMaxWidth(0.4f)
+                .fillMaxHeight(.75f)
+                .width(300.dp)
         )
 
         // Contenu du menu
         Column(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = 50.dp, bottom = 140.dp )
-                .background(Color(0x55FF0000)),
-            horizontalAlignment = Alignment.End,
+                .fillMaxHeight(0.75f)
+                .width(300.dp),
+            horizontalAlignment = Alignment.Start,
             verticalArrangement = Arrangement.spacedBy(-(10.dp))
         ) {
             // Jouer
@@ -124,7 +126,7 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 strokeWidth = 10f,
                 modifier = Modifier
                     .rotate(-4f)
-                    .padding(end = 10.dp)
+                    .padding(start = 60.dp, top = 40.dp)
             )
             // Crédits
             MenuButton(
@@ -133,10 +135,11 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 fontFamily = dinoFont,
                 fillColor = Color.White,
                 outlineColor = Color(0xFF474534),
-                fontSize = 70.sp,
+                fontSize = 65.sp,
                 strokeWidth = 10f,
                 modifier = Modifier
-                    .rotate(-10f)
+                    .rotate(-7f)
+                    .padding(start = 34.dp)
             )
         }
         
