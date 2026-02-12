@@ -11,6 +11,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -106,11 +107,13 @@ fun MainMenu(onPlayClick: () -> Unit) {
         // Contenu du menu
         Column(
             modifier = Modifier
-                .align(Alignment.CenterEnd)
-                .padding(end = 50.dp, bottom = 30.dp, ),
+                .align(Alignment.BottomEnd)
+                .padding(end = 50.dp, bottom = 140.dp )
+                .background(Color(0x55FF0000)),
             horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(-10.dp)
+            verticalArrangement = Arrangement.spacedBy(-(10.dp))
         ) {
+            // Jouer
             MenuButton(
                 onClick = onPlayClick,
                 text = "JOUER",
@@ -123,7 +126,7 @@ fun MainMenu(onPlayClick: () -> Unit) {
                     .rotate(-4f)
                     .padding(end = 10.dp)
             )
-
+            // Crédits
             MenuButton(
                 onClick = onPlayClick,
                 text = "CREDITS",
@@ -137,13 +140,15 @@ fun MainMenu(onPlayClick: () -> Unit) {
             )
         }
         
+        // Version
         Text(
             text = "v1.0.0",
-            color = Color.Gray,
+            color = Color.White,
             fontFamily = dinoFont,
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(8.dp)
+                .alpha(0.7f)
         )
     }
 }
