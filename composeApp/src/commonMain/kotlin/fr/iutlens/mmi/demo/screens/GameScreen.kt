@@ -1,6 +1,7 @@
 package fr.iutlens.mmi.demo.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -12,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.BubblePark
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
+import fr.iutlens.mmi.demo.niveau1_fond
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.sprites_bubblepark_map_v1
 import fr.iutlens.mmi.demo.ui.Controllers
@@ -36,9 +38,13 @@ import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.plateformes_spritesheet
 import fr.iutlens.mmi.demo.ui.ShowLife
+import androidx.compose.ui.layout.ContentScale
+
+import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun GameScreen(onExit: () -> Unit) {
+    SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
     // Chargement des différents sprites
     SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
@@ -100,11 +106,16 @@ fun GameScreen(onExit: () -> Unit) {
                 false
             }
     ) {
+        Image(
+            painter = painterResource(Res.drawable.niveau1_fond),
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop // Remplit l'écran sans déformer
+        )
+
         // Rendu du jeu
         GameView(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.DarkGray),
+            modifier = Modifier.fillMaxSize(),
             gameData = gameData
         )
 
