@@ -35,9 +35,11 @@ import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.plateformes_spritesheet
+import fr.iutlens.mmi.demo.ui.ShowLife
 
 @Composable
 fun GameScreen(onExit: () -> Unit) {
+    // Chargement des différents sprites
     SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
@@ -66,6 +68,7 @@ fun GameScreen(onExit: () -> Unit) {
         }
     }
 
+    // Ecran de jeu
     Box(
         Modifier
             .fillMaxSize()
@@ -97,6 +100,7 @@ fun GameScreen(onExit: () -> Unit) {
                 false
             }
     ) {
+        // Rendu du jeu
         GameView(
             modifier = Modifier
                 .fillMaxSize()
@@ -104,6 +108,10 @@ fun GameScreen(onExit: () -> Unit) {
             gameData = gameData
         )
 
+        // Vie du joueur
+        ShowLife(gameData.player.life)
+
+        // Controles
         Controllers(
             modifier = Modifier.fillMaxSize(),
             onJoystickChange = { gameData.game.joystickPosition = it },

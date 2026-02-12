@@ -24,13 +24,14 @@ import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
 import fr.iutlens.mmi.demo.game.sprite.toTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
+import fr.iutlens.mmi.demo.ui.ShowLife
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 import kotlin.math.PI
 import kotlin.math.round
 
 class BubblePark : GameData() {
 
-    private lateinit var player: Player
+    lateinit var player: Player
     private lateinit var tileArea: TiledArea
 
     private var nextShotTime = 0L
@@ -112,27 +113,5 @@ class BubblePark : GameData() {
 
     init {
         loadLevel(0)
-    }
-}
-
-
-@Preview(showBackground = true, device = "spec:width=852dp,height=393dp,dpi=240")
-@Composable
-fun BubbleParkPreview() {
-    SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
-    SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
-    val gameData = BubblePark()
-
-    Box(Modifier.fillMaxSize()) {
-        GameView(modifier = Modifier
-            .fillMaxSize()
-            .background(Color.DarkGray),
-            gameData)
-        Joystick(modifier = Modifier
-            .size(200.dp)
-            .align(Alignment.BottomStart)
-            .padding(32.dp)
-        ) { gameData.game.joystickPosition = it }
     }
 }
