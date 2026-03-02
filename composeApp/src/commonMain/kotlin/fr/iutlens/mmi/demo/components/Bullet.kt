@@ -128,19 +128,21 @@ class Bullet(
             vy *= 0.985f
 
             if (state == State.NORMAL && !hasPlayedPop && (vx * vx + vy * vy) < MIN_SPEED_SQUARED) {
-                startPopAnimation()
+                explode()
             }
         }
     }
 
-    private fun startPopAnimation() {
-        isPlayingPopAnimation = true
-        hasPlayedPop = true
-        popFrame = 0
-        frameTimer = 0
-        ndx = POP_FIRST
-        vx = 0f
-        vy = 0f
+    fun explode() {
+        if (!isPlayingPopAnimation && !isStopped) {
+            isPlayingPopAnimation = true
+            hasPlayedPop = true
+            popFrame = 0
+            frameTimer = 0
+            ndx = POP_FIRST
+            vx = 0f
+            vy = 0f
+        }
     }
 
     val isStopped: Boolean

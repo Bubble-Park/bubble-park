@@ -7,18 +7,13 @@ import fr.iutlens.mmi.demo.game.sprite.contains
 import kotlin.math.floor
 
 /**
- * Distance map
+ * distance map
  * table des distances à la cible pour chaque position atteignable
- * @property map
- * @property target
- * @property neighbor
- * @constructor Create empty Distance map
  */
 class DistanceMap(val map : TiledArea, var target : Sprite,
                   val neighbor : (pos : Pair<Int,Int>, visit : (Pair<Int,Int>)-> Unit)-> Unit) {
     private val distance = mutableMapOf<Pair<Int,Int>,Int>()
-
-    // Accès aux distance
+    private var lastTargetPos: Pair<Int, Int>? = null
 
     operator fun get(pos : Pair<Int,Int>) : Int? = distance[pos]
     operator fun get(i : Int, j : Int) : Int? = distance[i to j]
@@ -26,39 +21,79 @@ class DistanceMap(val map : TiledArea, var target : Sprite,
     operator fun contains(pos : Pair<Int,Int>) = pos in distance
 
     /**
-     * Next
-     * Trouve parmis les cases voisines celle qui est le plus proche de la cible et la retourne
-     * @param pos
-     * @return null si cible pas atteignable ou déjà atteinte
+     * next
+     * trouve parmi les cases voisines celle qui est le plus proche de la cible et la retourne
      */
     fun next(pos : Pair<Int,Int>) : Pair<Int,Int>? {
-        val list = mutableListOf<Pair<Pair<Int,Int>,Int>>()
-        neighbor(pos){n ->
-            get(n)?.let {  list.add(n to it) } }
-        val best =   list.minByOrNull { it.second } ?: return null
-        val current = get(pos)
-        if (current != null && best.second>current) return null
-        return best.first
+        var bestPos: Pair<Int, Int>? = null
+        var bestDist = Int.MAX_VALUE
+        
+        neighbor(pos) { n ->
+            val d = get(n)
+            if (d != null && d < bestDist) {
+                bestDist = d
+                bestPos = n
+            }
+        }
+        
+        if (bestPos == null) return null
+        
+        val currentDist = get(pos)
+        if (currentDist != null && bestDist > currentDist) return null
+        
+        return bestPos
+    }
+    
+    /**
+     * nextFlee
+     * trouve parmi les cases voisines celle qui est le plus loin de la cible et la retourne
+     */
+    fun nextFlee(pos : Pair<Int,Int>) : Pair<Int,Int>? {
+        var bestPos: Pair<Int, Int>? = null
+        var bestDist = -1
+        
+        neighbor(pos) { n ->
+            val d = get(n)
+            if (d != null && d > bestDist) {
+                bestDist = d
+                bestPos = n
+            }
+        }
+        
+        if (bestPos == null) return null
+        
+        val currentDist = get(pos)
+        if (currentDist != null && bestDist < currentDist) return null
+        
+        return bestPos
     }
 
     private fun getTargetIJ() : Pair<Int,Int>{
         val x = target.boundingBox.center.x
-        val y = target.boundingBox.center.y
+        val y = target.boundingBox.bottom - 1f
         val i = floor( x/map.w).toInt()
-        val j = floor(( y/map.h)).toInt()
+        val j = floor( y/map.h).toInt()
         return i to j
     }
 
     /**
-     * Update
-     * Recalcule la table des distances
+     * update
+     * recalcule la table des distances
      */
-    fun update(){
-        distance.clear()
+    fun update(force: Boolean = false){
         val start = getTargetIJ()
+        
+        if (!force && start == lastTargetPos) {
+            return
+        }
+        lastTargetPos = start
+
+        distance.clear()
+        
         var current = mutableListOf(start)
         var d = 0
         distance[start] = d
+        
         while (current.isNotEmpty()){
             d++
             val next = mutableListOf<Pair<Int,Int>>()
@@ -75,7 +110,7 @@ class DistanceMap(val map : TiledArea, var target : Sprite,
     }
 
     init {
-        update()
+        update(force = true)
     }
 }
 
@@ -87,10 +122,8 @@ enum class Direction(val vec : Pair<Int,Int>){
 }
 
 /**
- * Neighbor
- * retourne une fonction qui parcours les voisins valides (par défaut : tous)
- * @param valid
- * @receiver
+ * neighbor
+ * retourne une fonction qui parcours les voisins valides
  */
 fun TileMap.neighbor(valid : TileMap.(Int,Int) -> Boolean = { _,_ ->true}) =
 {pos : Pair<Int,Int>, visit : (Pair<Int,Int>)-> Unit  ->
@@ -104,12 +137,8 @@ fun TileMap.neighbor(valid : TileMap.(Int,Int) -> Boolean = { _,_ ->true}) =
 }
 
 /**
- * Distance map
- * Construit la table des distance, avec comme paramètre la cible et une fonction indiquant
- * si une case est valide
- * @param target
- * @param valid
- * @receiver
+ * distance map
+ * construit la table des distance
  */
 fun TiledArea.distanceMap(target : Sprite, valid : TileMap.(Int,Int) -> Boolean) =
     DistanceMap(this, target, this.tileMap.neighbor(valid))
