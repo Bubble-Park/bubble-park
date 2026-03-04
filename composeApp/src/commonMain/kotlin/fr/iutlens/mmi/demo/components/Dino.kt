@@ -15,7 +15,7 @@ abstract class Dino(
 
     var stunTimer = 0
     var jumpCooldown = 0
-    val radius = 60f
+    val radius = 100f
     var isDead = false
 
     override val boundingBox: Rect

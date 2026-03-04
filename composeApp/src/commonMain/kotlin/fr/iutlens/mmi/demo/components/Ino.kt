@@ -17,7 +17,7 @@ class Ino(
     enum class State { IDLE, MOVING }
 
     private var state = State.IDLE
-    private var idleTimer = Random.nextInt(25, 101)
+    private var idleTimer = Random.nextInt(10, 100)
     private var dirX = 0f
     private var moveTarget = 0
     private var moveDone = 0f
@@ -80,7 +80,7 @@ class Ino(
             else -> if (Random.nextBoolean()) 1f else -1f
         }
 
-        moveTarget = Random.nextInt(2, 6) * mapArea.w
+        moveTarget = Random.nextInt(2, 10) * mapArea.w
         moveDone = 0f
         state = State.MOVING
     }
