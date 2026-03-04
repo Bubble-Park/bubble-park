@@ -2,9 +2,11 @@ package fr.iutlens.mmi.demo
 
 import fr.iutlens.mmi.demo.components.Player
 import fr.iutlens.mmi.demo.components.Bullet
+import fr.iutlens.mmi.demo.components.Flee
 import fr.iutlens.mmi.demo.components.Ino
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.GameData
+import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
@@ -26,6 +28,7 @@ class BubblePark : GameData() {
     lateinit var player: Player
     private lateinit var tileArea: TiledArea
     private lateinit var distanceMap: DistanceMap
+    private lateinit var distanceMapFlee: DistanceMap
 
     private var nextShotTime = 0L
     private var lastEnemySpawnTime = 0L
@@ -35,6 +38,7 @@ class BubblePark : GameData() {
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
     private val activeInos = mutableListOf<Ino>()
+    private val activeFlees = mutableListOf<Flee>()
 
     private val levels = listOf(
         LevelData(
@@ -90,6 +94,18 @@ class BubblePark : GameData() {
             code == 0
         }
 
+        val fleeSprite = BasicSprite(Res.drawable.bubble_sprite,0f,0f){
+            val target = distanceMap.farthest()
+            if (target != null) {
+                x = target.first * tileArea.w + tileArea.w / 2f
+                y = target.second * tileArea.h + tileArea.h / 2f
+            }
+        }
+        distanceMapFlee = tileArea.distanceMap(fleeSprite) { i, j ->
+            val code = tileMap.get(i, j) ?: 0
+            code == 0
+        }
+
         createGame(
             background = tileArea,
             spriteList = mutableSpriteListOf<Sprite>(player),
@@ -101,11 +117,13 @@ class BubblePark : GameData() {
             spawnEnemyIfNeeded()
             
             distanceMap.update()
+            fleeSprite.update()
             
             (game.spriteList as? MutableList<Sprite>)?.apply {
                 removeAll { (it as? Bullet)?.isStopped == true }
                 removeAll { (it as? EnemySprite)?.isDead == true }
                 removeAll { (it as? Ino)?.isDead == true }
+                removeAll { (it as? Flee)?.isDead == true }
             }
             game.spriteList.update()
             game.invalidate()
@@ -116,11 +134,13 @@ class BubblePark : GameData() {
         activeBullets.clear()
         activeEnemies.clear()
         activeInos.clear()
+        activeFlees.clear()
 
         for (sprite in game.spriteList) {
             when {
                 sprite is Bullet && !sprite.isStopped -> activeBullets.add(sprite)
                 sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
+                sprite is Flee && !sprite.isDead -> activeFlees.add(sprite)
                 sprite is Ino && !sprite.isDead -> activeInos.add(sprite)
             }
         }
@@ -153,6 +173,15 @@ class BubblePark : GameData() {
                     break
                 }
             }
+            if (bullet.isStopped) continue
+            for (flee in activeFlees) {
+                if (flee.isDead) continue
+                if (bullet.boundingBox.overlaps(flee.boundingBox)) {
+                    flee.isDead = true
+                    bullet.explode()
+                    break
+                }
+            }
         }
     }
 
@@ -160,7 +189,7 @@ class BubblePark : GameData() {
         if (game.elapsed - lastEnemySpawnTime > ENEMY_SPAWN_INTERVAL) {
             lastEnemySpawnTime = game.elapsed
 
-            val currentEnemyCount = activeEnemies.size + activeInos.size
+            val currentEnemyCount = activeEnemies.size + activeInos.size + activeFlees.size
             if (currentEnemyCount >= MAX_ENEMIES) {
                 return
             }
@@ -187,12 +216,31 @@ class BubblePark : GameData() {
                 val spawnX = spawnPoint.first * tileArea.w + tileArea.w / 2f
                 val spawnY = spawnPoint.second * tileArea.h + tileArea.h / 2f
 
-                val newSprite: Sprite = Ino(
+                val roll = Random.nextFloat()
+                val newSprite: Sprite = when {
+                    roll < 0.30f -> Ino(
                         res = Res.drawable.bubble_sprite,
                         x = spawnX,
                         y = spawnY,
                         mapArea = tileArea
                     )
+                    roll < 0.60f -> Flee(
+                        res = Res.drawable.bubble_sprite,
+                        x = spawnX,
+                        y = spawnY,
+                        mapArea = tileArea,
+                        distanceMap = distanceMap,
+                        distanceMapFlee = distanceMapFlee
+                    )
+                    else -> Flee(
+                        res = Res.drawable.bubble_sprite,
+                        x = spawnX,
+                        y = spawnY,
+                        mapArea = tileArea,
+                        distanceMap = distanceMap,
+                        distanceMapFlee = distanceMapFlee
+                    )
+                }
                 (game.spriteList as? MutableList<Sprite>)?.add(newSprite)
             }
         }
