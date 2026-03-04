@@ -153,7 +153,7 @@ class PlatformGraph(
         for (j in topJ until toJ) {
             if (j >= 0 && isTileBlocking(toI, j)) return false
         }
-        // Vérifier les colonnes intermédiaires à l'apex
+        // Vérifier les colonnes intermédiaires
         for (i in minI..maxI) {
             if (topJ >= 0 && isTileBlocking(i, topJ)) return false
         }
