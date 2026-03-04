@@ -14,8 +14,7 @@ class Flee(
     res: DrawableResource,
     x: Float, y: Float,
     mapArea: TiledArea,
-    val distanceMap: DistanceMap,
-    val distanceMapFlee: DistanceMap = distanceMap
+    val distanceMap: DistanceMap
 ) : Dino(res, x, y, mapArea) {
 
     enum class State { IDLE, MOVING, FLEEING }
@@ -57,7 +56,7 @@ class Flee(
 
         when (state) {
             State.FLEEING -> {
-                val move = distanceMapFlee.nextFleeWithAction(i to j)
+                val move = distanceMap.nextFleeWithAction(i to j)
                 if (move != null) {
                     dirX = move.dirX
                     if (move.action == MoveAction.JUMP && isOnGround && jumpCooldown <= 0) {

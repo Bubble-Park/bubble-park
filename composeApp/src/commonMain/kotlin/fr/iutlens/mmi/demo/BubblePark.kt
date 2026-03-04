@@ -6,7 +6,6 @@ import fr.iutlens.mmi.demo.components.Flee
 import fr.iutlens.mmi.demo.components.Ino
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.GameData
-import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
@@ -30,7 +29,6 @@ class BubblePark : GameData() {
     private lateinit var tileArea: TiledArea
     private lateinit var platformGraph: PlatformGraph
     private lateinit var distanceMap: DistanceMap
-    private lateinit var distanceMapFlee: DistanceMap
 
     private var nextShotTime = 0L
     private var lastEnemySpawnTime = 0L
@@ -95,15 +93,6 @@ class BubblePark : GameData() {
 
         distanceMap = tileArea.distanceMap(player, platformGraph)
 
-        val fleeSprite = BasicSprite(Res.drawable.bubble_sprite,0f,0f){
-            val target = distanceMap.farthest()
-            if (target != null) {
-                x = target.first * tileArea.w + tileArea.w / 2f
-                y = target.second * tileArea.h + tileArea.h / 2f
-            }
-        }
-        distanceMapFlee = tileArea.distanceMap(fleeSprite, platformGraph)
-
         createGame(
             background = tileArea,
             spriteList = mutableSpriteListOf<Sprite>(player),
@@ -115,8 +104,6 @@ class BubblePark : GameData() {
             spawnEnemyIfNeeded()
             
             distanceMap.update()
-            fleeSprite.update()
-            distanceMapFlee.update()
             
             (game.spriteList as? MutableList<Sprite>)?.apply {
                 removeAll { (it as? Bullet)?.isStopped == true }
@@ -228,16 +215,14 @@ class BubblePark : GameData() {
                         x = spawnX,
                         y = spawnY,
                         mapArea = tileArea,
-                        distanceMap = distanceMap,
-                        distanceMapFlee = distanceMapFlee
+                        distanceMap = distanceMap
                     )
                     else -> Flee(
                         res = Res.drawable.bubble_sprite,
                         x = spawnX,
                         y = spawnY,
                         mapArea = tileArea,
-                        distanceMap = distanceMap,
-                        distanceMapFlee = distanceMapFlee
+                        distanceMap = distanceMap
                     )
                 }
                 (game.spriteList as? MutableList<Sprite>)?.add(newSprite)
