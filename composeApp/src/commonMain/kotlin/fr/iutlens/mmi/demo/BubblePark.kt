@@ -187,7 +187,7 @@ class BubblePark : GameData() {
 
             if (validSpawns.isNotEmpty()) {
                 val spawnPoint = validSpawns[Random.nextInt(validSpawns.size)]
-                val behavior = EnemyBehavior.FLEE
+                val behavior = EnemyBehavior.ATTACK
                 
                 val newEnemy = EnemySprite(
                     res = Res.drawable.bubble_sprite,

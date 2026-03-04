@@ -28,10 +28,8 @@ class EnemySprite(
     val radius = 60f
     var isDead = false
 
-    // état retraite flee : recule pendant 50 frames avant de retenter
     private var fleeRetreatTimer = 0
     private var fleeRetreatDir = 0f
-    // true = fuyard cherche activement à descendre vers le sol (ignore les murs latéraux intermédiaires)
     private var fleeDescending = false
 
     override val boundingBox: Rect
@@ -116,15 +114,13 @@ class EnemySprite(
 
     // --- FLEE ---
 
-    // true = monter maximise la distance Y avec le joueur (compare les extrêmes atteignables)
     private fun preferGoUp(j: Int, playerJ: Int): Boolean {
         val jBase = mapArea.tileMap.geometry.sizeY - 1
-        // déjà aux extrêmes : forcer la direction opposée
         if (j == 0) return false
         if (j >= jBase) return true
         val distIfUp   = abs(0     - playerJ)
         val distIfDown = abs(jBase - playerJ)
-        return distIfUp >= distIfDown  // tiebreak → monter
+        return distIfUp >= distIfDown
     }
 
     private fun triggerRetreat(wantedDir: Float) {
@@ -136,7 +132,6 @@ class EnemySprite(
         val mapSizeX = mapArea.tileMap.geometry.sizeX
         if (dir < 0f && i <= 0) return true
         if (dir > 0f && i >= mapSizeX - 1) return true
-        // ne vérifier le mur physique qu'au sol : en chute libre le sprite traverse des cases sans collision latérale réelle
         if (!isOnGround) return false
         val nextX = x + dir * mapArea.w * 0.6f
         return isWall(nextX, y, checkPlatform = false)
@@ -147,22 +142,16 @@ class EnemySprite(
         val playerJ = floor((distanceMap.target.boundingBox.bottom - 1f) / mapArea.h).toInt()
         val jBase   = mapArea.tileMap.geometry.sizeY - 1
 
-        // mode descente intentionnelle : avancer vers le bord sans déclencher de retraite
-        // jusqu'à atteindre le sol (jBase) ou changer de préférence Y
         if (fleeDescending) {
             val wantedDir = if (x < playerX) -1f else 1f
             val goUp = preferGoUp(j, playerJ)
             if (j >= jBase || goUp) {
-                // destination atteinte ou préférence changée → quitter le mode descente
                 fleeDescending = false
             } else {
-                // continuer à avancer vers le vide, ignorer les murs latéraux intermédiaires
                 return wantedDir
             }
         }
 
-        // état retraite : recule dans fleeRetreatDir
-        // annulée si on atteint le sol (shouldFleeJump prend le relais pour monter)
         if (fleeRetreatTimer > 0) {
             if (j >= jBase) {
                 fleeRetreatTimer = 0
@@ -172,17 +161,13 @@ class EnemySprite(
             }
         }
 
-        // fuite normale : direction opposée au joueur
         val wantedDir = if (x < playerX) -1f else 1f
 
-        // bloqué par mur ou bord de map dans la direction de fuite → retraite
-        // exception : au sol (jBase), ne pas déclencher de retraite — laisser shouldFleeJump gérer le saut
         if (isBlockedInDir(wantedDir, i) && j < jBase) {
             triggerRetreat(wantedDir)
             return fleeRetreatDir
         }
 
-        // vide devant (case libre + en dessous libre) → décision Y
         val nextI = i + if (wantedDir > 0f) 1 else -1
         val nextCode      = mapArea.tileMap.get(nextI, j) ?: -1
         val nextBelowCode = mapArea.tileMap.get(nextI, j + 1) ?: -1
@@ -191,10 +176,10 @@ class EnemySprite(
         if (voidAhead) {
             val goUp = preferGoUp(j, playerJ)
             return if (!goUp) {
-                fleeDescending = true  // activer le mode descente intentionnelle
+                fleeDescending = true
                 wantedDir
             } else {
-                triggerRetreat(wantedDir); fleeRetreatDir  // monter = ne pas tomber, retraite
+                triggerRetreat(wantedDir); fleeRetreatDir
             }
         }
 
@@ -205,9 +190,7 @@ class EnemySprite(
         val playerJ = floor((distanceMap.target.boundingBox.bottom - 1f) / mapArea.h).toInt()
         val checkDir = if (dirX > 0f) 1 else if (dirX < 0f) -1 else 0
 
-        // monter uniquement si c'est la meilleure direction Y
         if (preferGoUp(j, playerJ)) {
-            // cherche dans la direction de fuite ET dans la direction opposée (cas coin)
             val dirsToCheck = if (checkDir != 0) listOf(0, checkDir, -checkDir) else listOf(0)
             for (dy in 1..5) {
                 for (di in dirsToCheck) {
@@ -218,7 +201,6 @@ class EnemySprite(
             }
         }
 
-        // bloqué par un mur devant : sauter par-dessus si libre au-dessus
         if (dirX != 0f) {
             val nextX = x + dirX * mapArea.w * 0.6f
             if (isWall(nextX, y, checkPlatform = false)) {
