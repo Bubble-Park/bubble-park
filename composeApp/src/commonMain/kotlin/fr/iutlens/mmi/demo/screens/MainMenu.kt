@@ -1,6 +1,9 @@
 package fr.iutlens.mmi.demo.screens
 
+import androidx.compose.animation.core.EaseInElastic
+import androidx.compose.animation.core.EaseInExpo
 import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.EaseInQuad
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -37,24 +40,15 @@ import fr.iutlens.mmi.demo.menu_premier_plan_up
 import fr.iutlens.mmi.demo.menu_second_plan
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.IntOffset
+import fr.iutlens.mmi.demo.menu_volcan
 
 @Composable
 fun MainMenu(onPlayClick: () -> Unit) {
 
     val dinoFont = FontFamily(
         Font(Res.font.dino_font)
-    )
-
-    val infiniteTransition = rememberInfiniteTransition(label = "flottement_transition")
-    val offsetY by infiniteTransition.animateFloat(
-        initialValue = 35f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 5000, easing = EaseInOut),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "flottement_y"
     )
 
     BoxWithConstraints(
@@ -66,7 +60,7 @@ fun MainMenu(onPlayClick: () -> Unit) {
         val screenH = maxHeight.value
 
         // Offsets
-        val dynamicLogoOffset = -(screenW * 0.12f).dp
+        val dynamicLogoOffset = -(screenW * 0.20f).dp
         val dynamicColumnWidth = (screenW * 0.36f).dp
         val dynamicColumnSpacing = -(screenH * 0.02f).dp
 
@@ -87,16 +81,34 @@ fun MainMenu(onPlayClick: () -> Unit) {
             painter = painterResource(Res.drawable.menu_background),
             contentDescription = "Fond du menu",
             contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
         )
+
+        val offsetCloudPlan = animateOffsetBackground(durationMillis = 8000, initialValue = 0f, targetValue=50f)
         Image (
             painter = painterResource(Res.drawable.menu_nuages),
             contentDescription = null,
             contentScale = ContentScale.FillWidth,
             modifier = Modifier
                 .fillMaxWidth()
+                .scale(1.2f)
                 .align(Alignment.TopCenter)
+                .offset { IntOffset(x = offsetCloudPlan.dp.roundToPx(), y = 30) }
         )
+
+        Image (
+            painter = painterResource(Res.drawable.menu_volcan),
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .fillMaxWidth()
+                .align(Alignment.TopEnd)
+                .offset(y = 30.dp, x = 10.dp)
+                //.offset(y = 30.dp, x = 150.dp)
+        )
+
+        val offsetSecondPlan = animateOffsetBackground(durationMillis = 2000, initialValue = 40f, targetValue = 30f)
         Image (
             painter = painterResource(Res.drawable.menu_second_plan),
             contentDescription = null,
@@ -104,9 +116,10 @@ fun MainMenu(onPlayClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
+                .offset{ IntOffset(x = 0, y = offsetSecondPlan.dp.roundToPx()) }
         )
 
-        val offsetPremierPlan = animateOffsetBackground(durationMillis = 4000, initialValue = 30f)
+        val offsetPremierPlan = animateOffsetBackground(durationMillis = 2000, initialValue = 25f, targetValue = 20f)
         Image (
             painter = painterResource(Res.drawable.menu_premier_plan_up),
             contentDescription = null,
@@ -124,7 +137,7 @@ fun MainMenu(onPlayClick: () -> Unit) {
             modifier = Modifier
                 .align(Alignment.Center)
                 .offset(x = dynamicLogoOffset, y = 0.dp)
-                .fillMaxHeight(.55f)
+                .fillMaxWidth(0.33F)
         )
 
         // Images de contenu
@@ -179,10 +192,10 @@ fun MainMenu(onPlayClick: () -> Unit) {
             text = "v1.0.0",
             color = Color.White,
             fontFamily = dinoFont,
-            fontSize = (screenH * 0.06f).sp,
+            fontSize = (screenH * 0.05f).sp,
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .padding(8.dp)
+                .padding(start=8.dp)
                 .alpha(0.7f)
         )
     }
