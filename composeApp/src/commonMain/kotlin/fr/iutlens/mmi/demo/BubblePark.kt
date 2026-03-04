@@ -1,30 +1,16 @@
 package fr.iutlens.mmi.demo
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.FilterQuality
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.components.Player
 import fr.iutlens.mmi.demo.components.Bullet
+import fr.iutlens.mmi.demo.components.Ino
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.GameData
-import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
 import fr.iutlens.mmi.demo.game.sprite.toTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
-import fr.iutlens.mmi.demo.ui.ShowLife
-import fr.iutlens.mmi.demo.utils.SpriteSheet
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
 import fr.iutlens.mmi.demo.game.sprite.EnemyBehavior
 import fr.iutlens.mmi.demo.utils.DistanceMap
@@ -48,6 +34,7 @@ class BubblePark : GameData() {
 
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
+    private val activeInos = mutableListOf<Ino>()
 
     private val levels = listOf(
         LevelData(
@@ -118,6 +105,7 @@ class BubblePark : GameData() {
             (game.spriteList as? MutableList<Sprite>)?.apply {
                 removeAll { (it as? Bullet)?.isStopped == true }
                 removeAll { (it as? EnemySprite)?.isDead == true }
+                removeAll { (it as? Ino)?.isDead == true }
             }
             game.spriteList.update()
             game.invalidate()
@@ -127,12 +115,13 @@ class BubblePark : GameData() {
     private fun handleCollisions() {
         activeBullets.clear()
         activeEnemies.clear()
-        
+        activeInos.clear()
+
         for (sprite in game.spriteList) {
-            if (sprite is Bullet && !sprite.isStopped) {
-                activeBullets.add(sprite)
-            } else if (sprite is EnemySprite && !sprite.isDead) {
-                activeEnemies.add(sprite)
+            when {
+                sprite is Bullet && !sprite.isStopped -> activeBullets.add(sprite)
+                sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
+                sprite is Ino && !sprite.isDead -> activeInos.add(sprite)
             }
         }
 
@@ -149,9 +138,17 @@ class BubblePark : GameData() {
         for (bullet in activeBullets) {
             for (enemy in activeEnemies) {
                 if (enemy.isDead) continue
-                
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
+                    bullet.explode()
+                    break
+                }
+            }
+            if (bullet.isStopped) continue
+            for (ino in activeInos) {
+                if (ino.isDead) continue
+                if (bullet.boundingBox.overlaps(ino.boundingBox)) {
+                    ino.isDead = true
                     bullet.explode()
                     break
                 }
@@ -162,12 +159,12 @@ class BubblePark : GameData() {
     private fun spawnEnemyIfNeeded() {
         if (game.elapsed - lastEnemySpawnTime > ENEMY_SPAWN_INTERVAL) {
             lastEnemySpawnTime = game.elapsed
-            
-            val currentEnemyCount = activeEnemies.size
+
+            val currentEnemyCount = activeEnemies.size + activeInos.size
             if (currentEnemyCount >= MAX_ENEMIES) {
                 return
             }
-            
+
             val validSpawns = mutableListOf<Pair<Int, Int>>()
             val playerI = floor(player.x / tileArea.w).toInt()
             val playerJ = floor(player.y / tileArea.h).toInt()
@@ -176,7 +173,7 @@ class BubblePark : GameData() {
                 for (j in 0 until tileArea.tileMap.geometry.sizeY - 1) {
                     val currentCode = tileArea.tileMap.get(i, j) ?: 0
                     val belowCode = tileArea.tileMap.get(i, j + 1) ?: 0
-                    
+
                     if (currentCode == 0 && (belowCode == 1 || belowCode == 2 || belowCode == 3)) {
                         if (abs(i - playerI) > 3 || j != playerJ) {
                             validSpawns.add(Pair(i, j))
@@ -187,17 +184,16 @@ class BubblePark : GameData() {
 
             if (validSpawns.isNotEmpty()) {
                 val spawnPoint = validSpawns[Random.nextInt(validSpawns.size)]
-                val behavior = EnemyBehavior.ATTACK
-                
-                val newEnemy = EnemySprite(
-                    res = Res.drawable.bubble_sprite,
-                    x = spawnPoint.first * tileArea.w + tileArea.w / 2f,
-                    y = spawnPoint.second * tileArea.h + tileArea.h / 2f,
-                    mapArea = tileArea,
-                    distanceMap = distanceMap,
-                    behavior = behavior
-                )
-                (game.spriteList as? MutableList<Sprite>)?.add(newEnemy)
+                val spawnX = spawnPoint.first * tileArea.w + tileArea.w / 2f
+                val spawnY = spawnPoint.second * tileArea.h + tileArea.h / 2f
+
+                val newSprite: Sprite = Ino(
+                        res = Res.drawable.bubble_sprite,
+                        x = spawnX,
+                        y = spawnY,
+                        mapArea = tileArea
+                    )
+                (game.spriteList as? MutableList<Sprite>)?.add(newSprite)
             }
         }
     }
