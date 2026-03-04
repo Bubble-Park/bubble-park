@@ -20,6 +20,10 @@ class DistanceMap(val map : TiledArea, var target : Sprite,
 
     operator fun contains(pos : Pair<Int,Int>) = pos in distance
 
+    fun farthest() : Pair<Int,Int>? {
+        return distance.entries.maxByOrNull { it.value }?.key
+    }
+
     /**
      * next
      * trouve parmi les cases voisines celle qui est le plus proche de la cible et la retourne
