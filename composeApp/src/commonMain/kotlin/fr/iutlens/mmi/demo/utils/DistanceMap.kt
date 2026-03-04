@@ -26,6 +26,7 @@ class DistanceMap(
     private val distance = mutableMapOf<Pair<Int, Int>, Int>()
     private var lastTargetPos: Pair<Int, Int>? = null
 
+    // getters
     operator fun get(pos: Pair<Int, Int>): Int? = distance[pos]
     operator fun get(i: Int, j: Int): Int? = distance[i to j]
 
@@ -36,8 +37,10 @@ class DistanceMap(
     }
 
     /**
-     * next
-     * trouve parmi les voisins DIRECTS celui qui est le plus proche de la cible
+     * Trouve parmi les voisins directs celui qui est le plus proche
+     * de la cible
+     * @param pos position initiale
+     * @return position la plus proche de la cible
      */
     fun next(pos: Pair<Int, Int>): Pair<Int, Int>? {
         var bestPos: Pair<Int, Int>? = null
@@ -59,7 +62,11 @@ class DistanceMap(
         return bestPos
     }
 
-    /** Retourne la prochaine position + l'action à effectuer */
+    /**
+     * Retourne la prochaine position + l'action à effectuer
+     * @param pos position initiale
+     * @return la prochaine position + l'action à effectuer
+     */
     fun nextWithAction(pos: Pair<Int, Int>): NextMove? {
         val target = next(pos) ?: return null
         val action = graph?.getAction(pos, target) ?: MoveAction.WALK
@@ -72,8 +79,10 @@ class DistanceMap(
     }
 
     /**
-     * nextFlee
-     * trouve parmi les voisins DIRECTS celui qui est le plus loin de la cible
+     * trouve parmi les voisins directs celui qui est
+     * le plus loin de la cible
+     * @param pos position initiale
+     * @return position la plus loin de la cible
      */
     fun nextFlee(pos: Pair<Int, Int>): Pair<Int, Int>? {
         var bestPos: Pair<Int, Int>? = null
@@ -87,14 +96,19 @@ class DistanceMap(
             }
         }
 
-        if (bestPos == null) return null
+        if (bestPos == null) return null // pas de meilleure position
 
-        val currentDist = get(pos)
+        val currentDist = get(pos) // distance actuelle à la position initiale
         if (currentDist != null && bestDist < currentDist) return null
 
         return bestPos
     }
 
+    /**
+     * Trouve la prochaine position pour les FLEE + l'action à effectuer
+     * @param pos position initiale
+     * @return la prochaine position pour les FLEE + l'action à effectuer
+     */
     fun nextFleeWithAction(pos: Pair<Int, Int>): NextMove? {
         val target = nextFlee(pos) ?: return null
         val action = graph?.getAction(pos, target) ?: MoveAction.WALK
@@ -106,6 +120,10 @@ class DistanceMap(
         return NextMove(target, action, dirX)
     }
 
+    /**
+     * Trouve la posiition de la cible
+     * @return position de la cible
+     */
     private fun getTargetIJ(): Pair<Int, Int> {
         val x = target.boundingBox.center.x
         val y = target.boundingBox.bottom - 1f
@@ -123,8 +141,8 @@ class DistanceMap(
     }
 
     /**
-     * update
-     * recalcule la table des distances via BFS sur le graphe INVERSÉ
+     * recalcule la table des distances sur le graphe inversé
+     * @param force force la recalculations
      */
     fun update(force: Boolean = false) {
         val start = getTargetIJ()
@@ -168,7 +186,6 @@ enum class Direction(val vec: Pair<Int, Int>) {
 }
 
 /**
- * neighbor
  * retourne une fonction qui parcours les voisins valides
  */
 fun TileMap.neighbor(valid: TileMap.(Int, Int) -> Boolean = { _, _ -> true }) =
@@ -183,7 +200,7 @@ fun TileMap.neighbor(valid: TileMap.(Int, Int) -> Boolean = { _, _ -> true }) =
     }
 
 /**
- * distance map via PlatformGraph (nouvelle API)
+ * distance map via PlatformGraph
  */
 fun TiledArea.distanceMap(target: Sprite, graph: PlatformGraph) =
     DistanceMap(
@@ -194,11 +211,11 @@ fun TiledArea.distanceMap(target: Sprite, graph: PlatformGraph) =
     )
 
 /**
- * distance map legacy (compatibilité)
+ * distance map legacy
  */
-fun TiledArea.distanceMap(target: Sprite, valid: TileMap.(Int, Int) -> Boolean): DistanceMap {
+/*fun TiledArea.distanceMap(target: Sprite, valid: TileMap.(Int, Int) -> Boolean): DistanceMap {
     val neighborFn = this.tileMap.neighbor(valid)
     return DistanceMap(this, target,
         reverseNeighbor = neighborFn,
         forwardNeighbor = neighborFn)
-}
+}*/
