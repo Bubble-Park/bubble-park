@@ -49,11 +49,31 @@ fun MainMenu(onPlayClick: () -> Unit) {
         Font(Res.font.dino_font)
     )
 
-    Box(
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+        val screenW = maxWidth.value
+        val screenH = maxHeight.value
+
+        // Offsets
+        val dynamicLogoOffset = -(screenW * 0.12f).dp
+        val dynamicColumnWidth = (screenW * 0.36f).dp
+        val dynamicColumnSpacing = -(screenH * 0.02f).dp
+
+        // Fonts size
+        val playFontSize = (screenH * 0.19f).sp
+        val creditsFontSize = (screenH * 0.17f).sp
+
+        // Paddings
+        val playPaddingStart = (screenW * 0.06f).dp
+        val playPaddingTop = (screenH * 0.08f).dp
+        val creditsPaddingStart = (screenW * 0.03f).dp
+
+        // Strokes
+        val dynamicStrokeWidth = screenH * 0.03f
+
         // Images de fond - Layer pour les animations
         Image (
             painter = painterResource(Res.drawable.menu_background),
@@ -92,7 +112,8 @@ fun MainMenu(onPlayClick: () -> Unit) {
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.Center)
-                .offset(-150.dp, 0.dp)
+                .offset(x = dynamicLogoOffset, y = 0.dp)
+                .fillMaxHeight(.55f)
         )
 
         // Images de contenu
@@ -110,9 +131,9 @@ fun MainMenu(onPlayClick: () -> Unit) {
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .fillMaxHeight(0.75f)
-                .width(300.dp),
+                .width(dynamicColumnWidth),
             horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(-(10.dp))
+            verticalArrangement = Arrangement.spacedBy(dynamicColumnSpacing)
         ) {
             // Jouer
             MenuButton(
@@ -121,11 +142,11 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 fontFamily = dinoFont,
                 fillColor = Color(0xFF474534),
                 outlineColor = Color.White,
-                fontSize = 70.sp,
-                strokeWidth = 10f,
+                fontSize = playFontSize,
+                strokeWidth = dynamicStrokeWidth,
                 modifier = Modifier
                     .rotate(-4f)
-                    .padding(start = 60.dp, top = 40.dp)
+                    .padding(start = playPaddingStart, top = playPaddingTop)
             )
             // Crédits
             MenuButton(
@@ -134,11 +155,11 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 fontFamily = dinoFont,
                 fillColor = Color.White,
                 outlineColor = Color(0xFF474534),
-                fontSize = 65.sp,
-                strokeWidth = 10f,
+                fontSize = creditsFontSize,
+                strokeWidth = dynamicStrokeWidth,
                 modifier = Modifier
                     .rotate(-7f)
-                    .padding(start = 34.dp)
+                    .padding(start = creditsPaddingStart)
             )
         }
         
@@ -147,6 +168,7 @@ fun MainMenu(onPlayClick: () -> Unit) {
             text = "v1.0.0",
             color = Color.White,
             fontFamily = dinoFont,
+            fontSize = (screenH * 0.06f).sp,
             modifier = Modifier
                 .align(Alignment.BottomStart)
                 .padding(8.dp)
