@@ -1,52 +1,60 @@
 package fr.iutlens.mmi.demo.screens
 
+import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
-import androidx.compose.material.ButtonColors
 import androidx.compose.material.ButtonDefaults
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.TextStyle
 import org.jetbrains.compose.resources.Font
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import fr.iutlens.mmi.demo.App
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.dino_font
-import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.logo
 import fr.iutlens.mmi.demo.menu_background
 import fr.iutlens.mmi.demo.menu_content_fond
 import fr.iutlens.mmi.demo.menu_nuages
-import fr.iutlens.mmi.demo.menu_premier_plan
 import fr.iutlens.mmi.demo.menu_premier_plan_up
 import fr.iutlens.mmi.demo.menu_second_plan
-import fr.iutlens.mmi.demo.menu_volcan
-import fr.iutlens.mmi.demo.utils.SpriteSheet
 import org.jetbrains.compose.resources.painterResource
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.unit.IntOffset
 
 @Composable
 fun MainMenu(onPlayClick: () -> Unit) {
 
     val dinoFont = FontFamily(
         Font(Res.font.dino_font)
+    )
+
+    val infiniteTransition = rememberInfiniteTransition(label = "flottement_transition")
+    val offsetY by infiniteTransition.animateFloat(
+        initialValue = 35f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 5000, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "flottement_y"
     )
 
     BoxWithConstraints(
@@ -97,6 +105,8 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
         )
+
+        val offsetPremierPlan = animateOffsetBackground(durationMillis = 4000, initialValue = 30f)
         Image (
             painter = painterResource(Res.drawable.menu_premier_plan_up),
             contentDescription = null,
@@ -104,6 +114,7 @@ fun MainMenu(onPlayClick: () -> Unit) {
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
+                .offset { IntOffset(x = 0, y = offsetPremierPlan.dp.roundToPx()) }
         )
 
         // Logo
@@ -238,4 +249,24 @@ fun MenuButton(
             modifier = modifier
         )
     }
+}
+
+@Composable
+fun animateOffsetBackground(
+    durationMillis: Int = 5000,
+    easing: Easing = EaseInOut,
+    initialValue: Float = 0f,
+    targetValue: Float = 0f
+): Float {
+    val infiniteTransition = rememberInfiniteTransition(label = "flottement_transition")
+    val offsetY by infiniteTransition.animateFloat(
+        initialValue = initialValue,
+        targetValue = targetValue,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = durationMillis, easing = easing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "flottement_y"
+    )
+    return offsetY
 }
