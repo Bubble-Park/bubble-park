@@ -1,23 +1,32 @@
-package fr.iutlens.mmi.demo.components
+package fr.iutlens.mmi.demo.game
+data class Stats (
+    val damage: Int,
+    val health: Int
+)
 
-import androidx.compose.ui.geometry.Rect
-import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
-import fr.iutlens.mmi.demo.game.sprite.TiledArea
-import org.jetbrains.compose.resources.DrawableResource
+data class Dino (
+    val id: Int,
+    val nom: String,
+    val scoreValue: Int = 10,
+    val stats: Stats
+)
 
-abstract class Dino(
-    res: DrawableResource,
-    x: Float, y: Float,
-    mapArea: TiledArea,
-    gravity: Float = 8f,
-    jumpForce: Float = -110f
-) : PhysicsSprite(res, x, y, mapArea, gravity, jumpForce) {
+class Score (var score: Int = 0){
+    val stego = Dino(
+        id = 0,
+        nom = "Stégosaure",
+        scoreValue = 50,
+        stats = Stats(
+            damage = 1,
+            health = 100
+        )
+    )
 
-    var stunTimer = 0
-    var jumpCooldown = 0
-    val radius = 100f
-    var isDead = false
+    fun get(): Int {
+        return score
+    }
 
-    override val boundingBox: Rect
-        get() = Rect(x - radius, y - radius, x + radius, y + radius)
+    fun add(dino: Dino) {
+        score += dino.scoreValue;
+    }
 }
