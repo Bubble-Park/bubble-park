@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
+import fr.iutlens.mmi.demo.utils.MoveAction
 import org.jetbrains.compose.resources.DrawableResource
 import kotlin.math.floor
 import kotlin.random.Random
@@ -56,9 +57,16 @@ class Flee(
 
         when (state) {
             State.FLEEING -> {
-                val playerX = distanceMapFlee.target.boundingBox.center.x
-                dirX = if (x < playerX) -1f else 1f
-                if (isBlockedInDir(dirX, i)) dirX = 0f
+                val move = distanceMapFlee.nextFleeWithAction(i to j)
+                if (move != null) {
+                    dirX = move.dirX
+                    if (move.action == MoveAction.JUMP && isOnGround && jumpCooldown <= 0) {
+                        jump()
+                        jumpCooldown = 50
+                    }
+                } else {
+                    dirX = 0f
+                }
             }
             State.IDLE -> {
                 dirX = 0f

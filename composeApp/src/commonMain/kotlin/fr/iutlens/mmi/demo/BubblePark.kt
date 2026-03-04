@@ -16,6 +16,7 @@ import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
 import fr.iutlens.mmi.demo.game.sprite.EnemyBehavior
 import fr.iutlens.mmi.demo.utils.DistanceMap
+import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.distanceMap
 import kotlin.math.PI
 import kotlin.math.round
@@ -27,6 +28,7 @@ class BubblePark : GameData() {
 
     lateinit var player: Player
     private lateinit var tileArea: TiledArea
+    private lateinit var platformGraph: PlatformGraph
     private lateinit var distanceMap: DistanceMap
     private lateinit var distanceMapFlee: DistanceMap
 
@@ -89,10 +91,9 @@ class BubblePark : GameData() {
             jumpActionProvider = { game.actionButtonB }
         )
 
-        distanceMap = tileArea.distanceMap(player) { i, j ->
-            val code = tileMap.get(i, j) ?: 0
-            code == 0
-        }
+        platformGraph = PlatformGraph(tileArea, jumpHeight = 6, horizontalReach = 4)
+
+        distanceMap = tileArea.distanceMap(player, platformGraph)
 
         val fleeSprite = BasicSprite(Res.drawable.bubble_sprite,0f,0f){
             val target = distanceMap.farthest()
@@ -101,10 +102,7 @@ class BubblePark : GameData() {
                 y = target.second * tileArea.h + tileArea.h / 2f
             }
         }
-        distanceMapFlee = tileArea.distanceMap(fleeSprite) { i, j ->
-            val code = tileMap.get(i, j) ?: 0
-            code == 0
-        }
+        distanceMapFlee = tileArea.distanceMap(fleeSprite, platformGraph)
 
         createGame(
             background = tileArea,
@@ -118,6 +116,7 @@ class BubblePark : GameData() {
             
             distanceMap.update()
             fleeSprite.update()
+            distanceMapFlee.update()
             
             (game.spriteList as? MutableList<Sprite>)?.apply {
                 removeAll { (it as? Bullet)?.isStopped == true }
