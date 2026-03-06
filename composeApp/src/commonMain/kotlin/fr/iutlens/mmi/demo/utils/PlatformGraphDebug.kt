@@ -1,6 +1,8 @@
 // DEBUG — À SUPPRIMER après analyse. Ne pas committer.
 package fr.iutlens.mmi.demo.utils
 
+import kotlin.math.abs
+
 fun PlatformGraph.fleeDiagnostic(
     aiTile: Pair<Int, Int>,
     distPlayer: Map<Pair<Int, Int>, Int>,
@@ -14,6 +16,7 @@ fun PlatformGraph.fleeDiagnostic(
         val tile: Pair<Int, Int>,
         val score: Float,
         val distP: Int?,
+        val distManhattan: Int,
         val cost: Float,
         val path: List<PathStep>
     )
@@ -22,7 +25,8 @@ fun PlatformGraph.fleeDiagnostic(
         .filter { it.key != aiTile }
         .map { (tile, cost) ->
             val pd = distPlayer[tile]
-            Candidate(tile, (pd ?: 100).toFloat() - k * cost, pd, cost, reconstructPath(aiTile, tile, parents))
+            val manhattan = abs(playerTile.first - tile.first) + abs(playerTile.second - tile.second)
+            Candidate(tile, manhattan.toFloat() - k * cost, pd, manhattan, cost, reconstructPath(aiTile, tile, parents))
     }
         .sortedByDescending { it.score }
 
@@ -31,11 +35,11 @@ fun PlatformGraph.fleeDiagnostic(
     sb.appendLine("=== FLEE DIAGNOSTIC ===")
     sb.appendLine("AI: $aiTile  |  Player: $playerTile  |  distPlayer[AI]: ${distPlayer[aiTile] ?: "unreachable"}")
     sb.appendLine()
-    sb.appendLine("Top $topN (score = distP - $k x cost) :")
+    sb.appendLine("Top $topN (score = manhattan - $k x cost) :")
     candidates.take(topN).forEachIndexed { n, c ->
         val summary = c.path.groupBy { it.action }.entries
             .joinToString(" ") { (a, s) -> "${a.name}x${s.size}" }
-        sb.appendLine("  #${n + 1} ${c.tile}  score=${c.score}  distP=${c.distP ?: "?"}  cost=${c.cost}  [$summary]")
+        sb.appendLine("  #${n + 1} ${c.tile}  score=${c.score}  manhattan=${c.distManhattan}  bfs=${c.distP ?: "?"}  cost=${c.cost}  [$summary]")
     }
     sb.appendLine()
     sb.appendLine("Chemin choisi (${best?.path?.size ?: 0} etapes) :")

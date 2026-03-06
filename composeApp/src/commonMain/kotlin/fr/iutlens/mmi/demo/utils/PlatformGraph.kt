@@ -1,6 +1,7 @@
 package fr.iutlens.mmi.demo.utils
 
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
+import kotlin.math.abs
 
 enum class MoveAction { WALK, JUMP, FALL }
 
@@ -24,6 +25,17 @@ class PathPlan(steps: List<PathStep>) {
     val isDone: Boolean get() = index >= steps.size
 
     fun advance() { index++ }
+
+    /** Retourne l'index et le step du prochain JUMP dans le plan (après l'index courant), ou null. */
+    fun peekNextJump(): Pair<Int, PathStep>? {
+        for (i in (index + 1) until steps.size) {
+            if (steps[i].action == MoveAction.JUMP) return i to steps[i]
+        }
+        return null
+    }
+
+    /** Saute directement à l'index donné (pour anticiper un JUMP). */
+    fun skipTo(targetIndex: Int) { index = targetIndex }
 }
 
 class PlatformGraph(
@@ -144,7 +156,6 @@ class PlatformGraph(
      */
     fun findFleePathTo(
         from: Pair<Int, Int>,
-        distPlayer: Map<Pair<Int, Int>, Int>,
         playerTile: Pair<Int, Int>,
         k: Float = 0.3f
     ): List<PathStep> {
@@ -155,7 +166,7 @@ class PlatformGraph(
 
         for ((tile, cost) in costs) {
             if (tile == from) continue
-            val playerDist = (distPlayer[tile] ?: 100).toFloat()
+            val playerDist = (abs(playerTile.first - tile.first) + abs(playerTile.second - tile.second)).toFloat()
             val score = playerDist - k * cost
             if (score > bestScore) {
                 bestScore = score

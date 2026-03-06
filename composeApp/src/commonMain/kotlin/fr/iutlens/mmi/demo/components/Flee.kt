@@ -25,7 +25,7 @@ class Flee(
 
     companion object {
         const val FLEE_TRIGGER_TILES = 6
-        const val FLEE_RELEASE_TILES = 8
+        const val FLEE_RELEASE_TILES = 15
         const val STEP_TIMEOUT = 300
         const val DEBUG_FLEE = true  // DEBUG — mettre false ou supprimer avec PlatformGraphDebug.kt
     }
@@ -93,12 +93,24 @@ class Flee(
                                 stepTimeout = 0
                             }
                         }
-                        // Applique l'étape active (peut être la suivante après advance)
+                        // Priorisation du JUMP : si le step courant est WALK et qu'un JUMP
+                        // est prévu plus loin dans le chemin, sauter dès qu'on est en position.
                         val activeStep = path.current
-                        if (activeStep != null) {
-                            if (activeStep.dirX != 0f) fleeingDirX = activeStep.dirX
-                            dirX = if (activeStep.dirX != 0f) activeStep.dirX else fleeingDirX
-                            if (activeStep.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {
+                        if (activeStep != null && activeStep.action == MoveAction.WALK) {
+                            val jumpAhead = path.peekNextJump()
+                            if (jumpAhead != null) {
+                                val (jumpIdx, jumpStep) = jumpAhead
+                                if (graph.getAction(i to j, jumpStep.tile) == MoveAction.JUMP) {
+                                    path.skipTo(jumpIdx)
+                                }
+                            }
+                        }
+                        // Applique l'étape active (peut être le JUMP anticipé)
+                        val effectiveStep = path.current
+                        if (effectiveStep != null) {
+                            if (effectiveStep.dirX != 0f) fleeingDirX = effectiveStep.dirX
+                            dirX = if (effectiveStep.dirX != 0f) effectiveStep.dirX else fleeingDirX
+                            if (effectiveStep.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {
                                 jump()
                                 jumpCooldown = 50
                             }
@@ -135,7 +147,7 @@ class Flee(
     private fun recomputeFleePath(i: Int, j: Int) {
         val myTile = i to j
         val playerTile = distanceMap.targetTile
-        val pathSteps = graph.findFleePathTo(myTile, distanceMap.distances, playerTile)
+        val pathSteps = graph.findFleePathTo(myTile, playerTile)
         @Suppress("ConstantConditionIf")
         if (DEBUG_FLEE) println(graph.fleeDiagnostic(myTile, distanceMap.distances, playerTile))
         currentPath = if (pathSteps.isNotEmpty()) PathPlan(pathSteps) else null
