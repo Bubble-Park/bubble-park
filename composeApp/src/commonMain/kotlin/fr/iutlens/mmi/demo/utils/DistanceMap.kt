@@ -79,11 +79,24 @@ class DistanceMap(
     }
 
     /**
-     * trouve parmi les voisins directs celui qui est
-     * le plus loin de la cible
+     * trouve parmi les voisins directs celui qui est le plus loin de la cible
      * @param pos position initiale
      * @return position la plus loin de la cible
      */
+    fun nextFlee(pos: Pair<Int, Int>): Pair<Int, Int>? {
+        var bestPos: Pair<Int, Int>? = null
+        var bestDist = -1
+
+        forwardNeighbor(pos) { n ->
+            val d = get(n)
+            if (d != null && d > bestDist) {
+                bestDist = d
+                bestPos = n
+            }
+        }
+
+        return bestPos
+    }
 
     /**
      * Trouve la prochaine position pour les FLEE + l'action à effectuer

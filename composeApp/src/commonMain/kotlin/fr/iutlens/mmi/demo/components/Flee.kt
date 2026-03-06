@@ -20,8 +20,8 @@ class Flee(
     enum class State { IDLE, MOVING, FLEEING }
 
     companion object {
-        const val FLEE_TRIGGER_TILES = 2
-        const val FLEE_RELEASE_TILES = 6
+        const val FLEE_TRIGGER_TILES = 6
+        const val FLEE_RELEASE_TILES = 8
     }
 
     val normalSpeed = 20f
@@ -70,7 +70,7 @@ class Flee(
                             if (move.dirX != 0f) fleeingDirX = move.dirX
                             dirX = if (move.dirX != 0f) move.dirX else fleeingDirX
                             if (move.action == MoveAction.FALL) {
-                                committedToFall = true  // verrouiller la direction de chute
+                                committedToFall = true
                             }
                             if (move.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {
                                 jump()
