@@ -84,20 +84,6 @@ class DistanceMap(
      * @param pos position initiale
      * @return position la plus loin de la cible
      */
-    fun nextFlee(pos: Pair<Int, Int>): Pair<Int, Int>? {
-        var bestPos: Pair<Int, Int>? = null
-        var bestDist = -1
-
-        forwardNeighbor(pos) { n ->
-            val d = get(n)
-            if (d != null && d > bestDist) {
-                bestDist = d
-                bestPos = n
-            }
-        }
-
-        return bestPos // toujours le meilleur voisin disponible, null seulement si aucun
-    }
 
     /**
      * Trouve la prochaine position pour les FLEE + l'action à effectuer
@@ -125,7 +111,6 @@ class DistanceMap(
         val i = floor(x / map.w).toInt()
         val j = floor(y / map.h).toInt()
 
-        // Si la tile du target n'est pas standable, chercher en dessous
         if (graph != null && !graph.isStandable(i, j)) {
             for (jj in j until map.tileMap.geometry.sizeY) {
                 if (graph.isStandable(i, jj)) return i to jj

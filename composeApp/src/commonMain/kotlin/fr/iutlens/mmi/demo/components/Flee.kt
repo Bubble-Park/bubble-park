@@ -68,7 +68,7 @@ class Flee(
                         }
                     }
                     !isOnGround -> dirX = fleeingDirX  // en chute/saut, garder la direction
-                    else -> dirX = fleeingDirX  // garder la direction si aucune option meilleure
+                    else -> dirX = fleeingDirX
                 }
             }
             State.IDLE -> {
