@@ -6,7 +6,6 @@ import fr.iutlens.mmi.demo.components.Flee
 import fr.iutlens.mmi.demo.components.Ino
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.GameData
-import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
@@ -16,6 +15,7 @@ import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
 import fr.iutlens.mmi.demo.game.sprite.EnemyBehavior
 import fr.iutlens.mmi.demo.utils.DistanceMap
+import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.distanceMap
 import kotlin.math.PI
 import kotlin.math.round
@@ -27,8 +27,8 @@ class BubblePark : GameData() {
 
     lateinit var player: Player
     private lateinit var tileArea: TiledArea
+    private lateinit var platformGraph: PlatformGraph
     private lateinit var distanceMap: DistanceMap
-    private lateinit var distanceMapFlee: DistanceMap
 
     private var nextShotTime = 0L
     private var lastEnemySpawnTime = 0L
@@ -89,22 +89,9 @@ class BubblePark : GameData() {
             jumpActionProvider = { game.actionButtonB }
         )
 
-        distanceMap = tileArea.distanceMap(player) { i, j ->
-            val code = tileMap.get(i, j) ?: 0
-            code == 0
-        }
+        platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
 
-        val fleeSprite = BasicSprite(Res.drawable.bubble_sprite,0f,0f){
-            val target = distanceMap.farthest()
-            if (target != null) {
-                x = target.first * tileArea.w + tileArea.w / 2f
-                y = target.second * tileArea.h + tileArea.h / 2f
-            }
-        }
-        distanceMapFlee = tileArea.distanceMap(fleeSprite) { i, j ->
-            val code = tileMap.get(i, j) ?: 0
-            code == 0
-        }
+        distanceMap = tileArea.distanceMap(player, platformGraph)
 
         createGame(
             background = tileArea,
@@ -117,7 +104,6 @@ class BubblePark : GameData() {
             spawnEnemyIfNeeded()
             
             distanceMap.update()
-            fleeSprite.update()
             
             (game.spriteList as? MutableList<Sprite>)?.apply {
                 removeAll { (it as? Bullet)?.isStopped == true }
@@ -222,7 +208,8 @@ class BubblePark : GameData() {
                         res = Res.drawable.bubble_sprite,
                         x = spawnX,
                         y = spawnY,
-                        mapArea = tileArea
+                        mapArea = tileArea,
+                        graph = platformGraph
                     )
                     roll < 0.60f -> Flee(
                         res = Res.drawable.bubble_sprite,
@@ -230,7 +217,7 @@ class BubblePark : GameData() {
                         y = spawnY,
                         mapArea = tileArea,
                         distanceMap = distanceMap,
-                        distanceMapFlee = distanceMapFlee
+                        graph = platformGraph
                     )
                     else -> Flee(
                         res = Res.drawable.bubble_sprite,
@@ -238,7 +225,7 @@ class BubblePark : GameData() {
                         y = spawnY,
                         mapArea = tileArea,
                         distanceMap = distanceMap,
-                        distanceMapFlee = distanceMapFlee
+                        graph = platformGraph
                     )
                 }
                 (game.spriteList as? MutableList<Sprite>)?.add(newSprite)
