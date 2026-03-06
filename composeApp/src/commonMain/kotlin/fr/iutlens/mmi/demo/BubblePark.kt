@@ -89,7 +89,7 @@ class BubblePark : GameData() {
             jumpActionProvider = { game.actionButtonB }
         )
 
-        platformGraph = PlatformGraph(tileArea, jumpHeight = 6, horizontalReach = 4)
+        platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
 
         distanceMap = tileArea.distanceMap(player, platformGraph)
 

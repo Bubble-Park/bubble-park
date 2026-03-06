@@ -96,12 +96,7 @@ class DistanceMap(
             }
         }
 
-        if (bestPos == null) return null // pas de meilleure position
-
-        val currentDist = get(pos) // distance actuelle à la position initiale
-        if (currentDist != null && bestDist < currentDist) return null
-
-        return bestPos
+        return bestPos // toujours le meilleur voisin disponible, null seulement si aucun
     }
 
     /**

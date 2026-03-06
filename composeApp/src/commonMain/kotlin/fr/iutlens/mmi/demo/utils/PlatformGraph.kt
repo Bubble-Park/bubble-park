@@ -8,8 +8,7 @@ data class Edge(val target: Pair<Int, Int>, val action: MoveAction)
 
 class PlatformGraph(
     val tileArea: TiledArea,
-    val jumpHeight: Int = 6,
-    val horizontalReach: Int = 4
+    val jumpHeight: Int = 6
 ) {
     private val tileMap = tileArea.tileMap
     private val sizeX = tileMap.geometry.sizeX
@@ -75,18 +74,6 @@ class PlatformGraph(
     }
 
     /**
-     * Vérifie si la tile à la position (i, j) est un obstacle
-     * @param i position sur l'axe X
-     * @param j position sur l'axe Y
-     * @return true si la tile est un obstacle
-     */
-    private fun isTileWall(i: Int, j: Int): Boolean {
-        if (i !in 0 until sizeX || j < 0 || j >= sizeY) return true
-        val code = tileMap.get(i, j) ?: 0
-        return code > 3
-    }
-
-    /**
      * Vérifie si la tile est une limite du niveau
      * @param i position sur l'axe X
      * @param j position sur l'axe Y
@@ -139,23 +126,12 @@ class PlatformGraph(
                 }
             }
 
-            // JUMP : toutes les tiles standable dans l'enveloppe de saut
-            for (dy in -jumpHeight..jumpHeight) {
-                val maxDx = if (dy <= 0) {
-                    horizontalReach
-                } else {
-                    horizontalReach + dy / 2
-                }
-
-                for (dx in -maxDx..maxDx) {
-                    if (dx == 0 && dy == 0) continue
-                    if (dx in -1..1 && dy == 0) continue  // WALK
-                    val ti = i + dx
-                    val tj = j + dy
-                    if (!isStandable(ti, tj)) continue
-                    if (!isJumpPathClear(i, j, ti, tj)) continue
-
-                    edges.add(Edge(ti to tj, MoveAction.JUMP))
+            // JUMP : Vers le haut uniquement, x ne varie pas
+            for (dy in 1..jumpHeight) {
+                val tj = j - dy
+                if (!isStandable(i, tj)) continue
+                if ((tj until j).all { jj -> isTileAir(i, jj) }) {
+                    edges.add(Edge(i to tj, MoveAction.JUMP))
                 }
             }
 
@@ -175,34 +151,6 @@ class PlatformGraph(
             if (isTileBlocking(col, j)) return null
         }
         return null
-    }
-
-    /**
-     * Vérifie que l'arc de saut n'est pas bloqué par un mur ou une plateforme
-     * @param fromI position X de départ
-     * @param fromJ position Y de départ
-     * @param toI position X d'arrivée
-     * @param toJ position Y d'arrivée
-     * @return true si l'arc de saut n'est pas bloqué
-     */
-    private fun isJumpPathClear(fromI: Int, fromJ: Int, toI: Int, toJ: Int): Boolean {
-        val topJ = minOf(fromJ, toJ) - 1
-        val minI = minOf(fromI, toI)
-        val maxI = maxOf(fromI, toI)
-
-        // Vérifier la colonne de départ vers le haut
-        for (j in topJ until fromJ) {
-            if (j >= 0 && isTileBlocking(fromI, j)) return false
-        }
-        // Vérifier la colonne d'arrivée vers le haut
-        for (j in topJ until toJ) {
-            if (j >= 0 && isTileBlocking(toI, j)) return false
-        }
-        // Vérifier les colonnes intermédiaires
-        for (i in minI..maxI) {
-            if (topJ >= 0 && isTileBlocking(i, topJ)) return false
-        }
-        return true
     }
 
     /** Construit le graphe inversé depuis le graphe direct */

@@ -32,6 +32,7 @@ class Flee(
     private var dirX = 0f
     private var moveTarget = 0
     private var moveDone = 0f
+    private var fleeingDirX = 0f
 
     override fun update() {
         if (isDead) return
@@ -57,14 +58,17 @@ class Flee(
         when (state) {
             State.FLEEING -> {
                 val move = distanceMap.nextFleeWithAction(i to j)
-                if (move != null) {
-                    dirX = move.dirX
-                    if (move.action == MoveAction.JUMP && isOnGround && jumpCooldown <= 0) {
-                        jump()
-                        jumpCooldown = 50
+                when {
+                    move != null -> {
+                        if (move.dirX != 0f) fleeingDirX = move.dirX
+                        dirX = if (move.dirX != 0f) move.dirX else fleeingDirX
+                        if (move.action == MoveAction.JUMP && isOnGround && jumpCooldown <= 0 && j > 0) {
+                            jump()
+                            jumpCooldown = 50
+                        }
                     }
-                } else {
-                    dirX = 0f
+                    !isOnGround -> dirX = fleeingDirX  // en chute/saut, garder la direction
+                    else -> dirX = fleeingDirX  // garder la direction si aucune option meilleure
                 }
             }
             State.IDLE -> {
