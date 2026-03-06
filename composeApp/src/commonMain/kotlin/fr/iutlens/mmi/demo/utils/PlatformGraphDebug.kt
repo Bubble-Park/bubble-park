@@ -35,7 +35,7 @@ fun PlatformGraph.fleeDiagnostic(
     candidates.take(topN).forEachIndexed { n, c ->
         val summary = c.path.groupBy { it.action }.entries
             .joinToString(" ") { (a, s) -> "${a.name}x${s.size}" }
-        sb.appendLine("  #${n + 1} ${c.tile}  score=${"%.2f".format(c.score)}  distP=${c.distP ?: "?"}  cost=${"%.1f".format(c.cost)}  [$summary]")
+        sb.appendLine("  #${n + 1} ${c.tile}  score=${c.score}  distP=${c.distP ?: "?"}  cost=${c.cost}  [$summary]")
     }
     sb.appendLine()
     sb.appendLine("Chemin choisi (${best?.path?.size ?: 0} etapes) :")
