@@ -8,6 +8,7 @@ import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.MoveAction
 import fr.iutlens.mmi.demo.utils.PathPlan
 import fr.iutlens.mmi.demo.utils.PlatformGraph
+import fr.iutlens.mmi.demo.utils.fleeDiagnostic
 import org.jetbrains.compose.resources.DrawableResource
 import kotlin.math.floor
 import kotlin.random.Random
@@ -26,6 +27,7 @@ class Flee(
         const val FLEE_TRIGGER_TILES = 6
         const val FLEE_RELEASE_TILES = 8
         const val STEP_TIMEOUT = 300
+        const val DEBUG_FLEE = true  // DEBUG — mettre false ou supprimer avec PlatformGraphDebug.kt
     }
 
     val normalSpeed = 20f
@@ -134,6 +136,8 @@ class Flee(
         val myTile = i to j
         val playerTile = distanceMap.targetTile
         val pathSteps = graph.findFleePathTo(myTile, distanceMap.distances, playerTile)
+        @Suppress("ConstantConditionIf")
+        if (DEBUG_FLEE) println(graph.fleeDiagnostic(myTile, distanceMap.distances, playerTile))
         currentPath = if (pathSteps.isNotEmpty()) PathPlan(pathSteps) else null
         stepTimeout = 0
     }
