@@ -1,6 +1,7 @@
 package fr.iutlens.mmi.demo
 
 import fr.iutlens.mmi.demo.components.Player
+import fr.iutlens.mmi.demo.components.Attack
 import fr.iutlens.mmi.demo.components.Bullet
 import fr.iutlens.mmi.demo.components.Flee
 import fr.iutlens.mmi.demo.components.Ino
@@ -39,6 +40,7 @@ class BubblePark : GameData() {
     private val activeEnemies = mutableListOf<EnemySprite>()
     private val activeInos = mutableListOf<Ino>()
     private val activeFlees = mutableListOf<Flee>()
+    private val activeAttacks = mutableListOf<Attack>()
 
     private val levels = listOf(
         LevelData(
@@ -110,6 +112,7 @@ class BubblePark : GameData() {
                 removeAll { (it as? EnemySprite)?.isDead == true }
                 removeAll { (it as? Ino)?.isDead == true }
                 removeAll { (it as? Flee)?.isDead == true }
+                removeAll { (it as? Attack)?.isDead == true }
             }
             game.spriteList.update()
             game.invalidate()
@@ -121,11 +124,13 @@ class BubblePark : GameData() {
         activeEnemies.clear()
         activeInos.clear()
         activeFlees.clear()
+        activeAttacks.clear()
 
         for (sprite in game.spriteList) {
             when {
                 sprite is Bullet && !sprite.isStopped -> activeBullets.add(sprite)
                 sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
+                sprite is Attack && !sprite.isDead -> activeAttacks.add(sprite)
                 sprite is Flee && !sprite.isDead -> activeFlees.add(sprite)
                 sprite is Ino && !sprite.isDead -> activeInos.add(sprite)
             }
@@ -141,7 +146,22 @@ class BubblePark : GameData() {
             }
         }
 
+        for (attack in activeAttacks) {
+            if (attack.boundingBox.overlaps(player.boundingBox)) {
+                player.takeDamage()
+            }
+        }
+
         for (bullet in activeBullets) {
+            for (attack in activeAttacks) {
+                if (attack.isDead) continue
+                if (bullet.boundingBox.overlaps(attack.boundingBox)) {
+                    attack.isDead = true
+                    bullet.explode()
+                    break
+                }
+            }
+            if (bullet.isStopped) continue
             for (enemy in activeEnemies) {
                 if (enemy.isDead) continue
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
@@ -175,7 +195,7 @@ class BubblePark : GameData() {
         if (game.elapsed - lastEnemySpawnTime > ENEMY_SPAWN_INTERVAL) {
             lastEnemySpawnTime = game.elapsed
 
-            val currentEnemyCount = activeEnemies.size + activeInos.size + activeFlees.size
+            val currentEnemyCount = activeEnemies.size + activeInos.size + activeFlees.size + activeAttacks.size
             if (currentEnemyCount >= MAX_ENEMIES) {
                 return
             }
@@ -202,16 +222,15 @@ class BubblePark : GameData() {
                 val spawnX = spawnPoint.first * tileArea.w + tileArea.w / 2f
                 val spawnY = spawnPoint.second * tileArea.h + tileArea.h / 2f
 
-                val roll = Random.nextFloat()
-                val newSprite: Sprite = when {
-                    roll < 0.30f -> Ino(
+                val newSprite: Sprite = when (Random.nextInt(3)) {
+                    0 -> Ino(
                         res = Res.drawable.bubble_sprite,
                         x = spawnX,
                         y = spawnY,
                         mapArea = tileArea,
                         graph = platformGraph
                     )
-                    roll < 0.60f -> Flee(
+                    1 -> Flee(
                         res = Res.drawable.bubble_sprite,
                         x = spawnX,
                         y = spawnY,
@@ -219,7 +238,7 @@ class BubblePark : GameData() {
                         distanceMap = distanceMap,
                         graph = platformGraph
                     )
-                    else -> Flee(
+                    else -> Attack(
                         res = Res.drawable.bubble_sprite,
                         x = spawnX,
                         y = spawnY,
