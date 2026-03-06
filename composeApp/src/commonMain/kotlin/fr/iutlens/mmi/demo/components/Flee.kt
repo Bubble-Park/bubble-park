@@ -76,9 +76,14 @@ class Flee(
                     } else {
                         val step = path.current!!
                         val reachedStep = when (step.action) {
-                            // WALK : doit être sur la bonne colonne ET rangée
-                            MoveAction.WALK -> i == step.tile.first && j == step.tile.second
-                            // FALL : la chute peut décaler horizontalement — suffit d'avoir atterri à la bonne rangée
+                            // WALK vers une tile standable : position exacte requise.
+                            // WALK vers une tile non-standable (arête avant chute) : colonne seule suffit.
+                            MoveAction.WALK -> if (graph.isStandable(step.tile.first, step.tile.second)) {
+                                i == step.tile.first && j == step.tile.second
+                            } else {
+                                i == step.tile.first
+                            }
+                            // FALL : suffit d'avoir atterri à la bonne rangée
                             MoveAction.FALL -> j >= step.tile.second
                             // JUMP : suffit d'être sur la bonne rangée (ou au-dessus si overshoot)
                             MoveAction.JUMP -> j <= step.tile.second
@@ -93,10 +98,11 @@ class Flee(
                                 stepTimeout = 0
                             }
                         }
-                        // Priorisation du JUMP : si le step courant est WALK et qu'un JUMP
+                        // Priorisation du JUMP : si le step courant est WALK standable et qu'un JUMP
                         // est prévu plus loin dans le chemin, sauter dès qu'on est en position.
                         val activeStep = path.current
-                        if (activeStep != null && activeStep.action == MoveAction.WALK) {
+                        if (activeStep != null && activeStep.action == MoveAction.WALK
+                            && graph.isStandable(activeStep.tile.first, activeStep.tile.second)) {
                             val jumpAhead = path.peekNextJump()
                             if (jumpAhead != null) {
                                 val (jumpIdx, jumpStep) = jumpAhead

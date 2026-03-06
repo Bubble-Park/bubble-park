@@ -107,7 +107,10 @@ class PlatformGraph(
     }
 
     /**
-     * Reconstruit le chemin de from à to via la map parents issue de dijkstra
+     * Reconstruit le chemin de from à to via la map parents issue de dijkstra.
+     * Pour les edges FALL, un step WALK intermédiaire est injecté vers la tile d'arête
+     * (même colonne que la destination, même rangée que la source) afin que l'IA se
+     * positionne sur le bord avant de tomber.
      * @param from : position de départ.
      * @param to : position d'arrivée.
      * @param parents : map des parents.
@@ -130,6 +133,11 @@ class PlatformGraph(
                 else -> 0f
             }
             path.add(PathStep(current, action, dirX))
+            // FALL : injecter un step WALK vers la tile d'arête (colonne de destination,
+            // rangée de la source) pour que l'IA se positionne avant de tomber.
+            if (action == MoveAction.FALL) {
+                path.add(PathStep(current.first to prev.second, MoveAction.WALK, dirX))
+            }
             current = prev
         }
 
@@ -151,7 +159,7 @@ class PlatformGraph(
 
     /**
      * Calcule en un seul Dijkstra la meilleure destination de fuite ET le chemin pour y aller.
-     * Score de chaque tile = distPlayer[tile] - k * cost_from_me
+     * Score de chaque tile = manhattan(player, tile) - k * cost_from_me
      * playerTile est pénalisée pour éviter les chemins qui la traversent.
      */
     fun findFleePathTo(
@@ -244,7 +252,7 @@ class PlatformGraph(
             for (dy in 1..jumpHeight) {
                 val tj = j - dy
                 if (!isStandable(i, tj)) continue
-                edges.add(Edge(i to tj, MoveAction.JUMP, dy * 0.5f))
+                edges.add(Edge(i to tj, MoveAction.JUMP, dy * 0.1f))
             }
 
             forward[pos] = edges
