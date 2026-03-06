@@ -20,8 +20,8 @@ class Flee(
     enum class State { IDLE, MOVING, FLEEING }
 
     companion object {
-        const val FLEE_TRIGGER_TILES = 6
-        const val FLEE_RELEASE_TILES = 10
+        const val FLEE_TRIGGER_TILES = 2
+        const val FLEE_RELEASE_TILES = 6
     }
 
     val normalSpeed = 20f
@@ -33,6 +33,7 @@ class Flee(
     private var moveTarget = 0
     private var moveDone = 0f
     private var fleeingDirX = 0f
+    private var committedToFall = false
 
     override fun update() {
         if (isDead) return
@@ -57,18 +58,27 @@ class Flee(
 
         when (state) {
             State.FLEEING -> {
-                val move = distanceMap.nextFleeWithAction(i to j)
-                when {
-                    move != null -> {
-                        if (move.dirX != 0f) fleeingDirX = move.dirX
-                        dirX = if (move.dirX != 0f) move.dirX else fleeingDirX
-                        if (move.action == MoveAction.JUMP && isOnGround && jumpCooldown <= 0 && j > 0) {
-                            jump()
-                            jumpCooldown = 50
+                if (!isOnGround) {
+                    committedToFall = false
+                    dirX = fleeingDirX
+                } else if (committedToFall) {
+                    dirX = fleeingDirX
+                } else {
+                    val move = distanceMap.nextFleeWithAction(i to j)
+                    when {
+                        move != null -> {
+                            if (move.dirX != 0f) fleeingDirX = move.dirX
+                            dirX = if (move.dirX != 0f) move.dirX else fleeingDirX
+                            if (move.action == MoveAction.FALL) {
+                                committedToFall = true  // verrouiller la direction de chute
+                            }
+                            if (move.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {
+                                jump()
+                                jumpCooldown = 50
+                            }
                         }
+                        else -> dirX = fleeingDirX
                     }
-                    !isOnGround -> dirX = fleeingDirX  // en chute/saut, garder la direction
-                    else -> dirX = fleeingDirX
                 }
             }
             State.IDLE -> {
@@ -95,12 +105,19 @@ class Flee(
         applyPhysics()
     }
 
+    /**
+     * Retourne à l'état d'attente
+     */
     private fun switchToIdle() {
         state = State.IDLE
         dirX = 0f
+        committedToFall = false
         idleTimer = Random.nextInt(25, 101)
     }
 
+    /**
+     * Démarre le déplacement
+     */
     private fun startMoving() {
         val i = floor(x / mapArea.w).toInt()
         val leftBlocked = isBlockedInDir(-1f, i)
@@ -118,6 +135,12 @@ class Flee(
         state = State.MOVING
     }
 
+    /**
+     * Vérifie si il y a une plateforme au dessus de la position (i, j)
+     * @param i position sur l'axe X
+     * @param j position sur l'axe Y
+     * @return true si il y a une plateforme au dessus
+     */
     private fun hasPlatformAbove(i: Int, j: Int): Boolean {
         for (dy in 1..5) {
             val code = mapArea.tileMap.get(i, j - dy) ?: 0
@@ -127,6 +150,12 @@ class Flee(
         return false
     }
 
+    /**
+     * Vérifie si il y a une mur à droite ou à gauche de la position (i, j)
+     * @param dir direction de déplacement
+     * @param i position sur l'axe X
+     * @return true si il y a une mur
+     */
     private fun isBlockedInDir(dir: Float, i: Int): Boolean {
         val mapSizeX = mapArea.tileMap.geometry.sizeX
         if (dir < 0f && i <= 0) return true
@@ -136,6 +165,11 @@ class Flee(
         return isWall(nextX, y, checkPlatform = false)
     }
 
+    /**
+     * Dessine le dino
+     * @param drawScope contexte de dessin
+     * @param elapsed temps écoulé depuis le début du jeu
+     */
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.drawCircle(
             color = Color.Yellow,

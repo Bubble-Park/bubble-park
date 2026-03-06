@@ -14,9 +14,16 @@ open class PhysicsSprite(
     var jumpForce: Float = -25f
 ) : BasicSprite(res, x, y) {
 
-    var vy = 0f
-    var isOnGround = false
+    var vy = 0f // vélocité Y
+    var isOnGround = false // en contact avec le sol ?
 
+
+    /**
+     * Vérifie si il y a une mur à droite ou à gauche de la position (x, y)
+     * @param x position sur l'axe X
+     * @param y position sur l'axe Y
+     * @return true si il y a une mur
+     */
     protected fun isWall(x: Float, y: Float, checkPlatform: Boolean = true): Boolean {
         with(mapArea) {
             val i = floor(x / w).toInt()
@@ -35,6 +42,9 @@ open class PhysicsSprite(
         }
     }
 
+    /**
+     * Applique la physique au sprite
+     */
     fun applyPhysics() {
         val h2 = spriteSheet.spriteHeight / 2f
         val w2 = spriteSheet.spriteWidth / 2f
@@ -62,6 +72,11 @@ open class PhysicsSprite(
         }
     }
 
+    /**
+     * Déplace le sprite sur l'axe X
+     * @param speed vitesse de déplacement
+     * @param maxSpeed vitesse maximale
+     */
     fun moveX(speed: Float, maxSpeed: Float) {
         val w2 = spriteSheet.spriteWidth / 2f
         val clampedSpeed = max(min(speed, maxSpeed), -maxSpeed)
@@ -73,6 +88,9 @@ open class PhysicsSprite(
         }
     }
 
+    /**
+     * Saut
+     */
     fun jump() {
         if (isOnGround) {
             vy = jumpForce
