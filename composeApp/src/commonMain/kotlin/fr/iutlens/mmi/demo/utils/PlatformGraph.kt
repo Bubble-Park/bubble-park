@@ -227,13 +227,13 @@ class PlatformGraph(
                 }
             }
 
-            // JUMP : vers le haut — avantageux, change de niveau rapidement
+            // JUMP : vers le haut — la physique utilise checkPlatform=false en montée,
+            // donc les plateformes solides (codes 1-3) ne bloquent pas la trajectoire ascendante.
+            // Seuls les "vrais murs" (codes hors 0-3) bloqueraient, inexistants dans la map actuelle.
             for (dy in 1..jumpHeight) {
                 val tj = j - dy
                 if (!isStandable(i, tj)) continue
-                if ((tj until j).all { jj -> isTileAir(i, jj) }) {
-                    edges.add(Edge(i to tj, MoveAction.JUMP, dy * 0.5f))
-                }
+                edges.add(Edge(i to tj, MoveAction.JUMP, dy * 0.5f))
             }
 
             forward[pos] = edges

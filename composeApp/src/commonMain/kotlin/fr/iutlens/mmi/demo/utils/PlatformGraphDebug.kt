@@ -23,7 +23,7 @@ fun PlatformGraph.fleeDiagnostic(
         .map { (tile, cost) ->
             val pd = distPlayer[tile]
             Candidate(tile, (pd ?: 100).toFloat() - k * cost, pd, cost, reconstructPath(aiTile, tile, parents))
-        }
+    }
         .sortedByDescending { it.score }
 
     val best = candidates.firstOrNull()
