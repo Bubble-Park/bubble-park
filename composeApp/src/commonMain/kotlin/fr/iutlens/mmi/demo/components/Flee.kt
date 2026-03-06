@@ -6,6 +6,8 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.MoveAction
+import fr.iutlens.mmi.demo.utils.PathPlan
+import fr.iutlens.mmi.demo.utils.PlatformGraph
 import org.jetbrains.compose.resources.DrawableResource
 import kotlin.math.floor
 import kotlin.random.Random
@@ -14,7 +16,8 @@ class Flee(
     res: DrawableResource,
     x: Float, y: Float,
     mapArea: TiledArea,
-    val distanceMap: DistanceMap
+    val distanceMap: DistanceMap,
+    val graph: PlatformGraph
 ) : Dino(res, x, y, mapArea) {
 
     enum class State { IDLE, MOVING, FLEEING }
@@ -22,6 +25,7 @@ class Flee(
     companion object {
         const val FLEE_TRIGGER_TILES = 6
         const val FLEE_RELEASE_TILES = 8
+        const val STEP_TIMEOUT = 300
     }
 
     val normalSpeed = 20f
@@ -33,13 +37,15 @@ class Flee(
     private var moveTarget = 0
     private var moveDone = 0f
     private var fleeingDirX = 0f
-    private var committedToFall = false
+    private var currentPath: PathPlan? = null
+    private var stepTimeout = 0
 
     override fun update() {
         if (isDead) return
 
         if (stunTimer > 0) {
             stunTimer--
+            currentPath = null
             applyPhysics()
             return
         }
@@ -52,6 +58,7 @@ class Flee(
 
         if (distToPlayer != null && distToPlayer <= FLEE_TRIGGER_TILES && state != State.FLEEING) {
             state = State.FLEEING
+            currentPath = null
         } else if ((distToPlayer == null || distToPlayer > FLEE_RELEASE_TILES) && state == State.FLEEING) {
             switchToIdle()
         }
@@ -59,25 +66,43 @@ class Flee(
         when (state) {
             State.FLEEING -> {
                 if (!isOnGround) {
-                    committedToFall = false
-                    dirX = fleeingDirX
-                } else if (committedToFall) {
                     dirX = fleeingDirX
                 } else {
-                    val move = distanceMap.nextFleeWithAction(i to j)
-                    when {
-                        move != null -> {
-                            if (move.dirX != 0f) fleeingDirX = move.dirX
-                            dirX = if (move.dirX != 0f) move.dirX else fleeingDirX
-                            if (move.action == MoveAction.FALL) {
-                                committedToFall = true
+                    val path = currentPath
+                    if (path == null || path.isDone) {
+                        recomputeFleePath(i, j)
+                    } else {
+                        val step = path.current!!
+                        val reachedStep = when (step.action) {
+                            // WALK : doit être sur la bonne colonne ET rangée
+                            MoveAction.WALK -> i == step.tile.first && j == step.tile.second
+                            // FALL : la chute peut décaler horizontalement — suffit d'avoir atterri à la bonne rangée
+                            MoveAction.FALL -> j >= step.tile.second
+                            // JUMP : suffit d'être sur la bonne rangée (ou au-dessus si overshoot)
+                            MoveAction.JUMP -> j <= step.tile.second
+                        }
+                        when {
+                            reachedStep -> {
+                                path.advance()
+                                stepTimeout = 0
                             }
-                            if (move.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {
+                            ++stepTimeout > STEP_TIMEOUT -> {
+                                currentPath = null
+                                stepTimeout = 0
+                            }
+                        }
+                        // Applique l'étape active (peut être la suivante après advance)
+                        val activeStep = path.current
+                        if (activeStep != null) {
+                            if (activeStep.dirX != 0f) fleeingDirX = activeStep.dirX
+                            dirX = if (activeStep.dirX != 0f) activeStep.dirX else fleeingDirX
+                            if (activeStep.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {
                                 jump()
                                 jumpCooldown = 50
                             }
+                        } else {
+                            dirX = fleeingDirX
                         }
-                        else -> dirX = fleeingDirX
                     }
                 }
             }
@@ -105,19 +130,21 @@ class Flee(
         applyPhysics()
     }
 
-    /**
-     * Retourne à l'état d'attente
-     */
+    private fun recomputeFleePath(i: Int, j: Int) {
+        val myTile = i to j
+        val playerTile = distanceMap.targetTile
+        val pathSteps = graph.findFleePathTo(myTile, distanceMap.distances, playerTile)
+        currentPath = if (pathSteps.isNotEmpty()) PathPlan(pathSteps) else null
+        stepTimeout = 0
+    }
+
     private fun switchToIdle() {
         state = State.IDLE
         dirX = 0f
-        committedToFall = false
+        currentPath = null
         idleTimer = Random.nextInt(25, 101)
     }
 
-    /**
-     * Démarre le déplacement
-     */
     private fun startMoving() {
         val i = floor(x / mapArea.w).toInt()
         val leftBlocked = isBlockedInDir(-1f, i)
@@ -135,12 +162,6 @@ class Flee(
         state = State.MOVING
     }
 
-    /**
-     * Vérifie si il y a une plateforme au dessus de la position (i, j)
-     * @param i position sur l'axe X
-     * @param j position sur l'axe Y
-     * @return true si il y a une plateforme au dessus
-     */
     private fun hasPlatformAbove(i: Int, j: Int): Boolean {
         for (dy in 1..5) {
             val code = mapArea.tileMap.get(i, j - dy) ?: 0
@@ -150,12 +171,6 @@ class Flee(
         return false
     }
 
-    /**
-     * Vérifie si il y a une mur à droite ou à gauche de la position (i, j)
-     * @param dir direction de déplacement
-     * @param i position sur l'axe X
-     * @return true si il y a une mur
-     */
     private fun isBlockedInDir(dir: Float, i: Int): Boolean {
         val mapSizeX = mapArea.tileMap.geometry.sizeX
         if (dir < 0f && i <= 0) return true
@@ -165,11 +180,6 @@ class Flee(
         return isWall(nextX, y, checkPlatform = false)
     }
 
-    /**
-     * Dessine le dino
-     * @param drawScope contexte de dessin
-     * @param elapsed temps écoulé depuis le début du jeu
-     */
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.drawCircle(
             color = Color.Yellow,

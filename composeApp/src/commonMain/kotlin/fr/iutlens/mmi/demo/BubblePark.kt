@@ -215,14 +215,16 @@ class BubblePark : GameData() {
                         x = spawnX,
                         y = spawnY,
                         mapArea = tileArea,
-                        distanceMap = distanceMap
+                        distanceMap = distanceMap,
+                        graph = platformGraph
                     )
                     else -> Flee(
                         res = Res.drawable.bubble_sprite,
                         x = spawnX,
                         y = spawnY,
                         mapArea = tileArea,
-                        distanceMap = distanceMap
+                        distanceMap = distanceMap,
+                        graph = platformGraph
                     )
                 }
                 (game.spriteList as? MutableList<Sprite>)?.add(newSprite)

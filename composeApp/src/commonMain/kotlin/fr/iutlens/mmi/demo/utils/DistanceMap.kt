@@ -32,6 +32,12 @@ class DistanceMap(
 
     operator fun contains(pos: Pair<Int, Int>) = pos in distance
 
+    /** Distances BFS depuis la cible (player) vers toutes les tiles atteignables */
+    val distances: Map<Pair<Int, Int>, Int> get() = distance
+
+    /** Position tile courante de la cible (player) */
+    val targetTile: Pair<Int, Int> get() = getTargetIJ()
+
     fun farthest(): Pair<Int, Int>? {
         return distance.entries.maxByOrNull { it.value }?.key
     }
