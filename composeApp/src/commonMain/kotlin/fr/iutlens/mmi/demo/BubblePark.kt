@@ -208,7 +208,8 @@ class BubblePark : GameData() {
                         res = Res.drawable.bubble_sprite,
                         x = spawnX,
                         y = spawnY,
-                        mapArea = tileArea
+                        mapArea = tileArea,
+                        graph = platformGraph
                     )
                     roll < 0.60f -> Flee(
                         res = Res.drawable.bubble_sprite,

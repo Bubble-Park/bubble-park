@@ -18,29 +18,20 @@ class Flee(
     x: Float, y: Float,
     mapArea: TiledArea,
     val distanceMap: DistanceMap,
-    val graph: PlatformGraph
-) : Dino(res, x, y, mapArea) {
+    graph: PlatformGraph
+) : WalkingDino(res, x, y, mapArea, graph) {
 
     enum class State { IDLE, MOVING, FLEEING }
 
     companion object {
         const val FLEE_TRIGGER_TILES = 6
         const val FLEE_RELEASE_TILES = 15
-        const val STEP_TIMEOUT = 300
         const val DEBUG_FLEE = true  // DEBUG — mettre false ou supprimer avec PlatformGraphDebug.kt
     }
 
-    val normalSpeed = 20f
     val fleeSpeed = 40f
 
     private var state = State.IDLE
-    private var idleTimer = Random.nextInt(10, 100)
-    private var dirX = 0f
-    private var moveTarget = 0
-    private var moveDone = 0f
-    private var fleeingDirX = 0f
-    private var currentPath: PathPlan? = null
-    private var stepTimeout = 0
 
     override fun update() {
         if (isDead) return
@@ -76,16 +67,12 @@ class Flee(
                     } else {
                         val step = path.current!!
                         val reachedStep = when (step.action) {
-                            // WALK vers une tile standable : position exacte requise.
-                            // WALK vers une tile non-standable (arête avant chute) : colonne seule suffit.
                             MoveAction.WALK -> if (graph.isStandable(step.tile.first, step.tile.second)) {
                                 i == step.tile.first && j == step.tile.second
                             } else {
                                 i == step.tile.first
                             }
-                            // FALL : suffit d'avoir atterri à la bonne rangée
                             MoveAction.FALL -> j >= step.tile.second
-                            // JUMP : suffit d'être sur la bonne rangée (ou au-dessus si overshoot)
                             MoveAction.JUMP -> j <= step.tile.second
                         }
                         when {
@@ -98,8 +85,6 @@ class Flee(
                                 stepTimeout = 0
                             }
                         }
-                        // Priorisation du JUMP : si le step courant est WALK standable et qu'un JUMP
-                        // est prévu plus loin dans le chemin, sauter dès qu'on est en position.
                         val activeStep = path.current
                         if (activeStep != null && activeStep.action == MoveAction.WALK
                             && graph.isStandable(activeStep.tile.first, activeStep.tile.second)) {
@@ -111,7 +96,6 @@ class Flee(
                                 }
                             }
                         }
-                        // Applique l'étape active (peut être le JUMP anticipé)
                         val effectiveStep = path.current
                         if (effectiveStep != null) {
                             if (effectiveStep.dirX != 0f) fleeingDirX = effectiveStep.dirX
@@ -128,24 +112,22 @@ class Flee(
             }
             State.IDLE -> {
                 dirX = 0f
-                if (--idleTimer <= 0) startMoving()
-            }
-            State.MOVING -> {
-                if (isBlockedInDir(dirX, i)) {
-                    switchToIdle()
-                } else {
-                    moveDone += normalSpeed
-                    if (moveDone >= moveTarget) {
-                        switchToIdle()
-                    } else if (isOnGround && jumpCooldown <= 0 && hasPlatformAbove(i, j) && Random.nextFloat() < 0.02f) {
-                        jump()
-                        jumpCooldown = 50
+                if (--idleTimer <= 0) {
+                    startMoving()
+                    if (currentPath != null) {
+                        state = State.MOVING
+                    } else {
+                        idleTimer = Random.nextInt(25, 101)
                     }
                 }
             }
+            State.MOVING -> {
+                val done = followPath(i, j)
+                if (done) switchToIdle()
+            }
         }
 
-        val currentSpeed = if (state == State.FLEEING) fleeSpeed else normalSpeed
+        val currentSpeed = if (state == State.FLEEING) fleeSpeed else speed
         moveX(dirX * currentSpeed, currentSpeed)
         applyPhysics()
     }
@@ -165,41 +147,6 @@ class Flee(
         dirX = 0f
         currentPath = null
         idleTimer = Random.nextInt(25, 101)
-    }
-
-    private fun startMoving() {
-        val i = floor(x / mapArea.w).toInt()
-        val leftBlocked = isBlockedInDir(-1f, i)
-        val rightBlocked = isBlockedInDir(1f, i)
-
-        dirX = when {
-            leftBlocked && rightBlocked -> { switchToIdle(); return }
-            leftBlocked -> 1f
-            rightBlocked -> -1f
-            else -> if (Random.nextBoolean()) 1f else -1f
-        }
-
-        moveTarget = Random.nextInt(2, 10) * mapArea.w
-        moveDone = 0f
-        state = State.MOVING
-    }
-
-    private fun hasPlatformAbove(i: Int, j: Int): Boolean {
-        for (dy in 1..5) {
-            val code = mapArea.tileMap.get(i, j - dy) ?: 0
-            val above = mapArea.tileMap.get(i, j - dy - 1) ?: 0
-            if (code in 1..3 && above == 0) return true
-        }
-        return false
-    }
-
-    private fun isBlockedInDir(dir: Float, i: Int): Boolean {
-        val mapSizeX = mapArea.tileMap.geometry.sizeX
-        if (dir < 0f && i <= 0) return true
-        if (dir > 0f && i >= mapSizeX - 1) return true
-        if (!isOnGround) return false
-        val nextX = x + dir * mapArea.w * 0.6f
-        return isWall(nextX, y, checkPlatform = false)
     }
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
