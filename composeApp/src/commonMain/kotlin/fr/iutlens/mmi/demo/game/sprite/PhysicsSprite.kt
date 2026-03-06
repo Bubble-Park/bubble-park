@@ -47,16 +47,14 @@ open class PhysicsSprite(
      */
     fun applyPhysics() {
         val h2 = spriteSheet.spriteHeight / 2f
-        val w2 = spriteSheet.spriteWidth / 2f
 
         vy += gravity
         val nextY = y + vy
 
         if (vy > 0) {
-            if (!isWall(x - w2/4, nextY + h2, checkPlatform = true) &&
-                !isWall(x + w2/4, nextY + h2, checkPlatform = true)) {
+            if (!isWall(x, nextY + h2, checkPlatform = true)) {
                 y = nextY
-                if (vy > gravity * 2) isOnGround = false
+                isOnGround = false
             } else {
                 isOnGround = true
                 val tileJ = floor((nextY + h2) / mapArea.h).toInt()
