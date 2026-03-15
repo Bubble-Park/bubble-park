@@ -8,7 +8,6 @@ import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.MoveAction
 import fr.iutlens.mmi.demo.utils.PathPlan
 import fr.iutlens.mmi.demo.utils.PlatformGraph
-import fr.iutlens.mmi.demo.utils.fleeDiagnostic
 import org.jetbrains.compose.resources.DrawableResource
 import kotlin.math.floor
 import kotlin.random.Random
@@ -136,8 +135,6 @@ class Flee(
         val myTile = i to j
         val playerTile = distanceMap.targetTile
         val pathSteps = graph.findFleePathTo(myTile, playerTile)
-        @Suppress("ConstantConditionIf")
-        if (DEBUG_FLEE) println(graph.fleeDiagnostic(myTile, distanceMap.distances, playerTile))
         currentPath = if (pathSteps.isNotEmpty()) PathPlan(pathSteps) else null
         stepTimeout = 0
     }
