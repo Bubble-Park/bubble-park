@@ -25,7 +25,7 @@ class Flee(
     companion object {
         const val FLEE_TRIGGER_TILES = 6
         const val FLEE_RELEASE_TILES = 15
-        const val DEBUG_FLEE = true  // DEBUG — mettre false ou supprimer avec PlatformGraphDebug.kt
+        const val DEBUG_FLEE = true
     }
 
     val fleeSpeed = 25f

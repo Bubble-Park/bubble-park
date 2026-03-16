@@ -120,9 +120,6 @@ class PlatformGraph(
 
     /**
      * Reconstruit le chemin de from à to via la map parents issue de dijkstra.
-     * Pour les edges FALL, un step WALK intermédiaire est injecté vers la tile d'arête
-     * (même colonne que la destination, même rangée que la source) afin que l'IA se
-     * positionne sur le bord avant de tomber.
      * @param from : position de départ.
      * @param to : position d'arrivée.
      * @param parents : map des parents.
@@ -145,11 +142,6 @@ class PlatformGraph(
                 else -> 0f
             }
             path.add(PathStep(current, action, dirX))
-            // FALL : injecter un step WALK vers la tile d'arête (colonne de destination,
-            // rangée de la source) pour que l'IA se positionne avant de tomber.
-            if (action == MoveAction.FALL) {
-                path.add(PathStep(current.first to prev.second, MoveAction.WALK, dirX))
-            }
             current = prev
         }
 
@@ -226,9 +218,9 @@ class PlatformGraph(
     }
 
     private fun findStandableTiles() {
-        for (i in 0 until sizeX) {
-            for (j in 0 until sizeY) {
-                if (isTileAir(i, j) && (j + 1 >= sizeY || isTileSolid(i, j + 1))) {
+        for (i in 1 until sizeX - 1) {
+            for (j in 0 until sizeY - 1) {
+                if (isTileAir(i, j) && isTileSolid(i, j + 1)) {
                     standable.add(i to j)
                 }
             }

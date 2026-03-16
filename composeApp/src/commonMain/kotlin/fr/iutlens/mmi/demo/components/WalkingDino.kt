@@ -13,8 +13,8 @@ abstract class WalkingDino(
     x: Float, y: Float,
     mapArea: TiledArea,
     val graph: PlatformGraph,
-    gravity: Float = 8f,
-    jumpForce: Float = -110f
+    gravity: Float = 4.5f,
+    jumpForce: Float = -60f
 ) : Dino(res, x, y, mapArea, gravity, jumpForce) {
 
     protected var idleTimer: Int = Random.nextInt(10, 100)
