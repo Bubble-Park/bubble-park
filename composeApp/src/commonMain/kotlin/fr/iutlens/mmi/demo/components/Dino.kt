@@ -28,4 +28,11 @@ abstract class Dino(
 
     override val boundingBox: Rect
         get() = Rect(x - radius, y - radius, x + radius, y + radius)
+
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        stunTimer = 0
+        jumpCooldown = 0
+        isDead = false
+    }
 }

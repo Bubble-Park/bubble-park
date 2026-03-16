@@ -59,7 +59,7 @@ open class PhysicsSprite(
             } else {
                 isOnGround = true
                 val tileJ = floor((nextY + h2) / mapArea.h).toInt()
-                y = tileJ * mapArea.h - h2 - 0.1f
+                y = tileJ * mapArea.h - h2 - mapArea.h * 0.003f
                 vy = 0f
             }
         } else if (vy < 0) { // Montée
@@ -88,13 +88,25 @@ open class PhysicsSprite(
     }
 
     /**
+     * Réinitialise la position et l'état physique du sprite
+     * @param x nouvelle position X
+     * @param y nouvelle position Y
+     */
+    open fun reset(x: Float, y: Float) {
+        this.x = x
+        this.y = y
+        vy = 0f
+        isOnGround = false
+    }
+
+    /**
      * Saut
      */
     fun jump() {
         if (isOnGround) {
             vy = jumpForce
             isOnGround = false
-            y -= 2f
+            y -= mapArea.h * 0.06f
         }
     }
 }

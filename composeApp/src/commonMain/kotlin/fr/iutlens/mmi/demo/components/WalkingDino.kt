@@ -28,6 +28,15 @@ abstract class WalkingDino(
         const val STEP_TIMEOUT = 300
     }
 
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        dirX = 0f
+        currentPath = null
+        stepTimeout = 0
+        idleTimer = Random.nextInt(10, 100)
+        fleeingDirX = 0f
+    }
+
     protected fun hasPlatformAbove(i: Int, j: Int): Boolean {
         for (dy in 1..5) {
             val code = mapArea.tileMap.get(i, j - dy) ?: 0

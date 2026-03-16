@@ -36,6 +36,15 @@ class Attack(
     private var dirX: Float = 0f
     private var lastDirX: Float = 0f
 
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        currentPath = null
+        pathRefreshTimer = 0
+        stepTimeout = 0
+        dirX = 0f
+        lastDirX = 0f
+    }
+
     override fun update() {
         if (isDead) return
 
