@@ -39,6 +39,7 @@ import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.plateformes_spritesheet
 import fr.iutlens.mmi.demo.ui.ShowLife
 import androidx.compose.ui.layout.ContentScale
+import fr.iutlens.mmi.demo.environnement_map_sprite
 
 import org.jetbrains.compose.resources.painterResource
 
@@ -46,7 +47,8 @@ import org.jetbrains.compose.resources.painterResource
 fun GameScreen(onExit: () -> Unit) {
     SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
     // Chargement des différents sprites
-    SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
+    //SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
+    SpriteSheet.load(Res.drawable.environnement_map_sprite, 4, 4, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
 

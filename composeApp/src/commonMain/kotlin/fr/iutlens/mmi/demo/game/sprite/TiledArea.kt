@@ -23,12 +23,12 @@ class TiledArea(var res : DrawableResource,  val  tileMap: TileMap) : Sprite {
     /**
      * W largeur d'une case, en pixels
      */
-    val w  get() = sprite.spriteWidth
+    val w  get() = sprite.spriteWidth-3
 
     /**
      * H hauteur d'une case, en pixels
      */
-    val h  get() = sprite.spriteHeight
+    val h  get() = sprite.spriteHeight-3
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         tileMap.foreach{x,y, value ->
