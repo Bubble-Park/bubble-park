@@ -22,7 +22,7 @@ abstract class WalkingDino(
     protected var currentPath: PathPlan? = null
     protected var fleeingDirX: Float = 0f
     protected var stepTimeout: Int = 0
-    protected val speed: Float = 20f
+    protected val speed: Float = 11f
 
     companion object {
         const val STEP_TIMEOUT = 300
@@ -32,7 +32,7 @@ abstract class WalkingDino(
         for (dy in 1..5) {
             val code = mapArea.tileMap.get(i, j - dy) ?: 0
             val above = mapArea.tileMap.get(i, j - dy - 1) ?: 0
-            if (code in 1..3 && above == 0) return true
+            if (code in 1..7 && above !in 1..7) return true
         }
         return false
     }

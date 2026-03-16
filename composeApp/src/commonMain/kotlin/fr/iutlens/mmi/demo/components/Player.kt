@@ -15,7 +15,7 @@ class Player(
     mapArea: TiledArea,
     val joystickProvider: () -> JoystickPosition?,
     val jumpActionProvider: () -> Boolean
-) : PhysicsSprite(res, x, y, mapArea, gravity = 8f, jumpForce = -110f) {
+) : PhysicsSprite(res, x, y, mapArea, gravity = 5.5f, jumpForce = -64f) {
 
     // Variables de vie
     private var _life by mutableStateOf(3)
