@@ -42,15 +42,25 @@ class PlatformGraph(
     val tileArea: TiledArea,
     val jumpHeight: Int = 6
 ) {
-    private val tileMap = tileArea.tileMap
-    private val sizeX = tileMap.geometry.sizeX
-    private val sizeY = tileMap.geometry.sizeY
+    private var tileMap = tileArea.tileMap
+    private var sizeX = tileMap.geometry.sizeX
+    private var sizeY = tileMap.geometry.sizeY
 
     private val standable = mutableSetOf<Pair<Int, Int>>()
     private val forward = mutableMapOf<Pair<Int, Int>, List<Edge>>()
     private val reverse = mutableMapOf<Pair<Int, Int>, List<Edge>>()
 
     init { precompute() }
+
+    fun rebuild() {
+        tileMap = tileArea.tileMap
+        sizeX = tileMap.geometry.sizeX
+        sizeY = tileMap.geometry.sizeY
+        standable.clear()
+        forward.clear()
+        reverse.clear()
+        precompute()
+    }
 
     fun isStandable(i: Int, j: Int): Boolean = (i to j) in standable
 
@@ -187,7 +197,7 @@ class PlatformGraph(
         return if (bestTile != null) reconstructPath(from, bestTile, parents) else emptyList()
     }
 
-    private fun precompute() {
+    fun precompute() {
         findStandableTiles()
         computeForwardEdges()
         computeReverseEdges()

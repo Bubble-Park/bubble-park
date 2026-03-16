@@ -62,6 +62,12 @@ class Player(
         if (_life < 3) _life++
     }
 
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        invincibilityFrames = 0
+        frameCounter = 0
+    }
+
     override fun update() {
         // Gestion de l'invulnérabilité
         if (invincibilityFrames > 0) {
@@ -116,7 +122,7 @@ class Player(
             frameCounter++
             val animFrame = (frameCounter / 4) % 3
 
-            val isRunning = (speed > 20f || speed < -20f)
+            val isRunning = (speed > mapArea.w * 0.6f || speed < -mapArea.w * 0.6f)
 
             if (facingRight) {
                 ndx = (if (isRunning) runRightStart else walkRightStart) + animFrame
