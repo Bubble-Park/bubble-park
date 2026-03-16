@@ -53,6 +53,7 @@ open class PhysicsSprite(
         val h2 = halfHeight
 
         vy += gravity
+        if (vy > mapArea.h - 1f) vy = mapArea.h - 1f
         val nextY = y + vy
 
         if (vy > 0) {
