@@ -11,13 +11,13 @@ import org.jetbrains.compose.resources.DrawableResource
 import kotlin.math.floor
 import kotlin.random.Random
 
-enum class DinoBehavior { INO, FLEE, ATTACK }
+enum class LegacyDinoBehavior { INO, FLEE, ATTACK }
 
 class Dino(
     res: DrawableResource,
     x: Float, y: Float,
     mapArea: TiledArea,
-    val behavior: DinoBehavior,
+    val behavior: LegacyDinoBehavior,
     val graph: PlatformGraph,
     val distanceMap: DistanceMap? = null,
     gravity: Float = 4.5f,
@@ -25,9 +25,9 @@ class Dino(
 ) : PhysicsSprite(res, x, y, mapArea, gravity, jumpForce) {
 
     val scoreValue: Int = when (behavior) {
-        DinoBehavior.INO -> 1
-        DinoBehavior.FLEE -> 2
-        DinoBehavior.ATTACK -> 3
+        LegacyDinoBehavior.INO -> 1
+        LegacyDinoBehavior.FLEE -> 2
+        LegacyDinoBehavior.ATTACK -> 3
     }
 
     var stunTimer = 0
@@ -82,9 +82,9 @@ class Dino(
         val j = floor((y + radius - 1f) / mapArea.h).toInt()
 
         when (behavior) {
-            DinoBehavior.INO -> updateIno(i, j)
-            DinoBehavior.FLEE -> updateFlee(i, j)
-            DinoBehavior.ATTACK -> updateAttack(i, j)
+            LegacyDinoBehavior.INO -> updateIno(i, j)
+            LegacyDinoBehavior.FLEE -> updateFlee(i, j)
+            LegacyDinoBehavior.ATTACK -> updateAttack(i, j)
         }
     }
 

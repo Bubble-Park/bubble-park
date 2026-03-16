@@ -38,7 +38,6 @@ open class GenericDino(
 
     // État Chase
     private var pathRefreshTimer = 0
-    private var lastDirX = 0f
 
     companion object {
         const val PATH_REFRESH_INTERVAL = 25

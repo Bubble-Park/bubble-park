@@ -150,7 +150,7 @@ class BubblePark : GameData() {
                 if (enemy.isDead) continue
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
-                    score.add(enemy)
+                    score.add(enemy.scoreValue)
                     bullet.explode()
                     break
                 }
@@ -160,7 +160,7 @@ class BubblePark : GameData() {
                 if (dino.isDead) continue
                 if (bullet.boundingBox.overlaps(dino.boundingBox)) {
                     dino.isDead = true
-                    score.add(dino)
+                    score.add(dino.scoreValue)
                     bullet.explode()
                     break
                 }
