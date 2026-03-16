@@ -71,7 +71,7 @@ class BubblePark : GameData() {
             tileSetRes = Res.drawable.environnement_map_sprite,
             startX = 1.5f,
             startY = 2.5f,
-            mapCode = "abefcdgh^?*.)%#"
+            mapCode = ".abef^?#ghcd)%*"
         )
     )
 
@@ -181,7 +181,8 @@ class BubblePark : GameData() {
                 for (j in 0 until tileArea.tileMap.geometry.sizeY - 1) {
                     val currentCode = tileArea.tileMap.get(i, j) ?: 0
                     val belowCode = tileArea.tileMap.get(i, j + 1) ?: 0
-                    if (currentCode == 0 && (belowCode == 1 || belowCode == 2 || belowCode == 3)) {
+
+                    if (currentCode == 0 && belowCode in 1..7) {
                         if (abs(i - playerI) > 3 || j != playerJ) {
                             validSpawns.add(Pair(i, j))
                         }

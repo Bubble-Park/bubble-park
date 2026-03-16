@@ -36,7 +36,8 @@ open class PhysicsSprite(
             
             return when (code) {
                 0 -> false
-                1, 2, 3 -> checkPlatform
+                1,2,3,4,5,6,7 -> checkPlatform
+                8,9,10,11,12 -> false
                 else -> true
             }
         }
