@@ -53,7 +53,7 @@ fun GameScreen(onExit: () -> Unit) {
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
 
     val gameData = remember { BubblePark() }
-    
+
     // Gestion du Clavier
     val focusRequester = remember { FocusRequester() }
     var keyState by remember { mutableStateOf(setOf<Key>()) }
@@ -65,12 +65,12 @@ fun GameScreen(onExit: () -> Unit) {
         if (Key.DirectionLeft in keys) dx -= 1f
         if (Key.DirectionDown in keys) dy += 1f
         if (Key.DirectionUp in keys) dy -= 1f
-        
+
         if (keys.isEmpty()) {
-             gameData.game.joystickPosition = null
+            gameData.game.joystickPosition = null
         } else {
-             gameData.game.joystickPosition = JoystickPosition(
-                Offset(dx + 1, dy + 1), 
+            gameData.game.joystickPosition = JoystickPosition(
+                Offset(dx + 1, dy + 1),
                 IntSize(2, 2)
             )
         }
@@ -86,7 +86,7 @@ fun GameScreen(onExit: () -> Unit) {
                 // Boutons
                 if (event.key == Key.A) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
-                         gameData.shoot()
+                        gameData.shoot()
                     }
                     gameData.game.actionButtonA = (event.type == KeyEventType.KeyDown)
                     return@onKeyEvent true
@@ -95,12 +95,12 @@ fun GameScreen(onExit: () -> Unit) {
                     gameData.game.actionButtonB = (event.type == KeyEventType.KeyDown)
                     return@onKeyEvent true
                 }
-                
+
                 if (event.key in listOf(Key.DirectionUp, Key.DirectionDown, Key.DirectionLeft, Key.DirectionRight)) {
                     val newKeys = keyState.toMutableSet()
                     if (event.type == KeyEventType.KeyDown) newKeys.add(event.key)
                     else newKeys.remove(event.key)
-                    
+
                     keyState = newKeys
                     updateJoystickFromKeys(newKeys)
                     return@onKeyEvent true
@@ -135,7 +135,7 @@ fun GameScreen(onExit: () -> Unit) {
             onActionB = { pressed -> gameData.game.actionButtonB = pressed }
         )
     }
-    
+
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
