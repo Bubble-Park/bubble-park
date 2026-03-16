@@ -122,7 +122,8 @@ class Attack(
 
     private fun recomputeAttackPath(i: Int, j: Int) {
         val playerTile = distanceMap.targetTile
-        val steps = graph.findPath(i to j, playerTile)
+        val from = if (graph.isStandable(i, j)) i to j else graph.nearestStandable(i, j) ?: return
+        val steps = graph.findPath(from, playerTile)
         currentPath = if (steps.isNotEmpty()) PathPlan(steps) else null
         stepTimeout = 0
     }
