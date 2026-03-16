@@ -1,9 +1,10 @@
 package fr.iutlens.mmi.demo
 
-import fr.iutlens.mmi.demo.components.Dino
-import fr.iutlens.mmi.demo.components.DinoBehavior
 import fr.iutlens.mmi.demo.components.Player
 import fr.iutlens.mmi.demo.components.Bullet
+import fr.iutlens.mmi.demo.components.GenericDino
+import fr.iutlens.mmi.demo.components.Trex
+import fr.iutlens.mmi.demo.components.Parasaur
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.Score
@@ -14,7 +15,6 @@ import fr.iutlens.mmi.demo.game.sprite.toTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
-import fr.iutlens.mmi.demo.game.sprite.EnemyBehavior
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.distanceMap
@@ -33,13 +33,10 @@ class BubblePark : GameData() {
     private lateinit var distanceMap: DistanceMap
 
     private var nextShotTime = 0L
-    private var lastEnemySpawnTime = 0L
-    private val ENEMY_SPAWN_INTERVAL = 4000L
-    private val MAX_ENEMIES = 8
 
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
-    private val activeDinos = mutableListOf<Dino>()
+    private val activeGenericDinos = mutableListOf<GenericDino>()
 
     private val levels = listOf(
         LevelData(
@@ -98,16 +95,21 @@ class BubblePark : GameData() {
             transform = GenericTransform(Constraint.Fill(tileArea))
         )
 
+        findSpawnPoint()?.let { (spawnX, spawnY) ->
+            val sprites = game.spriteList as? MutableList<Sprite> ?: return@let
+            sprites.add(Trex(Res.drawable.trex_sprite, spawnX, spawnY, tileArea, distanceMap, platformGraph))
+            sprites.add(Parasaur(Res.drawable.bubble_sprite, spawnX, spawnY, tileArea, distanceMap, platformGraph))
+        }
+
         game.animation(20) {
             handleCollisions()
-            spawnEnemyIfNeeded()
 
             distanceMap.update()
 
             (game.spriteList as? MutableList<Sprite>)?.apply {
                 removeAll { (it as? Bullet)?.isStopped == true }
                 removeAll { (it as? EnemySprite)?.isDead == true }
-                removeAll { (it as? Dino)?.isDead == true }
+                removeAll { (it as? GenericDino)?.isDead == true }
             }
             game.spriteList.update()
             game.invalidate()
@@ -117,13 +119,13 @@ class BubblePark : GameData() {
     private fun handleCollisions() {
         activeBullets.clear()
         activeEnemies.clear()
-        activeDinos.clear()
+        activeGenericDinos.clear()
 
         for (sprite in game.spriteList) {
             when {
                 sprite is Bullet && !sprite.isStopped -> activeBullets.add(sprite)
                 sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
-                sprite is Dino && !sprite.isDead -> activeDinos.add(sprite)
+                sprite is GenericDino && !sprite.isDead -> activeGenericDinos.add(sprite)
             }
         }
 
@@ -135,30 +137,30 @@ class BubblePark : GameData() {
             }
         }
 
-        // Dino ATTACK damage player
-        for (dino in activeDinos) {
-            if (dino.behavior == DinoBehavior.ATTACK && dino.boundingBox.overlaps(player.boundingBox)) {
+        for (dino in activeGenericDinos) {
+            if (!dino.type.damagesPlayer) continue
+            if (dino.boundingBox.overlaps(player.boundingBox)) {
                 player.takeDamage()
             }
         }
 
         // Bullets vs enemies
         for (bullet in activeBullets) {
-            for (dino in activeDinos) {
-                if (dino.isDead) continue
-                if (bullet.boundingBox.overlaps(dino.boundingBox)) {
-                    score.add(dino.scoreValue)
-                    dino.isDead = true
+            for (enemy in activeEnemies) {
+                if (enemy.isDead) continue
+                if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
+                    enemy.isDead = true
+                    score.add(enemy)
                     bullet.explode()
                     break
                 }
             }
             if (bullet.isStopped) continue
-            for (enemy in activeEnemies) {
-                if (enemy.isDead) continue
-                if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
-                    score.add(enemy.scoreValue)
-                    enemy.isDead = true
+            for (dino in activeGenericDinos) {
+                if (dino.isDead) continue
+                if (bullet.boundingBox.overlaps(dino.boundingBox)) {
+                    dino.isDead = true
+                    score.add(dino)
                     bullet.explode()
                     break
                 }
@@ -166,54 +168,29 @@ class BubblePark : GameData() {
         }
     }
 
-    private fun spawnEnemyIfNeeded() {
-        if (game.elapsed - lastEnemySpawnTime > ENEMY_SPAWN_INTERVAL) {
-            lastEnemySpawnTime = game.elapsed
+    private fun findSpawnPoint(): Pair<Float, Float>? {
+        val validSpawns = mutableListOf<Pair<Int, Int>>()
+        val playerI = floor(player.x / tileArea.w).toInt()
+        val playerJ = floor(player.y / tileArea.h).toInt()
 
-            val currentEnemyCount = activeEnemies.size + activeDinos.size
-            if (currentEnemyCount >= MAX_ENEMIES) return
+        for (i in 0 until tileArea.tileMap.geometry.sizeX) {
+            for (j in 0 until tileArea.tileMap.geometry.sizeY - 1) {
+                val currentCode = tileArea.tileMap.get(i, j) ?: 0
+                val belowCode = tileArea.tileMap.get(i, j + 1) ?: 0
 
-            val validSpawns = mutableListOf<Pair<Int, Int>>()
-            val playerI = floor(player.x / tileArea.w).toInt()
-            val playerJ = floor(player.y / tileArea.h).toInt()
-
-            for (i in 0 until tileArea.tileMap.geometry.sizeX) {
-                for (j in 0 until tileArea.tileMap.geometry.sizeY - 1) {
-                    val currentCode = tileArea.tileMap.get(i, j) ?: 0
-                    val belowCode = tileArea.tileMap.get(i, j + 1) ?: 0
-
-                    if (currentCode == 0 && belowCode in 1..7) {
-                        if (abs(i - playerI) > 3 || j != playerJ) {
-                            validSpawns.add(Pair(i, j))
-                        }
+                if (currentCode == 0 && belowCode in 1..7) {
+                    if (abs(i - playerI) > 3 || j != playerJ) {
+                        validSpawns.add(Pair(i, j))
                     }
                 }
             }
-
-            if (validSpawns.isNotEmpty()) {
-                val spawnPoint = validSpawns[Random.nextInt(validSpawns.size)]
-                val spawnX = spawnPoint.first * tileArea.w + tileArea.w / 2f
-                val spawnY = spawnPoint.second * tileArea.h + tileArea.h / 2f
-
-                val behavior = when (Random.nextInt(3)) {
-                    0 -> DinoBehavior.INO
-                    1 -> DinoBehavior.FLEE
-                    else -> DinoBehavior.ATTACK
-                }
-
-                val newDino = Dino(
-                    res = Res.drawable.bubble_sprite,
-                    x = spawnX,
-                    y = spawnY,
-                    mapArea = tileArea,
-                    behavior = behavior,
-                    graph = platformGraph,
-                    distanceMap = distanceMap
-                )
-
-                (game.spriteList as? MutableList<Sprite>)?.add(newDino)
-            }
         }
+
+        if (validSpawns.isEmpty()) return null
+        val spawnPoint = validSpawns[Random.nextInt(validSpawns.size)]
+        val spawnX = spawnPoint.first * tileArea.w + tileArea.w / 2f
+        val spawnY = spawnPoint.second * tileArea.h + tileArea.h / 2f
+        return Pair(spawnX, spawnY)
     }
 
     fun shoot(enableCollisions: Boolean = false, delayMs: Long = 300) {
