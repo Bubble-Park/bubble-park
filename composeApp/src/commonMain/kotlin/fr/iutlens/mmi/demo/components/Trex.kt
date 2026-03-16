@@ -1,6 +1,5 @@
 package fr.iutlens.mmi.demo.components
 
-import androidx.compose.ui.graphics.Color
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PlatformGraph
@@ -19,8 +18,7 @@ class Trex(
         scoreValue = 50,
         ndx = 8,
         behavior = DinoBehavior.ChasePlayer(speed = 20f),
-        damagesPlayer = true,
-        color = Color.Red
+        damagesPlayer = true
     ),
     distanceMap = distanceMap,
     graph = graph
