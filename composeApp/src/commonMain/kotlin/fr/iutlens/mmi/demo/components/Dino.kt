@@ -20,8 +20,8 @@ class Dino(
     val behavior: DinoBehavior,
     val graph: PlatformGraph,
     val distanceMap: DistanceMap? = null,
-    gravity: Float = 2.5f,
-    jumpForce: Float = -34f,
+    gravity: Float = 4.5f,
+    jumpForce: Float = -54f,
 ) : PhysicsSprite(res, x, y, mapArea, gravity, jumpForce) {
 
     val scoreValue: Int = when (behavior) {
@@ -32,8 +32,11 @@ class Dino(
 
     var stunTimer = 0
     var jumpCooldown = 0
-    val radius = 18f
+    val radius = 40f
     var isDead = false
+
+    override val halfHeight get() = radius
+    override val halfWidth  get() = radius
 
     override val boundingBox: Rect
         get() = Rect(x - radius, y - radius, x + radius, y + radius)
