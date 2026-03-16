@@ -66,6 +66,9 @@ class PlatformGraph(
 
     fun randomStandable(): Pair<Int, Int>? = standable.randomOrNull()
 
+    fun nearestStandable(i: Int, j: Int): Pair<Int, Int>? =
+        standable.minByOrNull { abs(it.first - i) + abs(it.second - j) }
+
     fun forwardEdges(pos: Pair<Int, Int>): List<Edge> = forward[pos] ?: emptyList()
     fun reverseEdges(pos: Pair<Int, Int>): List<Edge> = reverse[pos] ?: emptyList()
 
