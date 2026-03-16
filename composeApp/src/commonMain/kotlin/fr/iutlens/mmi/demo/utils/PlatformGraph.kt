@@ -196,7 +196,7 @@ class PlatformGraph(
     private fun isTileSolid(i: Int, j: Int): Boolean {
         if (i !in 0 until sizeX || j !in 0 until sizeY) return false
         val code = tileMap.get(i, j) ?: 0
-        return code in 1..3
+        return code in 1..7
     }
 
     private fun isTileAir(i: Int, j: Int): Boolean {
@@ -204,7 +204,7 @@ class PlatformGraph(
         if (j < 0) return true
         if (j >= sizeY) return false
         val code = tileMap.get(i, j) ?: 0
-        return code == 0
+        return code !in 1..7
     }
 
     private fun isTileBlocking(i: Int, j: Int): Boolean {
@@ -212,7 +212,7 @@ class PlatformGraph(
         if (j < 0) return false
         if (j >= sizeY) return true
         val code = tileMap.get(i, j) ?: 0
-        return code != 0
+        return code in 1..7
     }
 
     private fun findStandableTiles() {
