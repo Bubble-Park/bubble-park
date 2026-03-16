@@ -14,8 +14,8 @@ abstract class Dino(
     res: DrawableResource,
     x: Float, y: Float,
     mapArea: TiledArea,
-    gravity: Float = 2.5f,
-    jumpForce: Float = -34f,
+    gravity: Float = 4.5f,
+    jumpForce: Float = -54f,
 ) : PhysicsSprite(res, x, y, mapArea, gravity, jumpForce) {
     /*val id: Int,
     val name: String,
@@ -23,8 +23,11 @@ abstract class Dino(
     val stats: Stats*/
     var stunTimer = 0
     var jumpCooldown = 0
-    val radius = 18f
+    val radius = 40f
     var isDead = false
+
+    override val halfHeight get() = radius
+    override val halfWidth  get() = radius
 
     override val boundingBox: Rect
         get() = Rect(x - radius, y - radius, x + radius, y + radius)

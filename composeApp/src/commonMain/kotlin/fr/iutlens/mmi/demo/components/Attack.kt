@@ -25,7 +25,7 @@ class Attack(
         const val STEP_TIMEOUT = 300
     }
 
-    val speed = 35f
+    val speed = 15f
 
     override val boundingBox: Rect
         get() = Rect(x - mapArea.w, y - mapArea.h, x + mapArea.w, y + mapArea.h)

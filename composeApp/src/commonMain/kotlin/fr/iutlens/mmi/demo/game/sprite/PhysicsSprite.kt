@@ -17,6 +17,9 @@ open class PhysicsSprite(
     var vy = 0f // vélocité Y
     var isOnGround = false // en contact avec le sol ?
 
+    open val halfHeight get() = spriteSheet.spriteHeight / 2f
+    open val halfWidth  get() = spriteSheet.spriteWidth  / 2f
+
 
     /**
      * Vérifie si il y a une mur à droite ou à gauche de la position (x, y)
@@ -47,7 +50,7 @@ open class PhysicsSprite(
      * Applique la physique au sprite
      */
     fun applyPhysics() {
-        val h2 = spriteSheet.spriteHeight / 2f
+        val h2 = halfHeight
 
         vy += gravity
         val nextY = y + vy
@@ -77,7 +80,7 @@ open class PhysicsSprite(
      * @param maxSpeed vitesse maximale
      */
     fun moveX(speed: Float, maxSpeed: Float) {
-        val w2 = spriteSheet.spriteWidth / 2f
+        val w2 = halfWidth
         val clampedSpeed = max(min(speed, maxSpeed), -maxSpeed)
         
         val nextX = x + clampedSpeed

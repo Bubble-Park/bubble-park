@@ -28,7 +28,7 @@ class Flee(
         const val DEBUG_FLEE = true  // DEBUG — mettre false ou supprimer avec PlatformGraphDebug.kt
     }
 
-    val fleeSpeed = 40f
+    val fleeSpeed = 25f
 
     private var state = State.IDLE
 
