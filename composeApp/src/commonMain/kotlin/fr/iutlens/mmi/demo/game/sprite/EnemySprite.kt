@@ -23,6 +23,7 @@ class EnemySprite(
     var speed: Float = if (behavior == EnemyBehavior.FLEE) 32f else 22f
 ) : PhysicsSprite(res, x, y, mapArea, gravity = 8f, jumpForce = -110f) {
 
+    val scoreValue: Int = if (behavior == EnemyBehavior.ATTACK) 3 else 2
     var stunTimer = 0
     var jumpCooldown = 0
     val radius = 60f

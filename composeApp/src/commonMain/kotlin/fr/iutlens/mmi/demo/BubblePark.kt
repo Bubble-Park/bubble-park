@@ -1,12 +1,12 @@
 package fr.iutlens.mmi.demo
 
+import fr.iutlens.mmi.demo.components.Dino
+import fr.iutlens.mmi.demo.components.DinoBehavior
 import fr.iutlens.mmi.demo.components.Player
-import fr.iutlens.mmi.demo.components.Attack
 import fr.iutlens.mmi.demo.components.Bullet
-import fr.iutlens.mmi.demo.components.Flee
-import fr.iutlens.mmi.demo.components.Ino
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.GameData
+import fr.iutlens.mmi.demo.game.Score
 import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
@@ -26,6 +26,7 @@ import kotlin.math.abs
 
 class BubblePark : GameData() {
 
+    val score = Score()
     lateinit var player: Player
     private lateinit var tileArea: TiledArea
     private lateinit var platformGraph: PlatformGraph
@@ -38,9 +39,7 @@ class BubblePark : GameData() {
 
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
-    private val activeInos = mutableListOf<Ino>()
-    private val activeFlees = mutableListOf<Flee>()
-    private val activeAttacks = mutableListOf<Attack>()
+    private val activeDinos = mutableListOf<Dino>()
 
     private val levels = listOf(
         LevelData(
@@ -69,7 +68,6 @@ class BubblePark : GameData() {
                 ******************************
                 ##############################
             """.trimIndent(),
-            //tileSetRes = Res.drawable.plateformes_spritesheet,
             tileSetRes = Res.drawable.environnement_map_sprite,
             startX = 1.5f,
             startY = 2.5f,
@@ -81,7 +79,7 @@ class BubblePark : GameData() {
         val levelData = levels[index]
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
         tileArea = TiledArea(levelData.tileSetRes, tileMap)
-        
+
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
             x = levelData.startX * tileArea.w,
@@ -92,7 +90,6 @@ class BubblePark : GameData() {
         )
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
-
         distanceMap = tileArea.distanceMap(player, platformGraph)
 
         createGame(
@@ -104,15 +101,13 @@ class BubblePark : GameData() {
         game.animation(20) {
             handleCollisions()
             spawnEnemyIfNeeded()
-            
+
             distanceMap.update()
-            
+
             (game.spriteList as? MutableList<Sprite>)?.apply {
                 removeAll { (it as? Bullet)?.isStopped == true }
                 removeAll { (it as? EnemySprite)?.isDead == true }
-                removeAll { (it as? Ino)?.isDead == true }
-                removeAll { (it as? Flee)?.isDead == true }
-                removeAll { (it as? Attack)?.isDead == true }
+                removeAll { (it as? Dino)?.isDead == true }
             }
             game.spriteList.update()
             game.invalidate()
@@ -122,41 +117,38 @@ class BubblePark : GameData() {
     private fun handleCollisions() {
         activeBullets.clear()
         activeEnemies.clear()
-        activeInos.clear()
-        activeFlees.clear()
-        activeAttacks.clear()
+        activeDinos.clear()
 
         for (sprite in game.spriteList) {
             when {
                 sprite is Bullet && !sprite.isStopped -> activeBullets.add(sprite)
                 sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
-                sprite is Attack && !sprite.isDead -> activeAttacks.add(sprite)
-                sprite is Flee && !sprite.isDead -> activeFlees.add(sprite)
-                sprite is Ino && !sprite.isDead -> activeInos.add(sprite)
+                sprite is Dino && !sprite.isDead -> activeDinos.add(sprite)
             }
         }
 
+        // EnemySprite damage player
         for (enemy in activeEnemies) {
             if (enemy.stunTimer > 0) continue
-
             if (enemy.boundingBox.overlaps(player.boundingBox)) {
-                if (player.takeDamage()) {
-                    enemy.stunTimer = 50
-                }
+                if (player.takeDamage()) enemy.stunTimer = 50
             }
         }
 
-        for (attack in activeAttacks) {
-            if (attack.boundingBox.overlaps(player.boundingBox)) {
+        // Dino ATTACK damage player
+        for (dino in activeDinos) {
+            if (dino.behavior == DinoBehavior.ATTACK && dino.boundingBox.overlaps(player.boundingBox)) {
                 player.takeDamage()
             }
         }
 
+        // Bullets vs enemies
         for (bullet in activeBullets) {
-            for (attack in activeAttacks) {
-                if (attack.isDead) continue
-                if (bullet.boundingBox.overlaps(attack.boundingBox)) {
-                    attack.isDead = true
+            for (dino in activeDinos) {
+                if (dino.isDead) continue
+                if (bullet.boundingBox.overlaps(dino.boundingBox)) {
+                    score.add(dino.scoreValue)
+                    dino.isDead = true
                     bullet.explode()
                     break
                 }
@@ -165,25 +157,8 @@ class BubblePark : GameData() {
             for (enemy in activeEnemies) {
                 if (enemy.isDead) continue
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
+                    score.add(enemy.scoreValue)
                     enemy.isDead = true
-                    bullet.explode()
-                    break
-                }
-            }
-            if (bullet.isStopped) continue
-            for (ino in activeInos) {
-                if (ino.isDead) continue
-                if (bullet.boundingBox.overlaps(ino.boundingBox)) {
-                    ino.isDead = true
-                    bullet.explode()
-                    break
-                }
-            }
-            if (bullet.isStopped) continue
-            for (flee in activeFlees) {
-                if (flee.isDead) continue
-                if (bullet.boundingBox.overlaps(flee.boundingBox)) {
-                    flee.isDead = true
                     bullet.explode()
                     break
                 }
@@ -195,10 +170,8 @@ class BubblePark : GameData() {
         if (game.elapsed - lastEnemySpawnTime > ENEMY_SPAWN_INTERVAL) {
             lastEnemySpawnTime = game.elapsed
 
-            val currentEnemyCount = activeEnemies.size + activeInos.size + activeFlees.size + activeAttacks.size
-            if (currentEnemyCount >= MAX_ENEMIES) {
-                return
-            }
+            val currentEnemyCount = activeEnemies.size + activeDinos.size
+            if (currentEnemyCount >= MAX_ENEMIES) return
 
             val validSpawns = mutableListOf<Pair<Int, Int>>()
             val playerI = floor(player.x / tileArea.w).toInt()
@@ -208,7 +181,6 @@ class BubblePark : GameData() {
                 for (j in 0 until tileArea.tileMap.geometry.sizeY - 1) {
                     val currentCode = tileArea.tileMap.get(i, j) ?: 0
                     val belowCode = tileArea.tileMap.get(i, j + 1) ?: 0
-
                     if (currentCode == 0 && (belowCode == 1 || belowCode == 2 || belowCode == 3)) {
                         if (abs(i - playerI) > 3 || j != playerJ) {
                             validSpawns.add(Pair(i, j))
@@ -222,32 +194,23 @@ class BubblePark : GameData() {
                 val spawnX = spawnPoint.first * tileArea.w + tileArea.w / 2f
                 val spawnY = spawnPoint.second * tileArea.h + tileArea.h / 2f
 
-                val newSprite: Sprite = when (Random.nextInt(3)) {
-                    0 -> Ino(
-                        res = Res.drawable.bubble_sprite,
-                        x = spawnX,
-                        y = spawnY,
-                        mapArea = tileArea,
-                        graph = platformGraph
-                    )
-                    1 -> Flee(
-                        res = Res.drawable.bubble_sprite,
-                        x = spawnX,
-                        y = spawnY,
-                        mapArea = tileArea,
-                        distanceMap = distanceMap,
-                        graph = platformGraph
-                    )
-                    else -> Attack(
-                        res = Res.drawable.bubble_sprite,
-                        x = spawnX,
-                        y = spawnY,
-                        mapArea = tileArea,
-                        distanceMap = distanceMap,
-                        graph = platformGraph
-                    )
+                val behavior = when (Random.nextInt(3)) {
+                    0 -> DinoBehavior.INO
+                    1 -> DinoBehavior.FLEE
+                    else -> DinoBehavior.ATTACK
                 }
-                (game.spriteList as? MutableList<Sprite>)?.add(newSprite)
+
+                val newDino = Dino(
+                    res = Res.drawable.bubble_sprite,
+                    x = spawnX,
+                    y = spawnY,
+                    mapArea = tileArea,
+                    behavior = behavior,
+                    graph = platformGraph,
+                    distanceMap = distanceMap
+                )
+
+                (game.spriteList as? MutableList<Sprite>)?.add(newDino)
             }
         }
     }

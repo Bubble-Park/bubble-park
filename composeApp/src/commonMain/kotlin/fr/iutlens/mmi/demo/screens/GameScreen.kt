@@ -38,6 +38,7 @@ import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.plateformes_spritesheet
 import fr.iutlens.mmi.demo.ui.ShowLife
+import fr.iutlens.mmi.demo.ui.ShowScore
 import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
 
@@ -121,8 +122,11 @@ fun GameScreen(onExit: () -> Unit) {
             gameData = gameData
         )
 
-        // Vie du joueur
-        ShowLife(gameData.player.life)
+        // Vie et score du joueur
+        Column {
+            ShowLife(gameData.player.life)
+            ShowScore(gameData.score.get())
+        }
 
         // Controles
         Controllers(
