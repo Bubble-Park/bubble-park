@@ -26,7 +26,7 @@ class Player(
     private var invincibilityFrames = 0
 
     override val paintAlpha: Float
-        get() = if (invincibilityFrames > 0 && invincibilityFrames % 8 < 4) 0.2f else 1f
+        get() = if (invincibilityFrames > 0 && invincibilityFrames % 8 < 4) 0.6f else 1f
     private val INVINCIBILITY_DURATION = 120
 
     // Variables d'animation
