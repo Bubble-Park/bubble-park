@@ -48,7 +48,7 @@ fun GameScreen(onExit: () -> Unit) {
     SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
     // Chargement des différents sprites
     //SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
-    SpriteSheet.load(Res.drawable.environnement_map_sprite, 4, 4, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
 

@@ -20,6 +20,11 @@ class Ino(
 
     private var state = State.IDLE
 
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        state = State.IDLE
+    }
+
     override fun update() {
         if (isDead) return
 

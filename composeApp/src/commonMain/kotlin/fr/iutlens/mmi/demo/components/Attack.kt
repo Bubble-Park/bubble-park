@@ -25,7 +25,7 @@ class Attack(
         const val STEP_TIMEOUT = 300
     }
 
-    val speed = 35f
+    val speed = 15f
 
     override val boundingBox: Rect
         get() = Rect(x - mapArea.w, y - mapArea.h, x + mapArea.w, y + mapArea.h)
@@ -35,6 +35,15 @@ class Attack(
     private var stepTimeout: Int = 0
     private var dirX: Float = 0f
     private var lastDirX: Float = 0f
+
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        currentPath = null
+        pathRefreshTimer = 0
+        stepTimeout = 0
+        dirX = 0f
+        lastDirX = 0f
+    }
 
     override fun update() {
         if (isDead) return

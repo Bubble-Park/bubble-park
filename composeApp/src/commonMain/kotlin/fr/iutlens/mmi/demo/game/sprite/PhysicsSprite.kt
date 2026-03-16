@@ -17,6 +17,9 @@ open class PhysicsSprite(
     var vy = 0f // vélocité Y
     var isOnGround = false // en contact avec le sol ?
 
+    open val halfHeight get() = spriteSheet.spriteHeight / 2f
+    open val halfWidth  get() = spriteSheet.spriteWidth  / 2f
+
 
     /**
      * Vérifie si il y a une mur à droite ou à gauche de la position (x, y)
@@ -36,7 +39,8 @@ open class PhysicsSprite(
             
             return when (code) {
                 0 -> false
-                1, 2, 3 -> checkPlatform
+                1,2,3,4,5,6,7 -> checkPlatform
+                8,9,10,11,12,13,14 -> false
                 else -> true
             }
         }
@@ -46,9 +50,10 @@ open class PhysicsSprite(
      * Applique la physique au sprite
      */
     fun applyPhysics() {
-        val h2 = spriteSheet.spriteHeight / 2f
+        val h2 = halfHeight
 
         vy += gravity
+        if (vy > mapArea.h - 1f) vy = mapArea.h - 1f
         val nextY = y + vy
 
         if (vy > 0) {
@@ -58,7 +63,7 @@ open class PhysicsSprite(
             } else {
                 isOnGround = true
                 val tileJ = floor((nextY + h2) / mapArea.h).toInt()
-                y = tileJ * mapArea.h - h2 - 0.1f
+                y = tileJ * mapArea.h - h2 - mapArea.h * 0.003f
                 vy = 0f
             }
         } else if (vy < 0) { // Montée
@@ -76,7 +81,7 @@ open class PhysicsSprite(
      * @param maxSpeed vitesse maximale
      */
     fun moveX(speed: Float, maxSpeed: Float) {
-        val w2 = spriteSheet.spriteWidth / 2f
+        val w2 = halfWidth
         val clampedSpeed = max(min(speed, maxSpeed), -maxSpeed)
         
         val nextX = x + clampedSpeed
@@ -87,13 +92,25 @@ open class PhysicsSprite(
     }
 
     /**
+     * Réinitialise la position et l'état physique du sprite
+     * @param x nouvelle position X
+     * @param y nouvelle position Y
+     */
+    open fun reset(x: Float, y: Float) {
+        this.x = x
+        this.y = y
+        vy = 0f
+        isOnGround = false
+    }
+
+    /**
      * Saut
      */
     fun jump() {
         if (isOnGround) {
             vy = jumpForce
             isOnGround = false
-            y -= 2f
+            y -= mapArea.h * 0.06f
         }
     }
 }

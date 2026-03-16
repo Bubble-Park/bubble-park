@@ -15,7 +15,7 @@ class Player(
     mapArea: TiledArea,
     val joystickProvider: () -> JoystickPosition?,
     val jumpActionProvider: () -> Boolean
-) : PhysicsSprite(res, x, y, mapArea, gravity = 8f, jumpForce = -110f) {
+) : PhysicsSprite(res, x, y, mapArea, gravity = 5.5f, jumpForce = -64f) {
 
     // Variables de vie
     private var _life by mutableStateOf(3)
@@ -60,6 +60,12 @@ class Player(
      */
     fun heal() {
         if (_life < 3) _life++
+    }
+
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        invincibilityFrames = 0
+        frameCounter = 0
     }
 
     override fun update() {
@@ -116,7 +122,7 @@ class Player(
             frameCounter++
             val animFrame = (frameCounter / 4) % 3
 
-            val isRunning = (speed > 20f || speed < -20f)
+            val isRunning = (speed > mapArea.w * 0.6f || speed < -mapArea.w * 0.6f)
 
             if (facingRight) {
                 ndx = (if (isRunning) runRightStart else walkRightStart) + animFrame

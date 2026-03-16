@@ -22,17 +22,26 @@ abstract class WalkingDino(
     protected var currentPath: PathPlan? = null
     protected var fleeingDirX: Float = 0f
     protected var stepTimeout: Int = 0
-    protected val speed: Float = 20f
+    protected val speed: Float = 11f
 
     companion object {
         const val STEP_TIMEOUT = 300
+    }
+
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        dirX = 0f
+        currentPath = null
+        stepTimeout = 0
+        idleTimer = Random.nextInt(10, 100)
+        fleeingDirX = 0f
     }
 
     protected fun hasPlatformAbove(i: Int, j: Int): Boolean {
         for (dy in 1..5) {
             val code = mapArea.tileMap.get(i, j - dy) ?: 0
             val above = mapArea.tileMap.get(i, j - dy - 1) ?: 0
-            if (code in 1..3 && above == 0) return true
+            if (code in 1..7 && above !in 1..7) return true
         }
         return false
     }

@@ -3,6 +3,7 @@ package fr.iutlens.mmi.demo.components
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import org.jetbrains.compose.resources.DrawableResource
@@ -15,14 +16,15 @@ class Bullet(
     y: Float,
     angle: Double,
     val mapArea: TiledArea,
-    val speed: Float = 85f,
+    val speed: Float = 45f,
     val collides: Boolean = false,
     res: DrawableResource,
 ) : BasicSprite(res, x, y, ndx = 8) {
 
     var vx = (speed * cos(angle)).toFloat()
     var vy = (speed * sin(angle)).toFloat()
-    val radius = 70f
+    val radius = 22f
+    private val displaySize = IntSize(68, 68)
 
     private companion object {
         const val ENTRANCE_FIRST = 8
@@ -37,9 +39,6 @@ class Bullet(
 
     private var frame = 0
     private var frameTimer = 0
-
-    private val w2 by lazy { spriteSheet.spriteWidth / 2 }
-    private val h2 by lazy { spriteSheet.spriteHeight / 2 }
 
     private enum class State { ENTRANCE, NORMAL, STOPPED }
     private var state = State.ENTRANCE
@@ -58,7 +57,7 @@ class Bullet(
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.withTransform({ translate(x, y) }) {
-            spriteSheet.paint(this, ndx, -w2, -h2)
+            spriteSheet.paint(this, ndx, -displaySize.width / 2, -displaySize.height / 2, displaySize)
         }
     }
 
@@ -67,7 +66,7 @@ class Bullet(
             val i = floor(x / w).toInt()
             val j = floor(y / h).toInt()
             val code = tileMap.get(i, j) ?: 0
-            return code != 0
+            return code in 1..7
         }
     }
 
