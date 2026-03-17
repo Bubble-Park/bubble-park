@@ -111,6 +111,7 @@ class BubblePark : GameData() {
                 removeAll { (it as? EnemySprite)?.isDead == true }
                 removeAll { (it as? GenericDino)?.isDead == true }
             }
+
             game.spriteList.update()
             game.invalidate()
         }
