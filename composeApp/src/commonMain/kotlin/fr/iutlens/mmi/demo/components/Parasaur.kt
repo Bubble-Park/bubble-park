@@ -12,8 +12,7 @@ class Parasaur(
     mapArea: TiledArea,
     distanceMap: DistanceMap,
     graph: PlatformGraph
-) : GenericDino(
-    res, x, y, mapArea,
+) : FleeDino(
     type = DinoType(
         name = "Parasaur",
         scoreValue = 25,
@@ -21,6 +20,5 @@ class Parasaur(
         behavior = DinoBehavior.FleeFromPlayer(),
         color = Color.Blue
     ),
-    distanceMap = distanceMap,
-    graph = graph
+    res, x, y, mapArea, distanceMap, graph
 )

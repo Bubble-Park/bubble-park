@@ -11,8 +11,7 @@ class Trex(
     mapArea: TiledArea,
     distanceMap: DistanceMap,
     graph: PlatformGraph
-) : GenericDino(
-    res, x, y, mapArea,
+) : ChaseDino(
     type = DinoType(
         name = "Trex",
         scoreValue = 50,
@@ -20,6 +19,5 @@ class Trex(
         behavior = DinoBehavior.ChasePlayer(speed = 20f),
         damagesPlayer = true
     ),
-    distanceMap = distanceMap,
-    graph = graph
+    res, x, y, mapArea, distanceMap, graph
 )
