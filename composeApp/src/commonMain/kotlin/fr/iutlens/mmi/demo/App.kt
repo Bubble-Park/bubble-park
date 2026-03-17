@@ -33,7 +33,6 @@ fun App(modifier: Modifier = Modifier) {
         }
     }
 }
-
 @Preview(device = "spec:width=852dp,height=393dp,dpi=240")
 @Composable
 fun AppPreview() {
