@@ -103,8 +103,13 @@ open class WalkingDino(
                 lastDirX = effectiveStep.dirX
                 savedPathDirX = effectiveStep.dirX
             }
-            dirX = if (effectiveStep.dirX != 0f) effectiveStep.dirX else lastDirX
+            dirX = when {
+                effectiveStep.dirX != 0f -> effectiveStep.dirX
+                effectiveStep.action == MoveAction.JUMP -> 0f
+                else -> lastDirX
+            }
             if (effectiveStep.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {
+                if (effectiveStep.dirX == 0f) lastDirX = 0f
                 jump()
                 jumpCooldown = 50
             }
