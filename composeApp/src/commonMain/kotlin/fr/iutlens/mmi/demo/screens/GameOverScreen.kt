@@ -14,7 +14,6 @@ import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.dino_font
 import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.background
-import fr.iutlens.mmi.demo.menu_content_fond
 import fr.iutlens.mmi.demo.trou
 import fr.iutlens.mmi.demo.ui.ShowLife
 import org.jetbrains.compose.resources.Font
@@ -31,8 +30,6 @@ fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
         val screenH = maxHeight.value
 
         val contentWidthFraction = 0.64f
-        val dynamicColumnWidth = (screenW * 0.36f).dp
-        val dynamicColumnSpacing = -(screenH * 0.02f).dp
         val playFontSize = (screenH * 0.19f).sp
         val quitFontSize = (screenH * 0.17f).sp
         val dynamicStrokeWidth = screenH * 0.03f
@@ -54,6 +51,7 @@ fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
                 .align(Alignment.TopStart)
                 .fillMaxHeight()
                 .fillMaxWidth(contentWidthFraction)
+                .padding(top = (screenH * 0.09f).dp, start = (screenW * 0.06f).dp)
         ) {
             Row(
                 modifier = Modifier
@@ -68,7 +66,7 @@ fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
                     modifier = Modifier.fillMaxHeight(0.85f).aspectRatio(1f)
                 )
                 Box(modifier = Modifier.padding(end = (screenW * 0.02f).dp)) {
-                    ShowLife(0)
+                    ShowLife(0, heartSize = (screenH * 0.12f).dp)
                 }
             }
 
@@ -102,25 +100,7 @@ fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
             Spacer(modifier = Modifier.weight(0.25f))
         }
 
-        // Fond des boutons bas-droite
-        Image(
-            painter = painterResource(Res.drawable.menu_content_fond),
-            contentDescription = null,
-            alignment = Alignment.BottomEnd,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .fillMaxHeight(0.75f)
-        )
-
-        // Boutons bas-droite
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .fillMaxHeight(0.75f)
-                .width(dynamicColumnWidth),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(dynamicColumnSpacing)
-        ) {
+        MenuPanel(screenW, screenH) {
             MenuButton(
                 onClick = onReplay,
                 text = "JOUER",
@@ -133,11 +113,6 @@ fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
                     .rotate(-4f)
                     .padding(start = playPaddingStart, top = playPaddingTop)
             )
-            VolumeButton(
-                modifier = Modifier
-                    .size((screenH * 0.15f).dp)
-                    .padding(start = quitPaddingStart)
-            )
             MenuButton(
                 onClick = onQuit,
                 text = "QUITTER",
@@ -148,6 +123,11 @@ fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
                 strokeWidth = dynamicStrokeWidth,
                 modifier = Modifier
                     .rotate(-7f)
+                    .padding(start = quitPaddingStart)
+            )
+            VolumeButton(
+                modifier = Modifier
+                    .size((screenH * 0.25f).dp)
                     .padding(start = quitPaddingStart)
             )
         }

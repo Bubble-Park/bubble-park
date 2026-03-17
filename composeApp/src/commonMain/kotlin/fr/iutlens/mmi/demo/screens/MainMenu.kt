@@ -64,8 +64,6 @@ fun MainMenu(onPlayClick: () -> Unit) {
 
         // Offsets
         val dynamicLogoOffset = -(screenW * 0.20f).dp
-        val dynamicColumnWidth = (screenW * 0.36f).dp
-        val dynamicColumnSpacing = -(screenH * 0.02f).dp
 
         // Fonts size
         val playFontSize = (screenH * 0.19f).sp
@@ -143,26 +141,7 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 .fillMaxWidth(0.33F)
         )
 
-        // Images de contenu
-        Image (
-            painter = painterResource(Res.drawable.menu_content_fond),
-            contentDescription = null,
-            alignment = Alignment.BottomEnd,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .fillMaxHeight(.75f)
-        )
-
-        // Contenu du menu
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .fillMaxHeight(0.75f)
-                .width(dynamicColumnWidth),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(dynamicColumnSpacing)
-        ) {
-            // Jouer
+        MenuPanel(screenW, screenH) {
             MenuButton(
                 onClick = onPlayClick,
                 text = "JOUER",
@@ -175,7 +154,6 @@ fun MainMenu(onPlayClick: () -> Unit) {
                     .rotate(-4f)
                     .padding(start = playPaddingStart, top = playPaddingTop)
             )
-            // Crédits
             MenuButton(
                 onClick = onPlayClick,
                 text = "CREDITS",
@@ -207,6 +185,34 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 .alpha(0.7f)
         )
     }
+}
+
+@Composable
+fun BoxScope.MenuPanel(
+    screenW: Float,
+    screenH: Float,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val dynamicColumnWidth = (screenW * 0.36f).dp
+    val dynamicColumnSpacing = -(screenH * 0.02f).dp
+
+    Image(
+        painter = painterResource(Res.drawable.menu_content_fond),
+        contentDescription = null,
+        alignment = Alignment.BottomEnd,
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .fillMaxHeight(0.75f)
+    )
+    Column(
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .fillMaxHeight(0.75f)
+            .width(dynamicColumnWidth),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(dynamicColumnSpacing),
+        content = content
+    )
 }
 
 @Composable

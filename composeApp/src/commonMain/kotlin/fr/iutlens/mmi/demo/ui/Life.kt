@@ -39,7 +39,7 @@ fun ShowScore(score: Int) {
  * @param player Vie du joueur à afficher
  */
 @Composable
-fun ShowLife(life: Int) {
+fun ShowLife(life: Int, heartSize: androidx.compose.ui.unit.Dp = 32.dp) {
     Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         repeat(3) { index ->
             val isFullHeart = index < life
@@ -52,7 +52,7 @@ fun ShowLife(life: Int) {
                 painter = painterResource(iconRes),
                 contentDescription = iconDesc,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(heartSize)
                     .rotate(rotate)
             )
         }
