@@ -15,10 +15,11 @@ import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.dino_font
 import fr.iutlens.mmi.demo.dudu_font
-import fr.iutlens.mmi.demo.trou
+import fr.iutlens.mmi.demo.head_bubblechtein
 import fr.iutlens.mmi.demo.ui.ShowLife
 import org.jetbrains.compose.resources.Font
 import androidx.compose.ui.text.font.FontFamily
+import fr.iutlens.mmi.demo.bubblechtein_sprites
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
@@ -61,9 +62,9 @@ fun PauseScreen(life: Int, score: Int, onResume: () -> Unit, onQuit: () -> Unit)
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Image(
-                    painter = painterResource(Res.drawable.trou),
+                    painter = painterResource(Res.drawable.head_bubblechtein),
                     contentDescription = null,
-                    modifier = Modifier.fillMaxHeight(0.85f).aspectRatio(1f)
+                    modifier = Modifier.fillMaxHeight(0.65f).aspectRatio(1f)
                 )
                 Box(modifier = Modifier.padding(end = (screenW * 0.02f).dp)) {
                     ShowLife(life, heartSize = (screenH * 0.12f).dp)
