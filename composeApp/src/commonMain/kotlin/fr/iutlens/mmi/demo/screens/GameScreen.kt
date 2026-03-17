@@ -46,7 +46,7 @@ import fr.iutlens.mmi.demo.trex_sprite
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun GameScreen(onExit: () -> Unit) {
+fun GameScreen(onExit: () -> Unit, onGameOver: () -> Unit) {
     SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
     // Chargement des différents sprites
     //SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
@@ -146,5 +146,9 @@ fun GameScreen(onExit: () -> Unit) {
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+
+    LaunchedEffect(gameData.player.isDead) {
+        if (gameData.player.isDead) onGameOver()
     }
 }
