@@ -221,7 +221,7 @@ class PlatformGraph(
     }
 
     private fun findStandableTiles() {
-        for (i in 1 until sizeX - 1) {
+        for (i in 0 until sizeX) {
             for (j in 0 until sizeY - 1) {
                 if (isTileAir(i, j) && isTileSolid(i, j + 1)) {
                     standable.add(i to j)
