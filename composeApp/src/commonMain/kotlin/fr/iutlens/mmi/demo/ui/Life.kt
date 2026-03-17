@@ -27,9 +27,8 @@ fun ShowScore(score: Int) {
     Text(
         text = "Score : $score",
         modifier = Modifier.padding(start = 16.dp),
-        color = Color.White,
+        color = Color(0xFF474534),
         fontSize = 20.sp,
-        fontWeight = FontWeight.Bold,
         fontFamily = duduFont
     )
 }

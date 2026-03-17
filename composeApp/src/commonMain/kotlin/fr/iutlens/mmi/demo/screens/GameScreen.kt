@@ -2,6 +2,7 @@ package fr.iutlens.mmi.demo.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -15,7 +16,6 @@ import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.game.GameView
-import fr.iutlens.mmi.demo.sprites_bubblepark_map_v1
 import fr.iutlens.mmi.demo.ui.Controllers
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 
@@ -23,7 +23,6 @@ import androidx.compose.foundation.focusable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -34,6 +33,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.IntSize
+import fr.iutlens.mmi.demo.pause
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.plateformes_spritesheet
@@ -55,6 +55,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.trex_sprite, 1, 1, filterQuality = FilterQuality.High)
 
     val gameData = remember { BubblePark() }
+    var isPaused by remember { mutableStateOf(false) }
 
     // Gestion du Clavier
     val focusRequester = remember { FocusRequester() }
@@ -125,22 +126,50 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             gameData = gameData
         )
 
-        // Vie et score du joueur
-        Column {
-            ShowLife(gameData.player.life)
-            ShowScore(gameData.score.get())
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.Top
+        ) {
+            Column {
+                ShowLife(gameData.player.life)
+                ShowScore(gameData.score.get())
+            }
+            Image(
+                painter = painterResource(Res.drawable.pause),
+                contentDescription = "Pause",
+                modifier = Modifier
+                    .size(48.dp)
+                    .padding(8.dp)
+                    .clickable {
+                        isPaused = true
+                        gameData.game.paused = true
+                    }
+            )
         }
 
-        // Controles
-        Controllers(
-            modifier = Modifier.fillMaxSize(),
-            onJoystickChange = { gameData.game.joystickPosition = it },
-            onActionA = { pressed ->
-                if (pressed && !gameData.game.actionButtonA) gameData.shoot()
-                gameData.game.actionButtonA = pressed
-            },
-            onActionB = { pressed -> gameData.game.actionButtonB = pressed }
-        )
+        if (isPaused) {
+            PauseScreen(
+                life = gameData.player.life,
+                score = gameData.score.get(),
+                onResume = {
+                    isPaused = false
+                    gameData.game.paused = false
+                    gameData.game.invalidate()
+                },
+                onQuit = onExit
+            )
+        } else {
+            Controllers(
+                modifier = Modifier.fillMaxSize(),
+                onJoystickChange = { gameData.game.joystickPosition = it },
+                onActionA = { pressed ->
+                    if (pressed && !gameData.game.actionButtonA) gameData.shoot()
+                    gameData.game.actionButtonA = pressed
+                },
+                onActionB = { pressed -> gameData.game.actionButtonB = pressed }
+            )
+        }
     }
 
     LaunchedEffect(Unit) {
