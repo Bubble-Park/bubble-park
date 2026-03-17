@@ -131,9 +131,7 @@ class DistanceMap(
         val j = floor(y / map.h).toInt()
 
         if (graph != null && !graph.isStandable(i, j)) {
-            for (jj in j until map.tileMap.geometry.sizeY) {
-                if (graph.isStandable(i, jj)) return i to jj
-            }
+            return graph.nearestStandable(i, j) ?: (i to j)
         }
 
         return i to j
