@@ -2,6 +2,7 @@ package fr.iutlens.mmi.demo.screens
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -79,21 +80,17 @@ fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                OutlineText(
+                Text(
                     text = "Score",
                     fontFamily = duduFont,
-                    fillColor = Color.White,
-                    outlineColor = Color(0xFF474534),
-                    fontSize = scoreFontSize,
-                    strokeWidth = dynamicStrokeWidth
+                    color = Color(0xFF474534),
+                    fontSize = scoreFontSize
                 )
-                OutlineText(
+                Text(
                     text = "$score",
                     fontFamily = duduFont,
-                    fillColor = Color(0xFF474534),
-                    outlineColor = Color.White,
-                    fontSize = scoreFontSize,
-                    strokeWidth = dynamicStrokeWidth
+                    color = Color(0xFF474534),
+                    fontSize = scoreFontSize
                 )
             }
 
