@@ -10,22 +10,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.iutlens.mmi.demo.Res
+import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.player_heart_empty
+import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ShowScore(score: Int) {
+    val duduFont = FontFamily(Font(Res.font.dudu_font))
     Text(
         text = "Score : $score",
         modifier = Modifier.padding(start = 16.dp),
         color = Color.White,
         fontSize = 20.sp,
-        fontWeight = FontWeight.Bold
+        fontWeight = FontWeight.Bold,
+        fontFamily = duduFont
     )
 }
 

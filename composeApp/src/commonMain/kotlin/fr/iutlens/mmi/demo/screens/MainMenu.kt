@@ -11,6 +11,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -33,11 +34,13 @@ import androidx.compose.ui.unit.sp
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.dino_font
 import fr.iutlens.mmi.demo.logo
-import fr.iutlens.mmi.demo.menu_background
+import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.menu_content_fond
 import fr.iutlens.mmi.demo.menu_nuages
 import fr.iutlens.mmi.demo.menu_premier_plan_up
 import fr.iutlens.mmi.demo.menu_second_plan
+import fr.iutlens.mmi.demo.utils.Music
+import fr.iutlens.mmi.demo.volume
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.scale
@@ -78,7 +81,7 @@ fun MainMenu(onPlayClick: () -> Unit) {
 
         // Images de fond - Layer pour les animations
         Image (
-            painter = painterResource(Res.drawable.menu_background),
+            painter = painterResource(Res.drawable.background),
             contentDescription = "Fond du menu",
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -185,6 +188,11 @@ fun MainMenu(onPlayClick: () -> Unit) {
                     .rotate(-7f)
                     .padding(start = creditsPaddingStart)
             )
+            VolumeButton(
+                modifier = Modifier
+                    .size((screenH * 0.25f).dp)
+                    .padding(start = creditsPaddingStart)
+            )
         }
         
         // Version
@@ -199,6 +207,15 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 .alpha(0.7f)
         )
     }
+}
+
+@Composable
+fun VolumeButton(modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(Res.drawable.volume),
+        contentDescription = if (Music.mute) "Son coupé" else "Son actif",
+        modifier = modifier.clickable { Music.mute = !Music.mute }
+    )
 }
 
 @Composable

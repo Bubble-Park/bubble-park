@@ -13,7 +13,7 @@ import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.BubblePark
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
-import fr.iutlens.mmi.demo.niveau1_fond
+import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.sprites_bubblepark_map_v1
 import fr.iutlens.mmi.demo.ui.Controllers
@@ -46,8 +46,7 @@ import fr.iutlens.mmi.demo.trex_sprite
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun GameScreen(onExit: () -> Unit, onGameOver: () -> Unit) {
-    SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
+fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     // Chargement des différents sprites
     //SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 3, filterQuality = FilterQuality.High)
@@ -114,7 +113,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: () -> Unit) {
             }
     ) {
         Image(
-            painter = painterResource(Res.drawable.niveau1_fond),
+            painter = painterResource(Res.drawable.background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop // Remplit l'écran sans déformer
@@ -149,6 +148,6 @@ fun GameScreen(onExit: () -> Unit, onGameOver: () -> Unit) {
     }
 
     LaunchedEffect(gameData.player.isDead) {
-        if (gameData.player.isDead) onGameOver()
+        if (gameData.player.isDead) onGameOver(gameData.score.get())
     }
 }

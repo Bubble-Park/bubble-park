@@ -21,6 +21,7 @@ enum class GameState {
 @Composable
 fun App(modifier: Modifier = Modifier) {
     var currentState by remember { mutableStateOf(GameState.MENU) }
+    var lastScore by remember { mutableStateOf(0) }
 
     MaterialTheme {
         Box(modifier = modifier.fillMaxSize()) {
@@ -30,9 +31,13 @@ fun App(modifier: Modifier = Modifier) {
                 )
                 GameState.PLAYING -> GameScreen(
                     onExit = { currentState = GameState.MENU },
-                    onGameOver = { currentState = GameState.GAME_OVER }
+                    onGameOver = { score -> lastScore = score; currentState = GameState.GAME_OVER }
                 )
-                GameState.GAME_OVER -> GameOverScreen()
+                GameState.GAME_OVER -> GameOverScreen(
+                    score = lastScore,
+                    onReplay = { currentState = GameState.PLAYING },
+                    onQuit = { currentState = GameState.MENU }
+                )
             }
         }
     }
