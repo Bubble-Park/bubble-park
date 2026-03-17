@@ -43,7 +43,7 @@ abstract class GenericDino(
         }
         if (jumpCooldown > 0) jumpCooldown--
         val i = floor(x / mapArea.w).toInt()
-        val j = floor((y + radius - 1f) / mapArea.h).toInt()
+        val j = floor((y + halfHeight - 1f) / mapArea.h).toInt()
         updateBehavior(i, j)
     }
 

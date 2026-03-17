@@ -26,7 +26,7 @@ open class WalkingDino(
     val radius = 40f
     var isDead = false
 
-    override val halfHeight get() = radius
+    override val halfHeight get() = spriteSheet.spriteHeight / 2f
     override val halfWidth get() = radius
 
     override val boundingBox: Rect
@@ -58,8 +58,9 @@ open class WalkingDino(
 
     protected fun startMoving() {
         val i = floor(x / mapArea.w).toInt()
-        val j = floor((y + radius - 1f) / mapArea.h).toInt()
-        val steps = graph.findPath(i to j, graph.randomStandable() ?: return)
+        val j = floor((y + halfHeight - 1f) / mapArea.h).toInt()
+        val from = if (graph.isStandable(i, j)) i to j else graph.nearestStandable(i, j) ?: return
+        val steps = graph.findPath(from, graph.randomStandable() ?: return)
         if (steps.isEmpty()) return
         currentPath = PathPlan(steps)
         stepTimeout = 0
