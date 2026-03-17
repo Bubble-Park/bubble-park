@@ -3,6 +3,8 @@ package fr.iutlens.mmi.demo.components
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
@@ -30,19 +32,13 @@ class Player(
     private val INVINCIBILITY_DURATION = 120
 
     // Variables d'animation
-    private var frameCounter = 0
     private var facingRight = true
 
-    // Constantes d'animation
-    private val jumpRisingFrame = 21
-    private val jumpFallingFrame = 23
-    private val jumpRisingFrameLeft = 26
-    private val jumpFallingFrameLeft = 28
-
-    private val walkRightStart = 0
-    private val walkLeftStart = 3
-    private val runRightStart = 10
-    private val runLeftStart = 13
+    // Indices dans le spritesheet 2x2
+    private val walkFrame  = 0  // (0,0) top-left
+    private val runFrame   = 1  // (1,0) top-right
+    private val jumpFrame  = 2  // (0,1) bottom-left
+    private val fallFrame  = 3  // (1,1) bottom-right
 
     var lastAngle = 0.0
 
@@ -68,22 +64,29 @@ class Player(
     override fun reset(x: Float, y: Float) {
         super.reset(x, y)
         invincibilityFrames = 0
-        frameCounter = 0
+    }
+
+    override fun paint(drawScope: DrawScope, elapsed: Long) {
+        val w2 = spriteSheet.spriteWidth / 2
+        val h2 = spriteSheet.spriteHeight / 2
+        drawScope.withTransform({
+            translate(x, y)
+            if (!facingRight) scale(-1f, 1f)
+        }) {
+            spriteSheet.paint(this, ndx, -w2, -h2, alpha = paintAlpha)
+        }
     }
 
     override fun update() {
-        // Gestion de l'invulnérabilité
         if (invincibilityFrames > 0) {
             invincibilityFrames--
         }
 
         if (isDead) {
-            // ndx = deadFrame
             super.update()
             return
         }
 
-        // Logique de déplacement
         val position = joystickProvider() ?: JoystickPosition.centered
 
         if (!position.isCentered) {
@@ -101,39 +104,16 @@ class Player(
         moveX(speed, 60f)
         applyPhysics()
 
-        // Logique d'animation
-        updateAnimationState(speed, position)
+        updateAnimationState(speed)
 
         super.update()
     }
 
-    /**
-     * Met à jour l'état d'animation en fonction de la position du joystick et de la vitesse du joueur
-     * @param speed Vitesse du joueur
-     * @param position Position du joystick
-     */
-    private fun updateAnimationState(speed: Float, position: JoystickPosition) {
-        if (!isOnGround) {
-            // Le joueur est en l'air
-            if (facingRight) {
-                ndx = if (vy < 0) jumpRisingFrame else jumpFallingFrame
-            } else {
-                ndx = if (vy < 0) jumpRisingFrameLeft else jumpFallingFrameLeft
-            }
-        } else if (!position.isCentered && speed != 0f) {
-            // Au sol et en mouvement
-            frameCounter++
-            val animFrame = (frameCounter / 4) % 3
-
-            val isRunning = (speed > mapArea.w * 0.6f || speed < -mapArea.w * 0.6f)
-
-            if (facingRight) {
-                ndx = (if (isRunning) runRightStart else walkRightStart) + animFrame
-            } else {
-                ndx = (if (isRunning) runLeftStart else walkLeftStart) + animFrame
-            }
-        } else {
-            ndx = if (facingRight) walkRightStart else walkLeftStart
+    private fun updateAnimationState(speed: Float) {
+        ndx = when {
+            !isOnGround -> if (vy < 0) jumpFrame else fallFrame
+            speed != 0f && (speed > mapArea.w * 0.6f || speed < -mapArea.w * 0.6f) -> runFrame
+            else -> walkFrame
         }
     }
 }
