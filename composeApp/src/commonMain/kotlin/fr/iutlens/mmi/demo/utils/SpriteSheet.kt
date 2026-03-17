@@ -44,10 +44,10 @@ class SpriteSheet(
     fun top(ndx: Int) = (ndx/sizeX)* _rawSpriteHeight+padding
     fun offset(ndx: Int) = IntOffset(left(ndx),top(ndx))
 
-    fun paint(drawScope: DrawScope, ndx : Int, x : Int, y : Int, size: IntSize = this.size){
+    fun paint(drawScope: DrawScope, ndx : Int, x : Int, y : Int, size: IntSize = this.size, alpha: Float = 1f){
       //  if (spriteSheet==null) throw NoSuchElementException("No SpriteSheet for this image resource. Use SpriteSheet.load(resource)")
         drawScope.drawImage(bitmap, offset(ndx), this.size, IntOffset(x,y), size,
-            alpha = 1f,
+            alpha = alpha,
             filterQuality = filterQuality ?: defaultFilterQuality)
     }
 

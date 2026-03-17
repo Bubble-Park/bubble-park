@@ -38,8 +38,10 @@ import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.plateformes_spritesheet
 import fr.iutlens.mmi.demo.ui.ShowLife
+import fr.iutlens.mmi.demo.ui.ShowScore
 import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
+import fr.iutlens.mmi.demo.trex_sprite
 
 import org.jetbrains.compose.resources.painterResource
 
@@ -51,6 +53,7 @@ fun GameScreen(onExit: () -> Unit) {
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 10, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.trex_sprite, 1, 1, filterQuality = FilterQuality.High)
 
     val gameData = remember { BubblePark() }
 
@@ -88,9 +91,11 @@ fun GameScreen(onExit: () -> Unit) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
                         gameData.shoot()
                     }
+
                     gameData.game.actionButtonA = (event.type == KeyEventType.KeyDown)
                     return@onKeyEvent true
                 }
+
                 if (event.key == Key.Z) {
                     gameData.game.actionButtonB = (event.type == KeyEventType.KeyDown)
                     return@onKeyEvent true
@@ -121,8 +126,11 @@ fun GameScreen(onExit: () -> Unit) {
             gameData = gameData
         )
 
-        // Vie du joueur
-        ShowLife(gameData.player.life)
+        // Vie et score du joueur
+        Column {
+            ShowLife(gameData.player.life)
+            ShowScore(gameData.score.get())
+        }
 
         // Controles
         Controllers(

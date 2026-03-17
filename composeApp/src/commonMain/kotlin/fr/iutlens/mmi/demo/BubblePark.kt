@@ -1,12 +1,13 @@
 package fr.iutlens.mmi.demo
 
 import fr.iutlens.mmi.demo.components.Player
-import fr.iutlens.mmi.demo.components.Attack
 import fr.iutlens.mmi.demo.components.Bullet
-import fr.iutlens.mmi.demo.components.Flee
-import fr.iutlens.mmi.demo.components.Ino
+import fr.iutlens.mmi.demo.components.GenericDino
+import fr.iutlens.mmi.demo.components.Trex
+import fr.iutlens.mmi.demo.components.Parasaur
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.GameData
+import fr.iutlens.mmi.demo.game.Score
 import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
@@ -14,7 +15,6 @@ import fr.iutlens.mmi.demo.game.sprite.toTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
-import fr.iutlens.mmi.demo.game.sprite.EnemyBehavior
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.distanceMap
@@ -26,21 +26,17 @@ import kotlin.math.abs
 
 class BubblePark : GameData() {
 
+    val score = Score()
     lateinit var player: Player
     private lateinit var tileArea: TiledArea
     private lateinit var platformGraph: PlatformGraph
     private lateinit var distanceMap: DistanceMap
 
     private var nextShotTime = 0L
-    private var lastEnemySpawnTime = 0L
-    private val ENEMY_SPAWN_INTERVAL = 4000L
-    private val MAX_ENEMIES = 8
 
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
-    private val activeInos = mutableListOf<Ino>()
-    private val activeFlees = mutableListOf<Flee>()
-    private val activeAttacks = mutableListOf<Attack>()
+    private val activeGenericDinos = mutableListOf<GenericDino>()
 
     private val levels = listOf(
         LevelData(
@@ -69,7 +65,6 @@ class BubblePark : GameData() {
                 ******************************
                 ##############################
             """.trimIndent(),
-            //tileSetRes = Res.drawable.plateformes_spritesheet,
             tileSetRes = Res.drawable.environnement_map_sprite,
             startX = 1.5f,
             startY = 2.5f,
@@ -81,7 +76,7 @@ class BubblePark : GameData() {
         val levelData = levels[index]
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
         tileArea = TiledArea(levelData.tileSetRes, tileMap)
-        
+
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
             x = levelData.startX * tileArea.w,
@@ -92,7 +87,6 @@ class BubblePark : GameData() {
         )
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
-
         distanceMap = tileArea.distanceMap(player, platformGraph)
 
         createGame(
@@ -101,18 +95,21 @@ class BubblePark : GameData() {
             transform = GenericTransform(Constraint.Fill(tileArea))
         )
 
+        findSpawnPoint()?.let { (spawnX, spawnY) ->
+            val sprites = game.spriteList as? MutableList<Sprite> ?: return@let
+            sprites.add(Trex(Res.drawable.trex_sprite, spawnX, spawnY, tileArea, distanceMap, platformGraph))
+            sprites.add(Parasaur(Res.drawable.bubble_sprite, spawnX, spawnY, tileArea, distanceMap, platformGraph))
+        }
+
         game.animation(20) {
             handleCollisions()
-            spawnEnemyIfNeeded()
-            
+
             distanceMap.update()
-            
+
             (game.spriteList as? MutableList<Sprite>)?.apply {
                 removeAll { (it as? Bullet)?.isStopped == true }
                 removeAll { (it as? EnemySprite)?.isDead == true }
-                removeAll { (it as? Ino)?.isDead == true }
-                removeAll { (it as? Flee)?.isDead == true }
-                removeAll { (it as? Attack)?.isDead == true }
+                removeAll { (it as? GenericDino)?.isDead == true }
             }
             game.spriteList.update()
             game.invalidate()
@@ -122,68 +119,48 @@ class BubblePark : GameData() {
     private fun handleCollisions() {
         activeBullets.clear()
         activeEnemies.clear()
-        activeInos.clear()
-        activeFlees.clear()
-        activeAttacks.clear()
+        activeGenericDinos.clear()
 
         for (sprite in game.spriteList) {
             when {
                 sprite is Bullet && !sprite.isStopped -> activeBullets.add(sprite)
                 sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
-                sprite is Attack && !sprite.isDead -> activeAttacks.add(sprite)
-                sprite is Flee && !sprite.isDead -> activeFlees.add(sprite)
-                sprite is Ino && !sprite.isDead -> activeInos.add(sprite)
+                sprite is GenericDino && !sprite.isDead -> activeGenericDinos.add(sprite)
             }
         }
 
+        // EnemySprite damage player
         for (enemy in activeEnemies) {
             if (enemy.stunTimer > 0) continue
-
             if (enemy.boundingBox.overlaps(player.boundingBox)) {
-                if (player.takeDamage()) {
-                    enemy.stunTimer = 50
-                }
+                if (player.takeDamage()) enemy.stunTimer = 50
             }
         }
 
-        for (attack in activeAttacks) {
-            if (attack.boundingBox.overlaps(player.boundingBox)) {
+        for (dino in activeGenericDinos) {
+            if (!dino.type.damagesPlayer) continue
+            if (dino.boundingBox.overlaps(player.boundingBox)) {
                 player.takeDamage()
             }
         }
 
+        // Bullets vs enemies
         for (bullet in activeBullets) {
-            for (attack in activeAttacks) {
-                if (attack.isDead) continue
-                if (bullet.boundingBox.overlaps(attack.boundingBox)) {
-                    attack.isDead = true
-                    bullet.explode()
-                    break
-                }
-            }
-            if (bullet.isStopped) continue
             for (enemy in activeEnemies) {
                 if (enemy.isDead) continue
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
+                    score.add(enemy.scoreValue)
                     bullet.explode()
                     break
                 }
             }
             if (bullet.isStopped) continue
-            for (ino in activeInos) {
-                if (ino.isDead) continue
-                if (bullet.boundingBox.overlaps(ino.boundingBox)) {
-                    ino.isDead = true
-                    bullet.explode()
-                    break
-                }
-            }
-            if (bullet.isStopped) continue
-            for (flee in activeFlees) {
-                if (flee.isDead) continue
-                if (bullet.boundingBox.overlaps(flee.boundingBox)) {
-                    flee.isDead = true
+            for (dino in activeGenericDinos) {
+                if (dino.isDead) continue
+                if (bullet.boundingBox.overlaps(dino.boundingBox)) {
+                    dino.isDead = true
+                    score.add(dino.scoreValue)
                     bullet.explode()
                     break
                 }
@@ -191,62 +168,29 @@ class BubblePark : GameData() {
         }
     }
 
-    private fun spawnEnemyIfNeeded() {
-        if (game.elapsed - lastEnemySpawnTime > ENEMY_SPAWN_INTERVAL) {
-            lastEnemySpawnTime = game.elapsed
+    private fun findSpawnPoint(): Pair<Float, Float>? {
+        val validSpawns = mutableListOf<Pair<Int, Int>>()
+        val playerI = floor(player.x / tileArea.w).toInt()
+        val playerJ = floor(player.y / tileArea.h).toInt()
 
-            val currentEnemyCount = activeEnemies.size + activeInos.size + activeFlees.size + activeAttacks.size
-            if (currentEnemyCount >= MAX_ENEMIES) {
-                return
-            }
+        for (i in 0 until tileArea.tileMap.geometry.sizeX) {
+            for (j in 0 until tileArea.tileMap.geometry.sizeY - 1) {
+                val currentCode = tileArea.tileMap.get(i, j) ?: 0
+                val belowCode = tileArea.tileMap.get(i, j + 1) ?: 0
 
-            val validSpawns = mutableListOf<Pair<Int, Int>>()
-            val playerI = floor(player.x / tileArea.w).toInt()
-            val playerJ = floor(player.y / tileArea.h).toInt()
-
-            for (i in 0 until tileArea.tileMap.geometry.sizeX) {
-                for (j in 0 until tileArea.tileMap.geometry.sizeY - 1) {
-                    if (platformGraph.isStandable(i, j)) {
-                        if (abs(i - playerI) > 3 || j != playerJ) {
-                            validSpawns.add(Pair(i, j))
-                        }
+                if (currentCode == 0 && belowCode in 1..7) {
+                    if (abs(i - playerI) > 3 || j != playerJ) {
+                        validSpawns.add(Pair(i, j))
                     }
                 }
             }
-
-            if (validSpawns.isNotEmpty()) {
-                val spawnPoint = validSpawns[Random.nextInt(validSpawns.size)]
-                val spawnX = spawnPoint.first * tileArea.w + tileArea.w / 2f
-                val spawnY = spawnPoint.second * tileArea.h + tileArea.h / 2f
-
-                val newSprite: Sprite = when (Random.nextInt(3)) {
-                    0 -> Ino(
-                        res = Res.drawable.bubble_sprite,
-                        x = spawnX,
-                        y = spawnY,
-                        mapArea = tileArea,
-                        graph = platformGraph
-                    )
-                    1 -> Flee(
-                        res = Res.drawable.bubble_sprite,
-                        x = spawnX,
-                        y = spawnY,
-                        mapArea = tileArea,
-                        distanceMap = distanceMap,
-                        graph = platformGraph
-                    )
-                    else -> Attack(
-                        res = Res.drawable.bubble_sprite,
-                        x = spawnX,
-                        y = spawnY,
-                        mapArea = tileArea,
-                        distanceMap = distanceMap,
-                        graph = platformGraph
-                    )
-                }
-                (game.spriteList as? MutableList<Sprite>)?.add(newSprite)
-            }
         }
+
+        if (validSpawns.isEmpty()) return null
+        val spawnPoint = validSpawns[Random.nextInt(validSpawns.size)]
+        val spawnX = spawnPoint.first * tileArea.w + tileArea.w / 2f
+        val spawnY = spawnPoint.second * tileArea.h + tileArea.h / 2f
+        return Pair(spawnX, spawnY)
     }
 
     fun shoot(enableCollisions: Boolean = false, delayMs: Long = 300) {
