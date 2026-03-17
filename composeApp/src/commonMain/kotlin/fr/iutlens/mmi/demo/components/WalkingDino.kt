@@ -35,7 +35,7 @@ open class WalkingDino(
     protected var idleTimer: Int = Random.nextInt(10, 100)
     protected var dirX: Float = 0f
     protected var currentPath: PathPlan? = null
-    protected var fleeingDirX: Float = 0f
+    protected var savedPathDirX: Float = 0f
     protected var lastDirX: Float = 0f
     protected var stepTimeout: Int = 0
 
@@ -51,7 +51,7 @@ open class WalkingDino(
         idleTimer = Random.nextInt(10, 100)
         dirX = 0f
         currentPath = null
-        fleeingDirX = 0f
+        savedPathDirX = 0f
         lastDirX = 0f
         stepTimeout = 0
     }
@@ -100,7 +100,7 @@ open class WalkingDino(
         if (effectiveStep != null) {
             if (effectiveStep.dirX != 0f) {
                 lastDirX = effectiveStep.dirX
-                fleeingDirX = effectiveStep.dirX
+                savedPathDirX = effectiveStep.dirX
             }
             dirX = if (effectiveStep.dirX != 0f) effectiveStep.dirX else lastDirX
             if (effectiveStep.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {

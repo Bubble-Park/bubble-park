@@ -1,5 +1,6 @@
 package fr.iutlens.mmi.demo.components
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
@@ -9,73 +10,67 @@ import org.jetbrains.compose.resources.DrawableResource
 import kotlin.math.floor
 import kotlin.random.Random
 
-open class GenericDino(
+abstract class GenericDino(
+    val type: DinoType,
     res: DrawableResource,
     x: Float, y: Float,
     mapArea: TiledArea,
-    val type: DinoType,
-    private val distanceMap: DistanceMap? = null,
     graph: PlatformGraph
 ) : WalkingDino(res, x, y, mapArea, graph) {
 
     override val scoreValue get() = type.scoreValue
 
+    companion object {
+        const val PATH_REFRESH_INTERVAL = 25
+    }
+
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         val color = type.color
         if (color != null) {
-            drawScope.drawCircle(color = color, radius = radius, center = androidx.compose.ui.geometry.Offset(x, y))
+            drawScope.drawCircle(color = color, radius = radius, center = Offset(x, y))
         } else {
             super.paint(drawScope, elapsed)
         }
     }
 
-    // État Wander
-    private var wanderMoving = false
-
-    // État Flee
-    private enum class FleePhase { IDLE, MOVING, FLEEING }
-    private var fleePhase = FleePhase.IDLE
-
-    // État Chase
-    private var pathRefreshTimer = 0
-
-    companion object {
-        const val PATH_REFRESH_INTERVAL = 25
+    override fun update() {
+        if (isDead) return
+        if (stunTimer > 0) {
+            stunTimer--
+            onStun()
+            applyPhysics()
+            return
+        }
+        if (jumpCooldown > 0) jumpCooldown--
+        val i = floor(x / mapArea.w).toInt()
+        val j = floor((y + radius - 1f) / mapArea.h).toInt()
+        updateBehavior(i, j)
     }
+
+    protected open fun onStun() {}
+
+    protected abstract fun updateBehavior(i: Int, j: Int)
+}
+
+// --- Wander ---
+
+open class WanderDino(
+    type: DinoType,
+    res: DrawableResource,
+    x: Float, y: Float,
+    mapArea: TiledArea,
+    graph: PlatformGraph
+) : GenericDino(type, res, x, y, mapArea, graph) {
+
+    private val b get() = type.behavior as DinoBehavior.Wander
+    private var wanderMoving = false
 
     override fun reset(x: Float, y: Float) {
         super.reset(x, y)
         wanderMoving = false
-        fleePhase = FleePhase.IDLE
-        pathRefreshTimer = 0
-        lastDirX = 0f
     }
 
-    override fun update() {
-        if (isDead) return
-
-        if (stunTimer > 0) {
-            stunTimer--
-            if (type.behavior is DinoBehavior.FleeFromPlayer) currentPath = null
-            applyPhysics()
-            return
-        }
-
-        if (jumpCooldown > 0) jumpCooldown--
-
-        val i = floor(x / mapArea.w).toInt()
-        val j = floor((y + radius - 1f) / mapArea.h).toInt()
-
-        when (val b = type.behavior) {
-            is DinoBehavior.Wander -> updateWander(i, j, b)
-            is DinoBehavior.FleeFromPlayer -> updateFlee(i, j, b)
-            is DinoBehavior.ChasePlayer -> updateChase(i, j, b)
-        }
-    }
-
-    // --- Wander ---
-
-    private fun updateWander(i: Int, j: Int, b: DinoBehavior.Wander) {
+    override fun updateBehavior(i: Int, j: Int) {
         if (!wanderMoving) {
             dirX = 0f
             if (--idleTimer <= 0) {
@@ -95,11 +90,35 @@ open class GenericDino(
         moveX(dirX * b.speed, b.speed)
         applyPhysics()
     }
+}
 
-    // --- Flee from player ---
+// --- Flee from player ---
 
-    private fun updateFlee(i: Int, j: Int, b: DinoBehavior.FleeFromPlayer) {
-        val dm = distanceMap ?: return
+open class FleeDino(
+    type: DinoType,
+    res: DrawableResource,
+    x: Float, y: Float,
+    mapArea: TiledArea,
+    val distanceMap: DistanceMap,
+    graph: PlatformGraph
+) : GenericDino(type, res, x, y, mapArea, graph) {
+
+    private val b get() = type.behavior as DinoBehavior.FleeFromPlayer
+
+    private enum class FleePhase { IDLE, MOVING, FLEEING }
+    private var fleePhase = FleePhase.IDLE
+
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        fleePhase = FleePhase.IDLE
+    }
+
+    override fun onStun() {
+        currentPath = null
+    }
+
+    override fun updateBehavior(i: Int, j: Int) {
+        val dm = distanceMap
         val distToPlayer = dm[i, j]
 
         if (distToPlayer != null && distToPlayer <= b.triggerTiles && fleePhase != FleePhase.FLEEING) {
@@ -117,7 +136,7 @@ open class GenericDino(
         when (fleePhase) {
             FleePhase.FLEEING -> {
                 if (!isOnGround) {
-                    dirX = fleeingDirX
+                    dirX = savedPathDirX
                 } else {
                     val path = currentPath
                     if (path == null || path.isDone) recomputeFleePath(i, j, dm)
@@ -152,11 +171,29 @@ open class GenericDino(
         currentPath = if (steps.isNotEmpty()) PathPlan(steps) else null
         stepTimeout = 0
     }
+}
 
-    // --- Chase player ---
+// --- Chase player ---
 
-    private fun updateChase(i: Int, j: Int, b: DinoBehavior.ChasePlayer) {
-        val dm = distanceMap ?: return
+open class ChaseDino(
+    type: DinoType,
+    res: DrawableResource,
+    x: Float, y: Float,
+    mapArea: TiledArea,
+    val distanceMap: DistanceMap,
+    graph: PlatformGraph
+) : GenericDino(type, res, x, y, mapArea, graph) {
+
+    private val b get() = type.behavior as DinoBehavior.ChasePlayer
+    private var pathRefreshTimer = 0
+
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        pathRefreshTimer = 0
+    }
+
+    override fun updateBehavior(i: Int, j: Int) {
+        val dm = distanceMap
 
         if (--pathRefreshTimer <= 0) {
             recomputeAttackPath(i, j, dm)
@@ -171,7 +208,6 @@ open class GenericDino(
                 recomputeAttackPath(i, j, dm)
             } else {
                 val done = followPath(i, j)
-                // followPath met à jour dirX — on mémorise la dernière direction connue
                 if (dirX != 0f) lastDirX = dirX
                 if (done) recomputeAttackPath(i, j, dm)
             }
