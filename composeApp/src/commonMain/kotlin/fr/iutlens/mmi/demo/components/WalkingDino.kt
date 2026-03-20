@@ -22,6 +22,7 @@ open class WalkingDino(
     open val scoreValue: Int = 0
 
     var stunTimer = 0
+
     var jumpCooldown = 0
     val radius = 40f
     var isDead = false
@@ -38,6 +39,8 @@ open class WalkingDino(
     protected var savedPathDirX: Float = 0f
     protected var lastDirX: Float = 0f
     protected var stepTimeout: Int = 0
+    protected var walkPhase: Float = 0f
+    protected var facingRight: Boolean = true
 
     companion object {
         const val STEP_TIMEOUT = 300
@@ -54,6 +57,8 @@ open class WalkingDino(
         savedPathDirX = 0f
         lastDirX = 0f
         stepTimeout = 0
+        walkPhase = 0f
+        facingRight = true
     }
 
     protected fun startMoving() {

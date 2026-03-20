@@ -161,8 +161,9 @@ class BubblePark : GameData() {
 
         for (dino in activeGenericDinos) {
             if (!dino.type.damagesPlayer) continue
+            if (dino.stunTimer > 0) continue
             if (dino.boundingBox.overlaps(player.boundingBox)) {
-                player.takeDamage()
+                if (player.takeDamage()) dino.stunTimer = 50
             }
         }
 
@@ -220,10 +221,10 @@ class BubblePark : GameData() {
 
     private fun trySpawnNextDino(maxDino: Int) {
         val activeTrex = activeGenericDinos.count { it is Trex }
-        val activeParasaur = activeGenericDinos.size - activeTrex
+        val activeParasaur = activeGenericDinos.count { it is Parasaur }
         if (activeTrex + activeParasaur >= maxDino) return
 
-        val targetTrex = maxDino - ((maxDino * (DifficultyConfig.RATIO_FLEE + DifficultyConfig.RATIO_WANDER)).roundToInt())
+        val targetTrex = (maxDino * DifficultyConfig.RATIO_CHASE).roundToInt()
         val targetParasaur = maxDino - targetTrex
 
         val spawnChase = activeTrex < targetTrex
