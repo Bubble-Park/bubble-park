@@ -8,7 +8,8 @@ data class DinoType(
     val ndx: Int,
     val behavior: DinoBehavior,
     val damagesPlayer: Boolean = false,
-    val color: Color? = null
+    val color: Color? = null,
+    val timeBonus: Int = 0
 )
 
 sealed class DinoBehavior {

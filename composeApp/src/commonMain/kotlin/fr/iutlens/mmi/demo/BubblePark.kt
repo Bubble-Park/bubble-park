@@ -7,6 +7,7 @@ import fr.iutlens.mmi.demo.components.Trex
 import fr.iutlens.mmi.demo.components.Parasaur
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.Chrono
+import fr.iutlens.mmi.demo.game.DifficultyManager
 import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.Score
 import fr.iutlens.mmi.demo.game.sprite.Sprite
@@ -75,6 +76,9 @@ class BubblePark : GameData() {
     )
 
     fun loadLevel(index: Int) {
+        // Difficulté du niveau
+        val levelDiff = DifficultyManager.getLevelDifficulty(index + 1)
+
         val levelData = levels[index]
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
         tileArea = TiledArea(levelData.tileSetRes, tileMap)
@@ -155,6 +159,7 @@ class BubblePark : GameData() {
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
                     score.add(enemy.scoreValue)
+                    // TODO: timer.addTime(enemy.type.timeBonus)  — à brancher lors de l'intégration du timer
                     bullet.explode()
                     break
                 }
@@ -165,6 +170,7 @@ class BubblePark : GameData() {
                 if (bullet.boundingBox.overlaps(dino.boundingBox)) {
                     dino.isDead = true
                     score.add(dino.scoreValue)
+                    // TODO: timer.addTime(dino.type.timeBonus)  — à brancher lors de l'intégration du timer
                     bullet.explode()
                     break
                 }
