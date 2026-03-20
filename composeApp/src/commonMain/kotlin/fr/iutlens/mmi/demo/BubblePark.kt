@@ -192,28 +192,30 @@ class BubblePark : GameData() {
     }
 
     private fun findSpawnPoint(): Pair<Float, Float>? {
-        val validSpawns = mutableListOf<Pair<Int, Int>>()
         val playerI = floor(player.x / tileArea.w).toInt()
         val playerJ = floor(player.y / tileArea.h).toInt()
 
-        for (i in 0 until tileArea.tileMap.geometry.sizeX) {
-            for (j in 0 until tileArea.tileMap.geometry.sizeY - 1) {
-                val currentCode = tileArea.tileMap.get(i, j) ?: 0
-                val belowCode = tileArea.tileMap.get(i, j + 1) ?: 0
-
-                if (currentCode == 0 && belowCode in 1..7) {
-                    if (abs(i - playerI) > 6 && abs(j - playerJ) > 3) {
-                        validSpawns.add(Pair(i, j))
+        fun collectSpawns(minDistI: Int, minDistJ: Int): List<Pair<Int, Int>> {
+            val result = mutableListOf<Pair<Int, Int>>()
+            for (i in 0 until tileArea.tileMap.geometry.sizeX) {
+                for (j in 0 until tileArea.tileMap.geometry.sizeY - 1) {
+                    val current = tileArea.tileMap.get(i, j) ?: 0
+                    val below = tileArea.tileMap.get(i, j + 1) ?: 0
+                    if (current == 0 && below in 1..7) {
+                        if (abs(i - playerI) > minDistI && abs(j - playerJ) > minDistJ) {
+                            result.add(i to j)
+                        }
                     }
                 }
             }
+            return result
         }
 
-        if (validSpawns.isEmpty()) return null
-        val spawnPoint = validSpawns[Random.nextInt(validSpawns.size)]
-        val spawnX = spawnPoint.first * tileArea.w + tileArea.w / 2f
-        val spawnY = spawnPoint.second * tileArea.h + tileArea.h / 2f
-        return Pair(spawnX, spawnY)
+        val spawns = collectSpawns(6, 3).ifEmpty { collectSpawns(3, 1) }
+        if (spawns.isEmpty()) return null
+
+        val (si, sj) = spawns[Random.nextInt(spawns.size)]
+        return Pair(si * tileArea.w + tileArea.w / 2f, sj * tileArea.h + tileArea.h / 2f)
     }
 
     private fun trySpawnNextDino(maxDino: Int) {

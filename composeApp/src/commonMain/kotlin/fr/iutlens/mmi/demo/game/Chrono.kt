@@ -13,7 +13,8 @@ class Chrono(private val maxMs: Long = 30_000L) {
     val value: Float get() = remainingMs / 1000f
 
     fun addTime(seconds: Float) {
-        bonusMs += (seconds * 1000).toLong()
+        val elapsed = (TimeSource.Monotonic.markNow() - start).inWholeMilliseconds
+        bonusMs = (bonusMs + (seconds * 1000).toLong()).coerceAtMost(elapsed)
     }
 
     fun isFinished(): Boolean = remainingMs <= 0L
