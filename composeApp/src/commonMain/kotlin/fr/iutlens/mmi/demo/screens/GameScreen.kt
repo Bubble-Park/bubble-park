@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.pause
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.bubble_sprite
+import fr.iutlens.mmi.demo.ui.ShowChrono
 import fr.iutlens.mmi.demo.ui.ShowLife
 import fr.iutlens.mmi.demo.ui.ShowScore
 import androidx.compose.ui.layout.ContentScale
@@ -130,8 +131,10 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             verticalAlignment = Alignment.Top
         ) {
             Column {
+                val elapsed = gameData.game.elapsed
                 ShowLife(gameData.player.life)
                 ShowScore(gameData.score.get())
+                ShowChrono(gameData.chrono.value)
             }
             Image(
                 painter = painterResource(Res.drawable.pause),

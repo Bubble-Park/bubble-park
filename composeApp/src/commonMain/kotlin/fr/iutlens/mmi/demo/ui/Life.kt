@@ -38,6 +38,18 @@ fun ShowScore(score: Int) {
  * @param player Vie du joueur à afficher
  */
 @Composable
+fun ShowChrono(time: Float) {
+    val duduFont = FontFamily(Font(Res.font.dudu_font))
+    Text(
+        text = "Temps : ${time.toInt()}s",
+        modifier = Modifier.padding(start = 16.dp),
+        color = Color(0xFF474534),
+        fontSize = 20.sp,
+        fontFamily = duduFont
+    )
+}
+
+@Composable
 fun ShowLife(life: Int, heartSize: androidx.compose.ui.unit.Dp = 32.dp) {
     Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         repeat(3) { index ->

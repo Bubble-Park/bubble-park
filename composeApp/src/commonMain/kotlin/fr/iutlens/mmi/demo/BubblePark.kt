@@ -6,6 +6,7 @@ import fr.iutlens.mmi.demo.components.GenericDino
 import fr.iutlens.mmi.demo.components.Trex
 import fr.iutlens.mmi.demo.components.Parasaur
 import fr.iutlens.mmi.demo.data.LevelData
+import fr.iutlens.mmi.demo.game.Chrono
 import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.Score
 import fr.iutlens.mmi.demo.game.sprite.Sprite
@@ -27,6 +28,7 @@ import kotlin.math.abs
 class BubblePark : GameData() {
 
     val score = Score()
+    val chrono = Chrono()
     lateinit var player: Player
     private lateinit var tileArea: TiledArea
     private lateinit var platformGraph: PlatformGraph
@@ -102,6 +104,7 @@ class BubblePark : GameData() {
         }
 
         game.animation(20) {
+            chrono.update(20)
             handleCollisions()
 
             distanceMap.update()
