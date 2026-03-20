@@ -32,12 +32,12 @@ fun PauseScreen(life: Int, score: Int, onResume: () -> Unit, onQuit: () -> Unit)
         val screenH = maxHeight.value
 
         val contentWidthFraction = 0.64f
-        val resumeFontSize = (screenH * 0.125f).sp
+        val resumeFontSize = (screenH * 0.120f).sp
         val quitFontSize = (screenH * 0.17f).sp
         val dynamicStrokeWidth = screenH * 0.03f
         val scoreFontSize = (screenH * 0.13f).sp
         val resumePaddingStart = (screenW * 0.06f).dp
-        val resumePaddingTop = (screenH * 0.18f).dp
+        val resumePaddingTop = (screenH * 0.11).dp
         val quitPaddingStart = (screenW * 0.03f).dp
 
         Image(
