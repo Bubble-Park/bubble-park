@@ -142,7 +142,6 @@ fun MainMenu(onPlayClick: () -> Unit) {
         )
 
         MenuPanel(screenW, screenH) {
-            Spacer(modifier = Modifier.height((screenH * 0.08f).dp))
             MenuButton(
                 onClick = onPlayClick,
                 text = "JOUER",
@@ -170,7 +169,7 @@ fun MainMenu(onPlayClick: () -> Unit) {
             VolumeButton(
                 modifier = Modifier
                     .size((screenH * 0.25f).dp)
-                    .padding(start = (screenW * 0.10f).dp)
+                    .padding(start = creditsPaddingStart)
             )
         }
         
