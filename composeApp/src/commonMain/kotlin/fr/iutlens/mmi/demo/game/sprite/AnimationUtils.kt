@@ -13,3 +13,22 @@ fun squareWaveRotation(phase: Float, intensity: Float): Float {
     val cycle = 2 * PI.toFloat()
     return if (phase % cycle < PI.toFloat()) intensity else -intensity
 }
+
+/**
+ * Scale up léger au moment du hit, qui redescend progressivement à 1f.
+ * @param stunRatio Ratio de stun restant, de 1f (début) à 0f (fin)
+ */
+fun hitScale(stunRatio: Float): Float {
+    if (stunRatio > 40f) return 1f
+    return 1f + 0.25f
+}
+
+/**
+ * Rotation ample en square wave, indépendante de la marche.
+ * @param phase    Valeur quelconque utilisée comme accumulateur de phase
+ * @param intensity Amplitude en degrés (plus grande que squareWaveRotation)
+ */
+fun hitRotation(phase: Float, intensity: Float): Float {
+    val cycle = 2 * PI.toFloat()
+    return if (phase % cycle < PI.toFloat()) intensity else -intensity
+}

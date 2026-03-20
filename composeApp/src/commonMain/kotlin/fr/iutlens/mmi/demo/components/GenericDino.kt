@@ -4,6 +4,8 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
+import fr.iutlens.mmi.demo.game.sprite.hitRotation
+import fr.iutlens.mmi.demo.game.sprite.hitScale
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PathPlan
@@ -33,10 +35,15 @@ abstract class GenericDino(
         } else {
             val w2 = spriteSheet.spriteWidth / 2
             val h2 = spriteSheet.spriteHeight / 2
-            val walkRotation = if (isOnGround && dirX != 0f) squareWaveRotation(phase = walkPhase, intensity = 7f) else 0f
+            val (rotation, scaleF) = if (stunTimer > 20) {
+                hitRotation(stunTimer.toFloat(), intensity = 15f) to hitScale(stunTimer / 50f)
+            } else {
+                squareWaveRotation(phase = walkPhase, intensity = 7f) to 1f
+            }
             drawScope.withTransform({
                 translate(x, y)
-                rotate(walkRotation, pivot = Offset.Zero)
+                scale(scaleF, scaleF, pivot = Offset.Zero)
+                rotate(rotation, pivot = Offset.Zero)
                 if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
             }) {
                 spriteSheet.paint(this, ndx, -w2, -h2, alpha = paintAlpha)

@@ -161,8 +161,9 @@ class BubblePark : GameData() {
 
         for (dino in activeGenericDinos) {
             if (!dino.type.damagesPlayer) continue
+            if (dino.stunTimer > 0) continue
             if (dino.boundingBox.overlaps(player.boundingBox)) {
-                player.takeDamage()
+                if (player.takeDamage()) dino.stunTimer = 50
             }
         }
 

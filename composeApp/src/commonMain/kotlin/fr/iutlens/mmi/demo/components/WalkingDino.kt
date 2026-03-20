@@ -22,6 +22,7 @@ open class WalkingDino(
     open val scoreValue: Int = 0
 
     var stunTimer = 0
+
     var jumpCooldown = 0
     val radius = 40f
     var isDead = false
