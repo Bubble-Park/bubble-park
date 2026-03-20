@@ -42,6 +42,13 @@ import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
 import fr.iutlens.mmi.demo.niveau1_fond
 import fr.iutlens.mmi.demo.trex_sprite
+import fr.iutlens.mmi.demo.damage_border
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
+import kotlinx.coroutines.delay
 
 import org.jetbrains.compose.resources.painterResource
 
@@ -55,6 +62,9 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     val gameData = remember { BubblePark() }
     var isPaused by remember { mutableStateOf(false) }
+    var showDamage by remember { mutableStateOf(false) }
+    var prevLife by remember { mutableStateOf(gameData.player.life) }
+    val damageScaleAnim = remember { Animatable(1.4f) }
 
     // Gestion du Clavier
     val focusRequester = remember { FocusRequester() }
@@ -125,6 +135,13 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             gameData = gameData
         )
 
+        Image(
+            painter = painterResource(Res.drawable.damage_border),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize().alpha(if (showDamage) 1f else 0f).scale(damageScaleAnim.value)
+        )
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -179,5 +196,23 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     LaunchedEffect(gameData.player.isDead) {
         if (gameData.player.isDead) onGameOver(gameData.score.get())
+    }
+
+    var damageAnimDuration = 120
+    var damageHoldDuration = 80L
+
+    LaunchedEffect(gameData.player.life) {
+        val currentLife = gameData.player.life
+        if (currentLife < prevLife) {
+            val spec = tween<Float>(durationMillis = damageAnimDuration, easing = EaseInOut)
+            val holdSpec = tween<Float>(durationMillis = damageHoldDuration.toInt(), easing = EaseInOut)
+            damageScaleAnim.snapTo(1.4f)
+            showDamage = true
+            damageScaleAnim.animateTo(1f, spec)
+            damageScaleAnim.animateTo(0.92f, holdSpec)
+            damageScaleAnim.animateTo(1.4f, spec)
+            showDamage = false
+        }
+        prevLife = currentLife
     }
 }
