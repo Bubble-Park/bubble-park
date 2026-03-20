@@ -15,9 +15,9 @@ object DifficultyConfig {
     const val MAX_LOCAL_INCREMENT: Int    = 5
     const val LOCAL_DIFF_INTERVAL: Float  = 6f
 
-    const val RATIO_WANDER: Float = 0.35f
-    const val RATIO_FLEE: Float   = 0.35f
-    // RATIO_CHASE = 1 - WANDER - FLEE (le reste)
+    const val RATIO_WANDER: Float = 0.40f
+    const val RATIO_FLEE: Float   = 0.40f
+    const val RATIO_CHASE = 0.20f
 }
 
 data class LevelDifficulty(
