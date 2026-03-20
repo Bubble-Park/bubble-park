@@ -6,8 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
-import kotlin.math.PI
-import kotlin.math.sin
+import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
@@ -72,7 +71,7 @@ class Player(
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         val w2 = spriteSheet.spriteWidth / 2
         val h2 = spriteSheet.spriteHeight / 2
-        val walkRotation = if (isOnGround) (if (walkPhase % (2 * PI.toFloat()) < PI.toFloat()) 7f else -7f) else 0f
+        val walkRotation = if (isOnGround) squareWaveRotation(phase = walkPhase, intensity = 7f) else 0f
         drawScope.withTransform({
             translate(x, y + 20f)
             rotate(walkRotation, pivot = Offset.Zero)
