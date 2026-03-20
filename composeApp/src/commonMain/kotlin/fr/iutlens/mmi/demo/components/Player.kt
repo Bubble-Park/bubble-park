@@ -3,6 +3,7 @@ package fr.iutlens.mmi.demo.components
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.JoystickPosition
@@ -70,7 +71,7 @@ class Player(
         val h2 = spriteSheet.spriteHeight / 2
         drawScope.withTransform({
             translate(x, y)
-            if (!facingRight) scale(-1f, 1f)
+            if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
         }) {
             spriteSheet.paint(this, ndx, -w2, -h2, alpha = paintAlpha)
         }
@@ -109,9 +110,10 @@ class Player(
     }
 
     private fun updateAnimationState(speed: Float) {
+        val constant = 0.2f
         ndx = when {
             !isOnGround -> if (vy < 0) jumpFrame else fallFrame
-            speed != 0f && (speed > mapArea.w * 0.6f || speed < -mapArea.w * 0.6f) -> runFrame
+            speed != 0f && (speed > mapArea.w * constant || speed < -mapArea.w * constant) -> runFrame
             else -> walkFrame
         }
     }
