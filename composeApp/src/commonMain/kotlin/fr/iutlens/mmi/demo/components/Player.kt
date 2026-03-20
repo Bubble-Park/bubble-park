@@ -34,11 +34,10 @@ class Player(
     // Variables d'animation
     private var facingRight = true
 
-    // Indices dans le spritesheet 2x2
-    private val walkFrame  = 0  // (0,0) top-left
-    private val runFrame   = 1  // (1,0) top-right
-    private val jumpFrame  = 2  // (0,1) bottom-left
-    private val fallFrame  = 3  // (1,1) bottom-right
+    private val walkFrame  = 0
+    private val runFrame   = 1
+    private val jumpFrame  = 2
+    private val fallFrame  = 3
 
     var lastAngle = 0.0
 

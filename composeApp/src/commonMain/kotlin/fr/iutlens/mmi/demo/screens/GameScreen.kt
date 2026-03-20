@@ -8,7 +8,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.BubblePark
@@ -36,19 +35,18 @@ import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.pause
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.bubble_sprite
-import fr.iutlens.mmi.demo.plateformes_spritesheet
 import fr.iutlens.mmi.demo.ui.ShowLife
 import fr.iutlens.mmi.demo.ui.ShowScore
 import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
+import fr.iutlens.mmi.demo.niveau1_fond
 import fr.iutlens.mmi.demo.trex_sprite
 
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
-    // Chargement des différents sprites
-    //SpriteSheet.load(Res.drawable.plateformes_spritesheet, 4, 1)
+    SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
