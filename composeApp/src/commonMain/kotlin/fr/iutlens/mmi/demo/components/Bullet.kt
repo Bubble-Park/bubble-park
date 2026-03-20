@@ -24,7 +24,7 @@ class Bullet(
     var vx = (speed * cos(angle)).toFloat()
     var vy = (speed * sin(angle)).toFloat()
     val radius = 22f
-    private val displaySize = IntSize(68, 68)
+    private val displaySize = IntSize(130, 130)
 
     private companion object {
         const val ENTRANCE_FIRST = 8

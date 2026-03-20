@@ -1,18 +1,20 @@
 package fr.iutlens.mmi.demo.game
 
+import kotlin.time.TimeSource
+
 class Chrono(private val maxMs: Long = 30_000L) {
+    private val start = TimeSource.Monotonic.markNow()
+    private var bonusMs = 0L
 
-    private var valueMs: Long = maxMs
+    val remainingMs: Long
+        get() = (maxMs - (TimeSource.Monotonic.markNow() - start).inWholeMilliseconds + bonusMs)
+                    .coerceAtLeast(0L)
 
-    val value: Float get() = valueMs / 1000f
-
-    fun update(deltaMs: Long = 20L) {
-        valueMs = (valueMs - deltaMs).coerceAtLeast(0L)
-    }
+    val value: Float get() = remainingMs / 1000f
 
     fun addTime(seconds: Float) {
-        valueMs = (valueMs + (seconds * 1000).toLong()).coerceAtMost(maxMs)
+        bonusMs += (seconds * 1000).toLong()
     }
 
-    fun isFinished(): Boolean = valueMs <= 0L
+    fun isFinished(): Boolean = remainingMs <= 0L
 }

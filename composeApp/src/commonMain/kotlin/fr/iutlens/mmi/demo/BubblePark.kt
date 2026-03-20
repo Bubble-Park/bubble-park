@@ -28,7 +28,7 @@ import kotlin.math.abs
 class BubblePark : GameData() {
 
     val score = Score()
-    val chrono = Chrono()
+    val chrono by lazy { Chrono() }
     lateinit var player: Player
     private lateinit var tileArea: TiledArea
     private lateinit var platformGraph: PlatformGraph
@@ -104,7 +104,6 @@ class BubblePark : GameData() {
         }
 
         game.animation(20) {
-            chrono.update(20)
             handleCollisions()
 
             distanceMap.update()
