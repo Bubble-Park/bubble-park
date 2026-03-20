@@ -45,10 +45,13 @@ import fr.iutlens.mmi.demo.trex_sprite
 import fr.iutlens.mmi.demo.damage_border
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.scale
-import kotlinx.coroutines.delay
 
 import org.jetbrains.compose.resources.painterResource
 
@@ -62,9 +65,21 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     val gameData = remember { BubblePark() }
     var isPaused by remember { mutableStateOf(false) }
-    var showDamage by remember { mutableStateOf(false) }
-    var prevLife by remember { mutableStateOf(gameData.player.life) }
-    val damageScaleAnim = remember { Animatable(1.4f) }
+    fun lifeToScale(life: Int) = when (life) {
+        3 -> 2f
+        2 -> 1.3f
+        else -> 1.1f
+    }
+    val damageScaleAnim = remember { Animatable(lifeToScale(gameData.player.life)) }
+    val damagePulse by rememberInfiniteTransition(label = "damagePulse").animateFloat(
+        initialValue = -0.015f,
+        targetValue = 0.015f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(400, easing = EaseInOut),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "damagePulseFloat"
+    )
 
     // Gestion du Clavier
     val focusRequester = remember { FocusRequester() }
@@ -122,6 +137,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 false
             }
     ) {
+
         Image(
             painter = painterResource(Res.drawable.background),
             contentDescription = null,
@@ -133,13 +149,6 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         GameView(
             modifier = Modifier.fillMaxSize(),
             gameData = gameData
-        )
-
-        Image(
-            painter = painterResource(Res.drawable.damage_border),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize().alpha(if (showDamage) 1f else 0f).scale(damageScaleAnim.value)
         )
 
         Row(
@@ -188,6 +197,13 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 onActionB = { pressed -> gameData.game.actionButtonB = pressed }
             )
         }
+
+        Image(
+            painter = painterResource(Res.drawable.damage_border),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize().alpha(0.8f).scale(damageScaleAnim.value + damagePulse)
+        )
     }
 
     LaunchedEffect(Unit) {
@@ -198,21 +214,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         if (gameData.player.isDead) onGameOver(gameData.score.get())
     }
 
-    var damageAnimDuration = 120
-    var damageHoldDuration = 80L
-
     LaunchedEffect(gameData.player.life) {
-        val currentLife = gameData.player.life
-        if (currentLife < prevLife) {
-            val spec = tween<Float>(durationMillis = damageAnimDuration, easing = EaseInOut)
-            val holdSpec = tween<Float>(durationMillis = damageHoldDuration.toInt(), easing = EaseInOut)
-            damageScaleAnim.snapTo(1.4f)
-            showDamage = true
-            damageScaleAnim.animateTo(1f, spec)
-            damageScaleAnim.animateTo(0.92f, holdSpec)
-            damageScaleAnim.animateTo(1.4f, spec)
-            showDamage = false
-        }
-        prevLife = currentLife
+        damageScaleAnim.animateTo(lifeToScale(gameData.player.life), tween(500, easing = EaseInOut))
     }
 }
