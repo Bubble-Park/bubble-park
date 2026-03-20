@@ -42,6 +42,7 @@ import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
 import fr.iutlens.mmi.demo.niveau1_fond
 import fr.iutlens.mmi.demo.trex_sprite
+import fr.iutlens.mmi.demo.soleil
 import fr.iutlens.mmi.demo.damage_border
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOut
