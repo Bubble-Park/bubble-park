@@ -202,7 +202,7 @@ class BubblePark : GameData() {
                 val belowCode = tileArea.tileMap.get(i, j + 1) ?: 0
 
                 if (currentCode == 0 && belowCode in 1..7) {
-                    if (abs(i - playerI) > 5 || abs(j - playerJ) > 1) {
+                    if (abs(i - playerI) > 6 && abs(j - playerJ) > 3) {
                         validSpawns.add(Pair(i, j))
                     }
                 }
