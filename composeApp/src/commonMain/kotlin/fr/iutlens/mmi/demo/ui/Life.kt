@@ -10,22 +10,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.iutlens.mmi.demo.Res
+import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.player_heart_empty
+import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
 fun ShowScore(score: Int) {
+    val duduFont = FontFamily(Font(Res.font.dudu_font))
     Text(
         text = "Score : $score",
         modifier = Modifier.padding(start = 16.dp),
-        color = Color.White,
+        color = Color(0xFF474534),
         fontSize = 20.sp,
-        fontWeight = FontWeight.Bold
+        fontFamily = duduFont
     )
 }
 
@@ -34,7 +38,7 @@ fun ShowScore(score: Int) {
  * @param player Vie du joueur à afficher
  */
 @Composable
-fun ShowLife(life: Int) {
+fun ShowLife(life: Int, heartSize: androidx.compose.ui.unit.Dp = 32.dp) {
     Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         repeat(3) { index ->
             val isFullHeart = index < life
@@ -47,7 +51,7 @@ fun ShowLife(life: Int) {
                 painter = painterResource(iconRes),
                 contentDescription = iconDesc,
                 modifier = Modifier
-                    .size(32.dp)
+                    .size(heartSize)
                     .rotate(rotate)
             )
         }

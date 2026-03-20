@@ -40,6 +40,7 @@ class Game(val background : Sprite,
     var joystickPosition: JoystickPosition? = null
     var actionButtonA = false
     var actionButtonB = false
+    var paused = false
 
     val timeSource = TimeSource.Monotonic
 
@@ -121,7 +122,7 @@ class Game(val background : Sprite,
                     val current = (timeSource.markNow()-start).inWholeMilliseconds
                     val next = elapsed+ delay
                     if (next>current) delay(next-current)
-                    myUpdate()
+                    if (!paused) myUpdate()
                 }
             }
         }

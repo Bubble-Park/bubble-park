@@ -11,6 +11,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Button
 import androidx.compose.material.ButtonDefaults
@@ -33,11 +34,13 @@ import androidx.compose.ui.unit.sp
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.dino_font
 import fr.iutlens.mmi.demo.logo
-import fr.iutlens.mmi.demo.menu_background
+import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.menu_content_fond
 import fr.iutlens.mmi.demo.menu_nuages
 import fr.iutlens.mmi.demo.menu_premier_plan_up
 import fr.iutlens.mmi.demo.menu_second_plan
+import fr.iutlens.mmi.demo.utils.Music
+import fr.iutlens.mmi.demo.volume
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.draw.scale
@@ -61,8 +64,6 @@ fun MainMenu(onPlayClick: () -> Unit) {
 
         // Offsets
         val dynamicLogoOffset = -(screenW * 0.20f).dp
-        val dynamicColumnWidth = (screenW * 0.36f).dp
-        val dynamicColumnSpacing = -(screenH * 0.02f).dp
 
         // Fonts size
         val playFontSize = (screenH * 0.19f).sp
@@ -78,7 +79,7 @@ fun MainMenu(onPlayClick: () -> Unit) {
 
         // Images de fond - Layer pour les animations
         Image (
-            painter = painterResource(Res.drawable.menu_background),
+            painter = painterResource(Res.drawable.background),
             contentDescription = "Fond du menu",
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -140,26 +141,8 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 .fillMaxWidth(0.33F)
         )
 
-        // Images de contenu
-        Image (
-            painter = painterResource(Res.drawable.menu_content_fond),
-            contentDescription = null,
-            alignment = Alignment.BottomEnd,
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .fillMaxHeight(.75f)
-        )
-
-        // Contenu du menu
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .fillMaxHeight(0.75f)
-                .width(dynamicColumnWidth),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.spacedBy(dynamicColumnSpacing)
-        ) {
-            // Jouer
+        MenuPanel(screenW, screenH) {
+            Spacer(modifier = Modifier.height((screenH * 0.08f).dp))
             MenuButton(
                 onClick = onPlayClick,
                 text = "JOUER",
@@ -172,7 +155,6 @@ fun MainMenu(onPlayClick: () -> Unit) {
                     .rotate(-4f)
                     .padding(start = playPaddingStart, top = playPaddingTop)
             )
-            // Crédits
             MenuButton(
                 onClick = onPlayClick,
                 text = "CREDITS",
@@ -184,6 +166,11 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 modifier = Modifier
                     .rotate(-7f)
                     .padding(start = creditsPaddingStart)
+            )
+            VolumeButton(
+                modifier = Modifier
+                    .size((screenH * 0.25f).dp)
+                    .padding(start = (screenW * 0.10f).dp)
             )
         }
         
@@ -199,6 +186,43 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 .alpha(0.7f)
         )
     }
+}
+
+@Composable
+fun BoxScope.MenuPanel(
+    screenW: Float,
+    screenH: Float,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    val dynamicColumnWidth = (screenW * 0.36f).dp
+    val dynamicColumnSpacing = -(screenH * 0.02f).dp
+
+    Image(
+        painter = painterResource(Res.drawable.menu_content_fond),
+        contentDescription = null,
+        alignment = Alignment.BottomEnd,
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .fillMaxHeight(0.75f)
+    )
+    Column(
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .fillMaxHeight(0.75f)
+            .width(dynamicColumnWidth),
+        horizontalAlignment = Alignment.Start,
+        verticalArrangement = Arrangement.spacedBy(dynamicColumnSpacing),
+        content = content
+    )
+}
+
+@Composable
+fun VolumeButton(modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(Res.drawable.volume),
+        contentDescription = if (Music.mute) "Son coupé" else "Son actif",
+        modifier = modifier.clickable { Music.mute = !Music.mute }
+    )
 }
 
 @Composable

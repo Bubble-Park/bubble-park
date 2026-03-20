@@ -8,17 +8,20 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import fr.iutlens.mmi.demo.screens.GameOverScreen
 import fr.iutlens.mmi.demo.screens.GameScreen
 import fr.iutlens.mmi.demo.screens.MainMenu
 
 enum class GameState {
     MENU,
-    PLAYING
+    PLAYING,
+    GAME_OVER
 }
 
 @Composable
 fun App(modifier: Modifier = Modifier) {
     var currentState by remember { mutableStateOf(GameState.MENU) }
+    var lastScore by remember { mutableStateOf(0) }
 
     MaterialTheme {
         Box(modifier = modifier.fillMaxSize()) {
@@ -27,7 +30,13 @@ fun App(modifier: Modifier = Modifier) {
                     onPlayClick = { currentState = GameState.PLAYING }
                 )
                 GameState.PLAYING -> GameScreen(
-                    onExit = { currentState = GameState.MENU }
+                    onExit = { currentState = GameState.MENU },
+                    onGameOver = { score -> lastScore = score; currentState = GameState.GAME_OVER }
+                )
+                GameState.GAME_OVER -> GameOverScreen(
+                    score = lastScore,
+                    onReplay = { currentState = GameState.PLAYING },
+                    onQuit = { currentState = GameState.MENU }
                 )
             }
         }
