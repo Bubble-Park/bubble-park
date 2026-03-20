@@ -3,8 +3,11 @@ package fr.iutlens.mmi.demo.components
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
+import kotlin.math.PI
+import kotlin.math.sin
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
@@ -33,6 +36,7 @@ class Player(
 
     // Variables d'animation
     private var facingRight = true
+    private var walkPhase = 0f
 
     private val walkFrame  = 0
     private val runFrame   = 1
@@ -68,9 +72,11 @@ class Player(
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         val w2 = spriteSheet.spriteWidth / 2
         val h2 = spriteSheet.spriteHeight / 2
+        val walkRotation = if (isOnGround) (if (walkPhase % (2 * PI.toFloat()) < PI.toFloat()) 7f else -7f) else 0f
         drawScope.withTransform({
-            translate(x, y)
-            if (!facingRight) scale(-1f, 1f)
+            translate(x, y + 20f)
+            rotate(walkRotation, pivot = Offset.Zero)
+            if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
         }) {
             spriteSheet.paint(this, ndx, -w2, -h2, alpha = paintAlpha)
         }
@@ -109,10 +115,18 @@ class Player(
     }
 
     private fun updateAnimationState(speed: Float) {
+        val constant = 0.2f
         ndx = when {
             !isOnGround -> if (vy < 0) jumpFrame else fallFrame
-            speed != 0f && (speed > mapArea.w * 0.6f || speed < -mapArea.w * 0.6f) -> runFrame
+            speed != 0f && (speed > mapArea.w * constant || speed < -mapArea.w * constant) -> runFrame
             else -> walkFrame
+        }
+
+        if (isOnGround && speed != 0f) {
+            val phaseSpeed = if (ndx == runFrame) 0.52f else 0.32f
+            walkPhase += phaseSpeed
+        } else {
+            walkPhase = 0f
         }
     }
 }
