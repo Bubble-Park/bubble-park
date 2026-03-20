@@ -4,8 +4,7 @@ import kotlin.math.PI
 
 /**
  * Calcule une rotation en square wave entre +intensity et -intensity.
- *
- * @param phase    Accumulateur de phase, incrémenté chaque frame par [speed]
+ * @param phase    Accumulateur de phase, incrémenté chaque frame par la vitesse
  * @param intensity Amplitude max de la rotation en degrés
  * @return Angle de rotation en degrés
  */
