@@ -2,6 +2,8 @@ package fr.iutlens.mmi.demo.components
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.withTransform
+import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PathPlan
@@ -29,7 +31,16 @@ abstract class GenericDino(
         if (color != null) {
             drawScope.drawCircle(color = color, radius = radius, center = Offset(x, y))
         } else {
-            super.paint(drawScope, elapsed)
+            val w2 = spriteSheet.spriteWidth / 2
+            val h2 = spriteSheet.spriteHeight / 2
+            val walkRotation = if (isOnGround && dirX != 0f) squareWaveRotation(phase = walkPhase, intensity = 7f) else 0f
+            drawScope.withTransform({
+                translate(x, y)
+                rotate(walkRotation, pivot = Offset.Zero)
+                if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
+            }) {
+                spriteSheet.paint(this, ndx, -w2, -h2, alpha = paintAlpha)
+            }
         }
     }
 
@@ -45,6 +56,8 @@ abstract class GenericDino(
         val i = floor(x / mapArea.w).toInt()
         val j = floor((y + halfHeight - 1f) / mapArea.h).toInt()
         updateBehavior(i, j)
+        if (dirX > 0f) facingRight = true else if (dirX < 0f) facingRight = false
+        if (isOnGround && dirX != 0f) walkPhase += 0.4f else walkPhase = 0f
     }
 
     protected open fun onStun() {}
