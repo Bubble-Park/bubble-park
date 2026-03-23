@@ -1,6 +1,7 @@
 package fr.iutlens.mmi.demo.components.dino
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
@@ -23,7 +24,11 @@ class Compy(
 ) {
     companion object {
         const val VISUAL_SCALE = 1f
+        const val HIT_RADIUS = 70f
     }
+
+    override val boundingBox: Rect
+        get() = Rect(x - HIT_RADIUS, y - HIT_RADIUS, x + HIT_RADIUS, y + HIT_RADIUS)
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.withTransform({
