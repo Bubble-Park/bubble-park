@@ -13,7 +13,9 @@ import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.BubblePark
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
+import fr.iutlens.mmi.demo.parasaur_sprite
 import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.game.DifficultyConfig
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.ui.Controllers
@@ -70,6 +72,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.trex_sprite, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.parasaur_sprite, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.player_heart, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.compy_sprite, 1, 1, filterQuality = FilterQuality.High)
 
     val gameData = remember { BubblePark() }
@@ -159,7 +163,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         val elapsed = gameData.game.elapsed
         val sunProgress = (1f - gameData.chrono.value / DifficultyConfig.TOTAL_LEVEL_TIME).coerceIn(0f, 1f)
         val sunX = lerp(-240f, screenW + 240f, sunProgress)
-        val sunY = screenH * 0.6f - sin(sunProgress * PI).toFloat() * screenH * 0.6f
+        val sunY = screenH * 0.3f - sin(sunProgress * PI).toFloat() * screenH * 0.6f
         val sunPhase = elapsed * PI.toFloat() / 500f
         val sunRotation = squareWaveRotation(sunPhase, 5f)
 

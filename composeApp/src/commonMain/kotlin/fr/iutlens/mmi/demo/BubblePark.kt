@@ -5,6 +5,7 @@ import fr.iutlens.mmi.demo.components.Bullet
 import fr.iutlens.mmi.demo.components.dino.GenericDino
 import fr.iutlens.mmi.demo.components.dino.Trex
 import fr.iutlens.mmi.demo.components.dino.Parasaur
+import fr.iutlens.mmi.demo.components.bonus.LifeBonus
 import fr.iutlens.mmi.demo.components.dino.Compy
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.Chrono
@@ -56,6 +57,9 @@ class BubblePark : GameData() {
     private var levelElapsedMs = 0L
     private lateinit var currentLevelDiff: LevelDifficulty
 
+    private var lifeBonusTimerMs = 0L
+    private var nextLifeBonusDurationMs = 0L
+
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
     private val activeGenericDinos = mutableListOf<GenericDino>()
@@ -102,6 +106,8 @@ class BubblePark : GameData() {
         chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
         spawnTimerMs = 0L
         levelElapsedMs = 0L
+        lifeBonusTimerMs = 0L
+        nextLifeBonusDurationMs = Random.nextLong(15000L, 25000L)
 
         val levelData = levels[index]
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
@@ -132,6 +138,7 @@ class BubblePark : GameData() {
 
             levelElapsedMs += 20
             spawnTimerMs += 20
+            lifeBonusTimerMs += 20
 
             val localDiff = DifficultyManager.updateLocalDifficulty(
                 currentLevelDiff.difficulty, levelElapsedMs / 1000f
@@ -149,12 +156,21 @@ class BubblePark : GameData() {
                 trySpawnNextDino(currentMaxDino)
             }
 
+            if (lifeBonusTimerMs >= nextLifeBonusDurationMs) {
+                lifeBonusTimerMs = 0L
+                nextLifeBonusDurationMs = Random.nextLong(15000L, 25000L)
+                val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 4) * tileArea.w + 2 * tileArea.w
+                (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(bonusX, 0f))
+            }
+
             distanceMap.update()
 
+            val mapHeight = tileArea.tileMap.geometry.sizeY * tileArea.h
             (game.spriteList as? MutableList<Sprite>)?.apply {
                 removeAll { (it as? Bullet)?.isStopped == true }
                 removeAll { (it as? EnemySprite)?.isDead == true }
                 removeAll { (it as? GenericDino)?.isDead == true }
+                removeAll { it is LifeBonus && (it.collected || it.y > mapHeight) }
             }
 
             game.spriteList.update()
@@ -172,6 +188,12 @@ class BubblePark : GameData() {
                 sprite is Bullet && !sprite.isStopped -> activeBullets.add(sprite)
                 sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
                 sprite is GenericDino && !sprite.isDead -> activeGenericDinos.add(sprite)
+                sprite is LifeBonus && !sprite.collected -> {
+                    if (sprite.boundingBox.overlaps(player.boundingBox)) {
+                        player.heal()
+                        sprite.collected = true
+                    }
+                }
             }
         }
 
@@ -273,6 +295,7 @@ class BubblePark : GameData() {
             if (total == 0) return@repeat
 
             findSpawnPoint(PLAYER_INIT_TILE_I, PLAYER_INIT_TILE_J)?.let { (x, y) ->
+
                 val roll = Random.nextInt(total)
                 when {
                     roll < chaseNeeded -> {
@@ -284,7 +307,7 @@ class BubblePark : GameData() {
                         spawnedCompy++
                     }
                     else -> {
-                        sprites.add(Parasaur(Res.drawable.bubble_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
                         spawnedParasaur++
                     }
                 }
@@ -314,7 +337,7 @@ class BubblePark : GameData() {
             when {
                 roll < chaseNeeded -> sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph))
                 roll < chaseNeeded + wanderNeeded -> sprites.add(Compy(Res.drawable.compy_sprite, x, y, tileArea, platformGraph))
-                else -> sprites.add(Parasaur(Res.drawable.bubble_sprite, x, y, tileArea, distanceMap, platformGraph))
+                else -> sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
             }
         }
     }
