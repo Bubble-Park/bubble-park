@@ -18,10 +18,19 @@ fun squareWaveRotation(phase: Float, intensity: Float): Float {
  * Scale up léger au moment du hit, qui redescend progressivement à 1f.
  * @param stunRatio Ratio de stun restant, de 1f (début) à 0f (fin)
  */
-fun hitScale(stunRatio: Float): Float {
-    if (stunRatio > 40f) return 1f
-    return 1f + 0.25f
-}
+fun hitScale(stunRatio: Float): Float = 1f + 0.25f * stunRatio
+
+/**
+ * Scale d'apparition : 0f au début du spawn, 1f à la fin de la phase d'animation.
+ * @param ratio 1f au 1er tick de l'animation, 0f au dernier
+ */
+fun spawnScale(ratio: Float): Float = 1f - ratio
+
+/**
+ * Rotation d'apparition : -10° au début, 0° à la fin de la phase d'animation.
+ * @param ratio 1f au 1er tick de l'animation, 0f au dernier
+ */
+fun spawnRotation(ratio: Float): Float = -10f * ratio
 
 /**
  * Rotation ample en square wave, indépendante de la marche.

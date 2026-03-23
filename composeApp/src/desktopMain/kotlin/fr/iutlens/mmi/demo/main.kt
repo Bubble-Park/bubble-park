@@ -10,9 +10,11 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import fr.iutlens.mmi.demo.App
+import fr.iutlens.mmi.demo.game.currentGame
 
 fun main() = application {
     Window(
@@ -32,7 +34,13 @@ fun main() = application {
                     }
                 if (direction != null){
                     currentPadAction?.let { it(direction) }
+                    currentGame?.joystickPosition = JoystickPosition(
+                        Offset(direction.x + 1, direction.y + 1),
+                        IntSize(2, 2)
+                    )
                     true
+                } else {
+                    currentGame?.joystickPosition = null
                 }
                 false
             } else false

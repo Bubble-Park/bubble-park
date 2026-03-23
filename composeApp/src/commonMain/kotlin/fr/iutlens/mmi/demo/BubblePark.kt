@@ -227,14 +227,17 @@ class BubblePark : GameData() {
         val targetTrex = (maxDino * DifficultyConfig.RATIO_CHASE).roundToInt()
         val targetParasaur = maxDino - targetTrex
 
-        val spawnChase = activeTrex < targetTrex
-        val spawnFlee = activeParasaur < targetParasaur
-        if (!spawnChase && !spawnFlee) return
+        val chaseNeeded = (targetTrex - activeTrex).coerceAtLeast(0)
+        val fleeNeeded  = (targetParasaur - activeParasaur).coerceAtLeast(0)
+        val total = chaseNeeded + fleeNeeded
+        if (total == 0) return
 
         val sprites = game.spriteList as? MutableList<Sprite> ?: return
         findSpawnPoint()?.let { (x, y) ->
-            if (spawnChase) sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph))
-            else sprites.add(Parasaur(Res.drawable.bubble_sprite, x, y, tileArea, distanceMap, platformGraph))
+            if (Random.nextInt(total) < chaseNeeded)
+                sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph))
+            else
+                sprites.add(Parasaur(Res.drawable.bubble_sprite, x, y, tileArea, distanceMap, platformGraph))
         }
     }
 

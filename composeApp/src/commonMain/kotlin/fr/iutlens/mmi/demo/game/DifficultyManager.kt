@@ -1,7 +1,6 @@
 package fr.iutlens.mmi.demo.game
 
 import kotlin.math.ceil
-import kotlin.math.min
 import kotlin.math.roundToInt
 
 object DifficultyConfig {
@@ -42,7 +41,7 @@ object DifficultyManager {
                          (level - 1) * DifficultyConfig.DIFF_INCREMENT
         val maxDino    = ceil(DifficultyConfig.INIT_MAX_DINO * difficulty).toInt()
         val spawnDelay = DifficultyConfig.INIT_SPAWN_DELAY / difficulty
-        val time       = min(DifficultyConfig.INIT_TIME, DifficultyConfig.INIT_TIME)
+        val time       = DifficultyConfig.INIT_TIME
 
         val maxWander  = (maxDino * DifficultyConfig.RATIO_WANDER).roundToInt()
         val maxFlee    = (maxDino * DifficultyConfig.RATIO_FLEE).roundToInt()
