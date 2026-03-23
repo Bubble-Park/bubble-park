@@ -59,6 +59,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.util.lerp
+import fr.iutlens.mmi.demo.compy_sprite
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -73,6 +74,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.trex_sprite, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.parasaur_sprite, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.player_heart, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.compy_sprite, 1, 1, filterQuality = FilterQuality.High)
 
     val gameData = remember { BubblePark() }
     var isPaused by remember { mutableStateOf(false) }
