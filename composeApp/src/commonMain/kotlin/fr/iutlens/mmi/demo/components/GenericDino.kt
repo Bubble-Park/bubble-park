@@ -6,6 +6,8 @@ import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.game.sprite.hitRotation
 import fr.iutlens.mmi.demo.game.sprite.hitScale
+import fr.iutlens.mmi.demo.game.sprite.spawnScale
+import fr.iutlens.mmi.demo.game.sprite.spawnRotation
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PathPlan
@@ -35,15 +37,20 @@ abstract class GenericDino(
         } else {
             val w2 = spriteSheet.spriteWidth / 2
             val h2 = spriteSheet.spriteHeight / 2
-            val (rotation, scaleF) = if (stunTimer > 20) {
-                hitRotation(stunTimer.toFloat(), intensity = 15f) to hitScale(stunTimer / 50f)
-            } else {
-                squareWaveRotation(phase = walkPhase, intensity = 7f) to 1f
+            val (rotation, scaleF) = when {
+                spawnTimer > SPAWN_ANIM_DURATION -> {
+                    val ratio = (spawnTimer - SPAWN_ANIM_DURATION).toFloat() / SPAWN_ANIM_DURATION
+                    spawnRotation(ratio) to spawnScale(ratio)
+                }
+                stunTimer > 20 ->
+                    hitRotation(stunTimer.toFloat(), intensity = 15f) to hitScale(stunTimer / 50f)
+                else ->
+                    squareWaveRotation(phase = walkPhase, intensity = 7f) to 1f
             }
             drawScope.withTransform({
                 translate(x, y)
-                scale(scaleF, scaleF, pivot = Offset.Zero)
-                rotate(rotation, pivot = Offset.Zero)
+                if (scaleF != 1f) scale(scaleF, scaleF, pivot = Offset.Zero)
+                if (rotation != 0f) rotate(rotation, pivot = Offset.Zero)
                 if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
             }) {
                 spriteSheet.paint(this, ndx, -w2, -h2, alpha = paintAlpha)
@@ -53,6 +60,11 @@ abstract class GenericDino(
 
     override fun update() {
         if (isDead) return
+        if (spawnTimer > 0) {
+            spawnTimer--
+            applyPhysics()
+            return
+        }
         if (stunTimer > 0) {
             stunTimer--
             onStun()

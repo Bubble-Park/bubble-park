@@ -22,6 +22,7 @@ open class WalkingDino(
     open val scoreValue: Int = 0
 
     var stunTimer = 0
+    var spawnTimer = SPAWN_DURATION
 
     var jumpCooldown = 0
     val radius = 40f
@@ -44,12 +45,15 @@ open class WalkingDino(
 
     companion object {
         const val STEP_TIMEOUT = 300
+        const val SPAWN_DURATION = 50
+        const val SPAWN_ANIM_DURATION = SPAWN_DURATION / 2
     }
 
     override fun reset(x: Float, y: Float) {
         super.reset(x, y)
         isDead = false
         stunTimer = 0
+        spawnTimer = SPAWN_DURATION
         jumpCooldown = 0
         idleTimer = Random.nextInt(10, 100)
         dirX = 0f
