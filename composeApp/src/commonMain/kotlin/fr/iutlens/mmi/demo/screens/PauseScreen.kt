@@ -11,8 +11,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.damage_border
 import fr.iutlens.mmi.demo.dino_font
 import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.head_bubblechtein
@@ -23,7 +26,7 @@ import fr.iutlens.mmi.demo.bubblechtein_sprites
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun PauseScreen(life: Int, score: Int, onResume: () -> Unit, onQuit: () -> Unit) {
+fun PauseScreen(life: Int, score: Int, damageScale: Float, onResume: () -> Unit, onQuit: () -> Unit) {
     val dinoFont = FontFamily(Font(Res.font.dino_font))
     val duduFont = FontFamily(Font(Res.font.dudu_font))
 
@@ -45,6 +48,13 @@ fun PauseScreen(life: Int, score: Int, onResume: () -> Unit, onQuit: () -> Unit)
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
+        )
+
+        Image(
+            painter = painterResource(Res.drawable.damage_border),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize().alpha(0.8f).scale(damageScale)
         )
 
         Column(
