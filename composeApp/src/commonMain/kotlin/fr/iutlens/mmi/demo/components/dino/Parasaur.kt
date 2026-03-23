@@ -1,4 +1,4 @@
-package fr.iutlens.mmi.demo.components
+package fr.iutlens.mmi.demo.components.dino
 
 import androidx.compose.ui.graphics.Color
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
@@ -18,7 +18,7 @@ class Parasaur(
         scoreValue = 25,
         ndx = 0,
         behavior = DinoBehavior.FleeFromPlayer(),
-        color = Color.Blue
+        color = Color.Companion.Blue
     ),
     res, x, y, mapArea, distanceMap, graph
 )

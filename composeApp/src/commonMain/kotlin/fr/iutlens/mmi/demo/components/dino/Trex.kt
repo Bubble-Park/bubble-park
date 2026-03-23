@@ -1,4 +1,4 @@
-package fr.iutlens.mmi.demo.components
+package fr.iutlens.mmi.demo.components.dino
 
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
