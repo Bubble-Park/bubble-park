@@ -23,6 +23,7 @@ import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.distanceMap
 import kotlin.math.PI
+import kotlin.math.ceil
 import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.random.Random
@@ -31,12 +32,22 @@ import kotlin.math.abs
 
 class BubblePark : GameData() {
 
+    companion object {
+        // Tile de départ du joueur (startX=1.5, sizeY=23 - startY=2.5)
+        private const val PLAYER_INIT_TILE_I = 1
+        private const val PLAYER_INIT_TILE_J = 20
+        private const val INITIAL_SPAWN_RATIO = 0.3f
+    }
+
     val score = Score()
-    val chrono by lazy { Chrono() }
+    var chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
     lateinit var player: Player
     private lateinit var tileArea: TiledArea
     private lateinit var platformGraph: PlatformGraph
     private lateinit var distanceMap: DistanceMap
+
+    var onLevelEnd: ((hasNextLevel: Boolean) -> Unit)? = null
+    private var currentLevelIndex = 0
 
     private var nextShotTime = 0L
 
@@ -82,8 +93,12 @@ class BubblePark : GameData() {
         )
     )
 
+    fun loadNextLevel() = loadLevel(currentLevelIndex + 1)
+
     fun loadLevel(index: Int) {
+        currentLevelIndex = index
         currentLevelDiff = DifficultyManager.getLevelDifficulty(index + 1)
+        chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
         spawnTimerMs = 0L
         levelElapsedMs = 0L
 
@@ -109,6 +124,8 @@ class BubblePark : GameData() {
             transform = GenericTransform(Constraint.Fill(tileArea))
         )
 
+        spawnInitialDinos()
+
         game.animation(20) {
             handleCollisions()
 
@@ -119,6 +136,12 @@ class BubblePark : GameData() {
                 currentLevelDiff.difficulty, levelElapsedMs / 1000f
             )
             val (spawnDelayS, currentMaxDino) = DifficultyManager.getLiveValues(localDiff)
+
+            if (chrono.isFinished()) {
+                game.paused = true
+                onLevelEnd?.invoke(currentLevelIndex + 1 < levels.size)
+                return@animation
+            }
 
             if (spawnTimerMs >= (spawnDelayS * 1000).toLong()) {
                 spawnTimerMs = 0L
@@ -184,7 +207,6 @@ class BubblePark : GameData() {
                 if (bullet.boundingBox.overlaps(dino.boundingBox)) {
                     dino.isDead = true
                     score.add(dino.scoreValue)
-                    chrono.addTime(dino.type.timeBonus.toFloat())
                     bullet.explode()
                     break
                 }
@@ -192,10 +214,7 @@ class BubblePark : GameData() {
         }
     }
 
-    private fun findSpawnPoint(): Pair<Float, Float>? {
-        val playerI = floor(player.x / tileArea.w).toInt()
-        val playerJ = floor(player.y / tileArea.h).toInt()
-
+    private fun findSpawnPoint(refTileI: Int, refTileJ: Int): Pair<Float, Float>? {
         fun collectSpawns(minDistI: Int, minDistJ: Int): List<Pair<Int, Int>> {
             val result = mutableListOf<Pair<Int, Int>>()
             for (i in 0 until tileArea.tileMap.geometry.sizeX) {
@@ -203,7 +222,7 @@ class BubblePark : GameData() {
                     val current = tileArea.tileMap.get(i, j) ?: 0
                     val below = tileArea.tileMap.get(i, j + 1) ?: 0
                     if (current == 0 && below in 1..7) {
-                        if (abs(i - playerI) > minDistI && abs(j - playerJ) > minDistJ) {
+                        if (abs(i - refTileI) > minDistI && abs(j - refTileJ) > minDistJ) {
                             result.add(i to j)
                         }
                     }
@@ -219,6 +238,38 @@ class BubblePark : GameData() {
         return Pair(si * tileArea.w + tileArea.w / 2f, sj * tileArea.h + tileArea.h / 2f)
     }
 
+    private fun findSpawnPoint(): Pair<Float, Float>? {
+        val playerI = floor(player.x / tileArea.w).toInt()
+        val playerJ = floor(player.y / tileArea.h).toInt()
+        return findSpawnPoint(playerI, playerJ)
+    }
+
+    private fun spawnInitialDinos() {
+        val initialCount = ceil(currentLevelDiff.maxDino * INITIAL_SPAWN_RATIO).toInt()
+        val targetTrex = (initialCount * DifficultyConfig.RATIO_CHASE).roundToInt()
+        val targetParasaur = initialCount - targetTrex
+        var spawnedTrex = 0
+        var spawnedParasaur = 0
+        val sprites = game.spriteList as? MutableList<Sprite> ?: return
+
+        repeat(initialCount) {
+            val chaseNeeded = (targetTrex - spawnedTrex).coerceAtLeast(0)
+            val fleeNeeded  = (targetParasaur - spawnedParasaur).coerceAtLeast(0)
+            val total = chaseNeeded + fleeNeeded
+            if (total == 0) return@repeat
+
+            findSpawnPoint(PLAYER_INIT_TILE_I, PLAYER_INIT_TILE_J)?.let { (x, y) ->
+                if (Random.nextInt(total) < chaseNeeded) {
+                    sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph))
+                    spawnedTrex++
+                } else {
+                    sprites.add(Parasaur(Res.drawable.bubble_sprite, x, y, tileArea, distanceMap, platformGraph))
+                    spawnedParasaur++
+                }
+            }
+        }
+    }
+
     private fun trySpawnNextDino(maxDino: Int) {
         val activeTrex = activeGenericDinos.count { it is Trex }
         val activeParasaur = activeGenericDinos.count { it is Parasaur }
@@ -227,14 +278,17 @@ class BubblePark : GameData() {
         val targetTrex = (maxDino * DifficultyConfig.RATIO_CHASE).roundToInt()
         val targetParasaur = maxDino - targetTrex
 
-        val spawnChase = activeTrex < targetTrex
-        val spawnFlee = activeParasaur < targetParasaur
-        if (!spawnChase && !spawnFlee) return
+        val chaseNeeded = (targetTrex - activeTrex).coerceAtLeast(0)
+        val fleeNeeded  = (targetParasaur - activeParasaur).coerceAtLeast(0)
+        val total = chaseNeeded + fleeNeeded
+        if (total == 0) return
 
         val sprites = game.spriteList as? MutableList<Sprite> ?: return
         findSpawnPoint()?.let { (x, y) ->
-            if (spawnChase) sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph))
-            else sprites.add(Parasaur(Res.drawable.bubble_sprite, x, y, tileArea, distanceMap, platformGraph))
+            if (Random.nextInt(total) < chaseNeeded)
+                sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph))
+            else
+                sprites.add(Parasaur(Res.drawable.bubble_sprite, x, y, tileArea, distanceMap, platformGraph))
         }
     }
 

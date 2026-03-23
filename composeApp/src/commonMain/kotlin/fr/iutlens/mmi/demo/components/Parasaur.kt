@@ -18,8 +18,7 @@ class Parasaur(
         scoreValue = 25,
         ndx = 0,
         behavior = DinoBehavior.FleeFromPlayer(),
-        color = Color.Blue,
-        timeBonus = 2
+        color = Color.Blue
     ),
     res, x, y, mapArea, distanceMap, graph
 )

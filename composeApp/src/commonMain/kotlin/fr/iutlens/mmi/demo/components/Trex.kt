@@ -17,8 +17,7 @@ class Trex(
         scoreValue = 50,
         ndx = 8,
         behavior = DinoBehavior.ChasePlayer(speed = 20f),
-        damagesPlayer = true,
-        timeBonus = 5
+        damagesPlayer = true
     ),
     res, x, y, mapArea, distanceMap, graph
 )

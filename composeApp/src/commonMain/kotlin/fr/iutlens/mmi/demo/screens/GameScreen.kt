@@ -215,6 +215,13 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         if (gameData.player.isDead) onGameOver(gameData.score.get())
     }
 
+    LaunchedEffect(Unit) {
+        gameData.onLevelEnd = { hasNextLevel ->
+            if (hasNextLevel) gameData.loadNextLevel()
+            else onExit()
+        }
+    }
+
     LaunchedEffect(gameData.player.life) {
         damageScaleAnim.animateTo(lifeToScale(gameData.player.life), tween(500, easing = EaseInOut))
     }
