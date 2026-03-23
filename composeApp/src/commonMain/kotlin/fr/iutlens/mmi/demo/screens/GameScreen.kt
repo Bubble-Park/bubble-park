@@ -14,6 +14,7 @@ import fr.iutlens.mmi.demo.BubblePark
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.game.DifficultyConfig
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.ui.Controllers
 import fr.iutlens.mmi.demo.utils.SpriteSheet
@@ -44,6 +45,7 @@ import fr.iutlens.mmi.demo.niveau1_fond
 import fr.iutlens.mmi.demo.trex_sprite
 import fr.iutlens.mmi.demo.soleil
 import fr.iutlens.mmi.demo.damage_border
+import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.RepeatMode
@@ -52,7 +54,11 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.util.lerp
+import kotlin.math.PI
+import kotlin.math.sin
 
 import org.jetbrains.compose.resources.painterResource
 
@@ -105,7 +111,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     }
 
     // Ecran de jeu
-    Box(
+    BoxWithConstraints(
         Modifier
             .fillMaxSize()
             .focusRequester(focusRequester)
@@ -143,13 +149,38 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             painter = painterResource(Res.drawable.background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
-            contentScale = ContentScale.Crop // Remplit l'écran sans déformer
+            contentScale = ContentScale.Crop
+        )
+
+        val screenW = maxWidth.value
+        val screenH = maxHeight.value
+        val elapsed = gameData.game.elapsed
+        val sunProgress = (1f - gameData.chrono.value / DifficultyConfig.TOTAL_LEVEL_TIME).coerceIn(0f, 1f)
+        val sunX = lerp(-240f, screenW + 240f, sunProgress)
+        val sunY = screenH * 0.6f - sin(sunProgress * PI).toFloat() * screenH * 0.6f
+        val sunPhase = elapsed * PI.toFloat() / 500f
+        val sunRotation = squareWaveRotation(sunPhase, 5f)
+
+        Image(
+            painter = painterResource(Res.drawable.soleil),
+            contentDescription = null,
+            modifier = Modifier
+                .offset(x = sunX.dp, y = sunY.dp)
+                .rotate(sunRotation)
+                .size(240.dp)
         )
 
         // Rendu du jeu
         GameView(
             modifier = Modifier.fillMaxSize(),
             gameData = gameData
+        )
+
+        Image(
+            painter = painterResource(Res.drawable.damage_border),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize().alpha(0.8f).scale(damageScaleAnim.value + damagePulse)
         )
 
         Row(
@@ -180,6 +211,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             PauseScreen(
                 life = gameData.player.life,
                 score = gameData.score.get(),
+                damageScale = damageScaleAnim.value + damagePulse,
                 onResume = {
                     isPaused = false
                     gameData.game.paused = false
@@ -198,13 +230,6 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 onActionB = { pressed -> gameData.game.actionButtonB = pressed }
             )
         }
-
-        Image(
-            painter = painterResource(Res.drawable.damage_border),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize().alpha(0.8f).scale(damageScaleAnim.value + damagePulse)
-        )
     }
 
     LaunchedEffect(Unit) {

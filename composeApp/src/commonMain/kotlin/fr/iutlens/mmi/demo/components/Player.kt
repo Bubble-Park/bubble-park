@@ -71,7 +71,7 @@ class Player(
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         val w2 = spriteSheet.spriteWidth / 2
         val h2 = spriteSheet.spriteHeight / 2
-        val walkRotation = if (isOnGround) squareWaveRotation(phase = walkPhase, intensity = 7f) else 0f
+        val walkRotation = if (isOnGround) squareWaveRotation(phase = walkPhase, intensity = 12f) else 0f
         drawScope.withTransform({
             translate(x, y + 20f)
             rotate(walkRotation, pivot = Offset.Zero)
@@ -122,8 +122,7 @@ class Player(
         }
 
         if (isOnGround && speed != 0f) {
-            val phaseSpeed = if (ndx == runFrame) 0.52f else 0.32f
-            walkPhase += phaseSpeed
+            walkPhase += 0.126f
         } else {
             walkPhase = 0f
         }
