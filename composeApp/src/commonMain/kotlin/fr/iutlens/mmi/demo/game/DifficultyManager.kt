@@ -10,11 +10,10 @@ object DifficultyConfig {
     const val DIFF_INCREMENT: Float       = 0.2f
 
     const val LOCAL_DIFF_INCREMENT: Float = 0.1f
-    const val MAX_LOCAL_INCREMENT: Int    = 5
-    const val LOCAL_DIFF_INTERVAL: Float  = 10f  // 10s par palier
+    const val MAX_LOCAL_INCREMENT: Int    = 0
+    const val LOCAL_DIFF_INTERVAL: Float  = 10f
 
-    // Phase initiale (diff de base) = 1 × LOCAL_DIFF_INTERVAL → total = 6 × 10s = 60s
-    val TOTAL_LEVEL_TIME: Float = LOCAL_DIFF_INTERVAL * (MAX_LOCAL_INCREMENT + 1)
+    const val TOTAL_LEVEL_TIME: Float = LOCAL_DIFF_INTERVAL * (MAX_LOCAL_INCREMENT + 1)
 
     const val RATIO_WANDER: Float = 0.40f
     const val RATIO_FLEE: Float   = 0.40f
