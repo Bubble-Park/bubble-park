@@ -1,4 +1,4 @@
-package fr.iutlens.mmi.demo.components
+package fr.iutlens.mmi.demo.components.dino
 
 import androidx.compose.ui.geometry.Rect
 import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite

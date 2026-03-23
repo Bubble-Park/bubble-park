@@ -2,9 +2,9 @@ package fr.iutlens.mmi.demo
 
 import fr.iutlens.mmi.demo.components.Player
 import fr.iutlens.mmi.demo.components.Bullet
-import fr.iutlens.mmi.demo.components.GenericDino
-import fr.iutlens.mmi.demo.components.Trex
-import fr.iutlens.mmi.demo.components.Parasaur
+import fr.iutlens.mmi.demo.components.dino.GenericDino
+import fr.iutlens.mmi.demo.components.dino.Trex
+import fr.iutlens.mmi.demo.components.dino.Parasaur
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.Chrono
 import fr.iutlens.mmi.demo.game.DifficultyConfig
