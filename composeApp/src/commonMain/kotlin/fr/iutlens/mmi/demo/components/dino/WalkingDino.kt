@@ -49,9 +49,9 @@ open class WalkingDino(
         const val STEP_TIMEOUT = 300
         const val SPAWN_DURATION = 50
         const val SPAWN_ANIM_DURATION = SPAWN_DURATION / 2
-        const val CAPTURED_FRAME = 4    // frame fictive spritesheet, à ajuster
+        const val CAPTURED_FRAME = 1    // frame fictive spritesheet, à ajuster
         const val CAPTURE_DURATION = 400 // 8s à 20ms/frame
-        const val FLOAT_SPEED = 3f      // px/frame de montée vers y=0
+        const val FLOAT_SPEED = 5f      // px/frame de montée vers y=0
     }
 
     override fun reset(x: Float, y: Float) {
