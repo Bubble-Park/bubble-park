@@ -27,6 +27,8 @@ open class WalkingDino(
     var jumpCooldown = 0
     val radius = 40f
     var isDead = false
+    var isCaptured = false
+    var captureTimer = 0
 
     override val halfHeight get() = spriteSheet.spriteHeight / 2f
     override val halfWidth get() = radius
@@ -47,11 +49,16 @@ open class WalkingDino(
         const val STEP_TIMEOUT = 300
         const val SPAWN_DURATION = 50
         const val SPAWN_ANIM_DURATION = SPAWN_DURATION / 2
+        const val CAPTURED_FRAME = 1    // frame fictive spritesheet, à ajuster
+        const val CAPTURE_DURATION = 400 // 8s à 20ms/frame
+        const val FLOAT_SPEED = 5f      // px/frame de montée vers y=0
     }
 
     override fun reset(x: Float, y: Float) {
         super.reset(x, y)
         isDead = false
+        isCaptured = false
+        captureTimer = 0
         stunTimer = 0
         spawnTimer = SPAWN_DURATION
         jumpCooldown = 0
