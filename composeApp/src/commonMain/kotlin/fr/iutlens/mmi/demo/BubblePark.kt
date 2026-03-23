@@ -40,7 +40,7 @@ class BubblePark : GameData() {
     }
 
     val score = Score()
-    val chrono by lazy { Chrono() }
+    var chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
     lateinit var player: Player
     private lateinit var tileArea: TiledArea
     private lateinit var platformGraph: PlatformGraph
@@ -98,6 +98,7 @@ class BubblePark : GameData() {
     fun loadLevel(index: Int) {
         currentLevelIndex = index
         currentLevelDiff = DifficultyManager.getLevelDifficulty(index + 1)
+        chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
         spawnTimerMs = 0L
         levelElapsedMs = 0L
 
@@ -136,9 +137,7 @@ class BubblePark : GameData() {
             )
             val (spawnDelayS, currentMaxDino) = DifficultyManager.getLiveValues(localDiff)
 
-            val levelCapMs = (DifficultyConfig.LOCAL_DIFF_INTERVAL * DifficultyConfig.MAX_LOCAL_INCREMENT * 1000f).toLong()
-            val localDiffCapped = levelElapsedMs >= levelCapMs
-            if (chrono.isFinished() || localDiffCapped) {
+            if (chrono.isFinished()) {
                 game.paused = true
                 onLevelEnd?.invoke(currentLevelIndex + 1 < levels.size)
                 return@animation
@@ -208,7 +207,6 @@ class BubblePark : GameData() {
                 if (bullet.boundingBox.overlaps(dino.boundingBox)) {
                     dino.isDead = true
                     score.add(dino.scoreValue)
-                    chrono.addTime(dino.type.timeBonus.toFloat())
                     bullet.explode()
                     break
                 }

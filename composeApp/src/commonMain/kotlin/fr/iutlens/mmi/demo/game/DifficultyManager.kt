@@ -6,13 +6,15 @@ import kotlin.math.roundToInt
 object DifficultyConfig {
     const val INIT_DIFFICULTY: Float      = 1.0f
     const val INIT_MAX_DINO: Int          = 5
-    const val INIT_TIME: Float            = 30f
     const val INIT_SPAWN_DELAY: Float     = 3f
     const val DIFF_INCREMENT: Float       = 0.2f
 
     const val LOCAL_DIFF_INCREMENT: Float = 0.1f
     const val MAX_LOCAL_INCREMENT: Int    = 5
-    const val LOCAL_DIFF_INTERVAL: Float  = 6f
+    const val LOCAL_DIFF_INTERVAL: Float  = 10f  // 10s par palier
+
+    // Phase initiale (diff de base) = 1 × LOCAL_DIFF_INTERVAL → total = 6 × 10s = 60s
+    val TOTAL_LEVEL_TIME: Float = LOCAL_DIFF_INTERVAL * (MAX_LOCAL_INCREMENT + 1)
 
     const val RATIO_WANDER: Float = 0.40f
     const val RATIO_FLEE: Float   = 0.40f
@@ -24,7 +26,6 @@ data class LevelDifficulty(
     val difficulty: Float,
     val maxDino: Int,
     val spawnDelay: Float,
-    val time: Float,
     val maxWander: Int,
     val maxFlee: Int,
     val maxChase: Int
@@ -41,13 +42,12 @@ object DifficultyManager {
                          (level - 1) * DifficultyConfig.DIFF_INCREMENT
         val maxDino    = ceil(DifficultyConfig.INIT_MAX_DINO * difficulty).toInt()
         val spawnDelay = DifficultyConfig.INIT_SPAWN_DELAY / difficulty
-        val time       = DifficultyConfig.INIT_TIME
 
         val maxWander  = (maxDino * DifficultyConfig.RATIO_WANDER).roundToInt()
         val maxFlee    = (maxDino * DifficultyConfig.RATIO_FLEE).roundToInt()
         val maxChase   = maxDino - maxWander - maxFlee
 
-        return LevelDifficulty(level, difficulty, maxDino, spawnDelay, time,
+        return LevelDifficulty(level, difficulty, maxDino, spawnDelay,
                                maxWander, maxFlee, maxChase)
     }
 
