@@ -157,7 +157,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         val elapsed = gameData.game.elapsed
         val sunProgress = (1f - gameData.chrono.value / DifficultyConfig.TOTAL_LEVEL_TIME).coerceIn(0f, 1f)
         val sunX = lerp(-240f, screenW + 240f, sunProgress)
-        val sunY = screenH * 0.6f - sin(sunProgress * PI).toFloat() * screenH * 0.6f
+        val sunY = screenH * 0.3f - sin(sunProgress * PI).toFloat() * screenH * 0.6f
         val sunPhase = elapsed * PI.toFloat() / 500f
         val sunRotation = squareWaveRotation(sunPhase, 5f)
 
