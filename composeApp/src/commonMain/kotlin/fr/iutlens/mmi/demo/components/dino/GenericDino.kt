@@ -38,6 +38,7 @@ abstract class GenericDino(
             val w2 = spriteSheet.spriteWidth / 2
             val h2 = spriteSheet.spriteHeight / 2
             val (rotation, scaleF) = when {
+                isCaptured -> 0f to 1f
                 spawnTimer > SPAWN_ANIM_DURATION -> {
                     val ratio = (spawnTimer - SPAWN_ANIM_DURATION).toFloat() / SPAWN_ANIM_DURATION
                     spawnRotation(ratio) to spawnScale(ratio)
@@ -47,19 +48,24 @@ abstract class GenericDino(
                 else ->
                     squareWaveRotation(phase = walkPhase, intensity = 7f) to 1f
             }
+            val frameNdx = if (isCaptured) CAPTURED_FRAME else ndx
             drawScope.withTransform({
                 translate(x, y)
                 if (scaleF != 1f) scale(scaleF, scaleF, pivot = Offset.Zero)
                 if (rotation != 0f) rotate(rotation, pivot = Offset.Zero)
                 if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
             }) {
-                spriteSheet.paint(this, ndx, -w2, -h2, alpha = paintAlpha)
+                spriteSheet.paint(this, frameNdx, -w2, -h2, alpha = paintAlpha)
             }
         }
     }
 
     override fun update() {
         if (isDead) return
+        if (isCaptured) {
+            updateCaptured()
+            return
+        }
         if (spawnTimer > 0) {
             spawnTimer--
             applyPhysics()
@@ -77,6 +83,21 @@ abstract class GenericDino(
         updateBehavior(i, j)
         if (dirX > 0f) facingRight = true else if (dirX < 0f) facingRight = false
         if (isOnGround && dirX != 0f) walkPhase += 0.4f else walkPhase = 0f
+    }
+
+    private fun updateCaptured() {
+        captureTimer++
+        if (captureTimer >= CAPTURE_DURATION) {
+            releaseCaptured()
+            return
+        }
+        if (y > 0f) y -= FLOAT_SPEED
+        if (y < 0f) y = 0f
+    }
+
+    private fun releaseCaptured() {
+        reset(x, 0f)
+        spawnTimer = 0
     }
 
     protected open fun onStun() {}

@@ -183,10 +183,21 @@ class BubblePark : GameData() {
         }
 
         for (dino in activeGenericDinos) {
+            if (dino.isCaptured) continue
             if (!dino.type.damagesPlayer) continue
             if (dino.stunTimer > 0) continue
             if (dino.boundingBox.overlaps(player.boundingBox)) {
                 if (player.takeDamage()) dino.stunTimer = 50
+            }
+        }
+
+        // Joueur collecte un dino capturé
+        for (dino in activeGenericDinos) {
+            if (!dino.isCaptured) continue
+            if (player.boundingBox.overlaps(dino.boundingBox)) {
+                dino.isDead = true
+                score.add(dino.scoreValue)
+                break
             }
         }
 
@@ -203,10 +214,9 @@ class BubblePark : GameData() {
             }
             if (bullet.isStopped) continue
             for (dino in activeGenericDinos) {
-                if (dino.isDead) continue
+                if (dino.isDead || dino.isCaptured) continue
                 if (bullet.boundingBox.overlaps(dino.boundingBox)) {
-                    dino.isDead = true
-                    score.add(dino.scoreValue)
+                    dino.isCaptured = true
                     bullet.explode()
                     break
                 }
