@@ -18,11 +18,12 @@ class Player(
     y: Float,
     mapArea: TiledArea,
     val joystickProvider: () -> JoystickPosition?,
-    val jumpActionProvider: () -> Boolean
+    val jumpActionProvider: () -> Boolean,
+    initialLife: Int = 3
 ) : PhysicsSprite(res, x, y, mapArea, gravity = 5.5f, jumpForce = -64f) {
 
     // Variables de vie
-    private var _life by mutableStateOf(3)
+    private var _life by mutableStateOf(initialLife.coerceIn(1, 3))
     val life: Int
         get() = _life
     val isDead: Boolean

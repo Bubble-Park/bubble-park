@@ -242,7 +242,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         focusRequester.requestFocus()
     }
 
-    LaunchedEffect(gameData.player.isDead) {
+    LaunchedEffect(gameData.player.isDead, gameData.levelIndex) {
         if (gameData.player.isDead) onGameOver(gameData.score.get())
     }
 
@@ -253,7 +253,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         }
     }
 
-    LaunchedEffect(gameData.player.life) {
+    LaunchedEffect(gameData.player.life, gameData.levelIndex) {
         damageScaleAnim.animateTo(lifeToScale(gameData.player.life), tween(500, easing = EaseInOut))
     }
 }

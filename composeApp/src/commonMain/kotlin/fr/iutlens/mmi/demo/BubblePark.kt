@@ -7,7 +7,7 @@ import fr.iutlens.mmi.demo.components.dino.Trex
 import fr.iutlens.mmi.demo.components.dino.Parasaur
 import fr.iutlens.mmi.demo.components.bonus.LifeBonus
 import fr.iutlens.mmi.demo.components.dino.Compy
-import fr.iutlens.mmi.demo.data.LevelData
+import fr.iutlens.mmi.demo.data.LevelGenerator
 import fr.iutlens.mmi.demo.game.Chrono
 import fr.iutlens.mmi.demo.game.DifficultyConfig
 import fr.iutlens.mmi.demo.game.DifficultyManager
@@ -24,6 +24,9 @@ import fr.iutlens.mmi.demo.game.sprite.EnemySprite
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.distanceMap
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlin.math.PI
 import kotlin.math.ceil
 import kotlin.math.round
@@ -49,7 +52,7 @@ class BubblePark : GameData() {
     private lateinit var distanceMap: DistanceMap
 
     var onLevelEnd: ((hasNextLevel: Boolean) -> Unit)? = null
-    private var currentLevelIndex = 0
+    var levelIndex by mutableStateOf(0)
 
     private var nextShotTime = 0L
 
@@ -64,44 +67,11 @@ class BubblePark : GameData() {
     private val activeEnemies = mutableListOf<EnemySprite>()
     private val activeGenericDinos = mutableListOf<GenericDino>()
 
-    private val levels = listOf(
-        LevelData(
-            mapString = """
-                ..............................
-                ..............................
-                ..............................
-                ..............................
-                ...ef^?^?^?^?^?^?^?^?^?^?ab...
-                ...gh%)%)%)%)%)%)%)%)%)%)cd...
-                ..............................
-                ..............................
-                ..............................
-                ..............................
-                ...ef^?^?^?^?^?^?^?^?^?^?ab...
-                ...gh%)%)%)%)%)%)%)%)%)%)cd...
-                ..............................
-                ..............................
-                ..............................
-                ..............................
-                ...ef^?^?^?^?^?^?^?^?^?^?ab...
-                ...gh%)%)%)%)%)%)%)%)%)%)cd...
-                ..............................
-                ..............................
-                ..............................
-                ******************************
-                ##############################
-            """.trimIndent(),
-            tileSetRes = Res.drawable.environnement_map_sprite,
-            startX = 1.5f,
-            startY = 2.5f,
-            mapCode = ".abef^?#ghcd)%*"
-        )
-    )
-
-    fun loadNextLevel() = loadLevel(currentLevelIndex + 1)
+    fun loadNextLevel() = loadLevel(levelIndex + 1)
 
     fun loadLevel(index: Int) {
-        currentLevelIndex = index
+        levelIndex = index
+        nextShotTime = 0L
         currentLevelDiff = DifficultyManager.getLevelDifficulty(index + 1)
         chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
         spawnTimerMs = 0L
@@ -109,17 +79,19 @@ class BubblePark : GameData() {
         lifeBonusTimerMs = 0L
         nextLifeBonusDurationMs = Random.nextLong(15000L, 25000L)
 
-        val levelData = levels[index]
+        val levelData = LevelGenerator.generate(index)
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
         tileArea = TiledArea(levelData.tileSetRes, tileMap)
 
+        val savedLife = if (::player.isInitialized) player.life else 3
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
             x = levelData.startX * tileArea.w,
             y = (tileMap.geometry.sizeY - levelData.startY) * tileArea.h,
             mapArea = tileArea,
             joystickProvider = { game.joystickPosition },
-            jumpActionProvider = { game.actionButtonB }
+            jumpActionProvider = { game.actionButtonB },
+            initialLife = savedLife
         )
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
@@ -147,7 +119,7 @@ class BubblePark : GameData() {
 
             if (chrono.isFinished()) {
                 game.paused = true
-                onLevelEnd?.invoke(currentLevelIndex + 1 < levels.size)
+                onLevelEnd?.invoke(true)
                 return@animation
             }
 
