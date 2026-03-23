@@ -14,6 +14,7 @@ import fr.iutlens.mmi.demo.BubblePark
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.game.DifficultyConfig
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.ui.Controllers
 import fr.iutlens.mmi.demo.utils.SpriteSheet
@@ -153,12 +154,12 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
         val screenW = maxWidth.value
         val screenH = maxHeight.value
-        gameData.game.elapsed
-        val sunProgress = (1f - gameData.chrono.value / 30f).coerceIn(0f, 1f)
+        val elapsed = gameData.game.elapsed
+        val sunProgress = (1f - gameData.chrono.value / DifficultyConfig.TOTAL_LEVEL_TIME).coerceIn(0f, 1f)
         val sunX = lerp(-240f, screenW + 240f, sunProgress)
         val sunY = screenH * 0.6f - sin(sunProgress * PI).toFloat() * screenH * 0.6f
-        val sunPhase = sunProgress * 6 * PI.toFloat()
-        val sunRotation = squareWaveRotation(sunPhase, 15f)
+        val sunPhase = elapsed * PI.toFloat() / 500f
+        val sunRotation = squareWaveRotation(sunPhase, 5f)
 
         Image(
             painter = painterResource(Res.drawable.soleil),
