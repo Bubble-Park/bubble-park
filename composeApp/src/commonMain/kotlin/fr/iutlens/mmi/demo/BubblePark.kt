@@ -6,6 +6,8 @@ import fr.iutlens.mmi.demo.components.dino.GenericDino
 import fr.iutlens.mmi.demo.components.dino.Trex
 import fr.iutlens.mmi.demo.components.dino.Parasaur
 import fr.iutlens.mmi.demo.components.bonus.LifeBonus
+import fr.iutlens.mmi.demo.components.bonus.SlowBonus
+import fr.iutlens.mmi.demo.game.SlowEffect
 import fr.iutlens.mmi.demo.components.dino.Compy
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.Chrono
@@ -60,6 +62,9 @@ class BubblePark : GameData() {
     private var lifeBonusTimerMs = 0L
     private var nextLifeBonusDurationMs = 0L
 
+    private var slowBonusTimerMs = 0L
+    private var nextSlowBonusDurationMs = 0L
+
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
     private val activeGenericDinos = mutableListOf<GenericDino>()
@@ -107,7 +112,10 @@ class BubblePark : GameData() {
         spawnTimerMs = 0L
         levelElapsedMs = 0L
         lifeBonusTimerMs = 0L
-        nextLifeBonusDurationMs = Random.nextLong(15000L, 25000L)
+        nextLifeBonusDurationMs = Random.nextLong(8000L, 15000L)
+        slowBonusTimerMs = 0L
+        nextSlowBonusDurationMs = Random.nextLong(10000L, 18000L)
+        SlowEffect.reset()
 
         val levelData = levels[index]
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
@@ -139,6 +147,8 @@ class BubblePark : GameData() {
             levelElapsedMs += 20
             spawnTimerMs += 20
             lifeBonusTimerMs += 20
+            slowBonusTimerMs += 20
+            if (SlowEffect.isActive) SlowEffect.timer--
 
             val localDiff = DifficultyManager.updateLocalDifficulty(
                 currentLevelDiff.difficulty, levelElapsedMs / 1000f
@@ -156,11 +166,20 @@ class BubblePark : GameData() {
                 trySpawnNextDino(currentMaxDino)
             }
 
-            if (lifeBonusTimerMs >= nextLifeBonusDurationMs) {
+            val hasBonus = game.spriteList.any { it is LifeBonus || it is SlowBonus }
+
+            if (!hasBonus && lifeBonusTimerMs >= nextLifeBonusDurationMs) {
                 lifeBonusTimerMs = 0L
-                nextLifeBonusDurationMs = Random.nextLong(15000L, 25000L)
+                nextLifeBonusDurationMs = Random.nextLong(8000L, 15000L)
                 val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 4) * tileArea.w + 2 * tileArea.w
                 (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(bonusX, 0f))
+            }
+
+            if (!hasBonus && slowBonusTimerMs >= nextSlowBonusDurationMs) {
+                slowBonusTimerMs = 0L
+                nextSlowBonusDurationMs = Random.nextLong(10000L, 18000L)
+                val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 4) * tileArea.w + 2 * tileArea.w
+                (game.spriteList as? MutableList<Sprite>)?.add(SlowBonus(bonusX, 0f))
             }
 
             distanceMap.update()
@@ -171,6 +190,7 @@ class BubblePark : GameData() {
                 removeAll { (it as? EnemySprite)?.isDead == true }
                 removeAll { (it as? GenericDino)?.isDead == true }
                 removeAll { it is LifeBonus && (it.collected || it.y > mapHeight) }
+                removeAll { it is SlowBonus && (it.collected || it.y > mapHeight) }
             }
 
             game.spriteList.update()
@@ -191,6 +211,12 @@ class BubblePark : GameData() {
                 sprite is LifeBonus && !sprite.collected -> {
                     if (sprite.boundingBox.overlaps(player.boundingBox)) {
                         player.heal()
+                        sprite.collected = true
+                    }
+                }
+                sprite is SlowBonus && !sprite.collected -> {
+                    if (sprite.boundingBox.overlaps(player.boundingBox)) {
+                        SlowEffect.activate()
                         sprite.collected = true
                     }
                 }
