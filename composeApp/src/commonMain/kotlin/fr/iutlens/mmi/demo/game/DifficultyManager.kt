@@ -11,7 +11,7 @@ object DifficultyConfig {
 
     const val LOCAL_DIFF_INCREMENT: Float = 0.1f
     const val MAX_LOCAL_INCREMENT: Int    = 0
-    const val LOCAL_DIFF_INTERVAL: Float  = 10f
+    const val LOCAL_DIFF_INTERVAL: Float  = 2f
 
     const val TOTAL_LEVEL_TIME: Float = LOCAL_DIFF_INTERVAL * (MAX_LOCAL_INCREMENT + 1)
 
