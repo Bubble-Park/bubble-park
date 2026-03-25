@@ -14,13 +14,14 @@ object MapGenerator {
     private const val MIN_SEG_W = 6
     private const val MIN_HOLE_W = 4
     private const val MAX_HOLE_W = 8
-    private const val MIN_ZONE_W = 16  // 2×MIN_SEG_W + MIN_HOLE_W : permet 1 trou même au max
-    private const val MAX_NAV = 2      // décalage max de zoneStart entre rangées consécutives
+    private const val MIN_ZONE_W = 16
+    private const val MAX_NAV = 2
 
     fun generate(levelIndex: Int, seed: Long = levelIndex.toLong()): String {
         val difficulty = DifficultyManager.getLevelDifficulty(levelIndex + 1).difficulty
         val grid = Array(MAP_HEIGHT) { CharArray(MAP_WIDTH) { '.' } }
 
+        // Place le sol fixe sur les dernières rangées
         for (x in 0 until MAP_WIDTH) {
             grid[MAP_HEIGHT - 2][x] = '*'
             grid[MAP_HEIGHT - 1][x] = '#'
@@ -37,14 +38,6 @@ object MapGenerator {
         return grid.joinToString("\n") { it.concatToString() }
     }
 
-    /**
-     * Approche soustractive : zone pleine → trous percés.
-     * La zone rétrécit avec la difficulté et flotte aléatoirement (contrainte de navigation).
-     *
-     * Niveau 1  : ..[==========================]..  0 trou, zone pleine
-     * Niveau 6  : .....[================].....       1 trou, zone réduite
-     * Niveau 11+: .......[======]  [======].....     1 trou, zone min
-     */
     private fun computeRow(
         difficulty: Float,
         rng: Random,
@@ -59,11 +52,9 @@ object MapGenerator {
             else -> rng.nextInt(1, 3)
         }
 
-        // Zone rétrécit de fullZoneW (26) à MIN_ZONE_W (16) avec la difficulté
         val zoneWidth = makeEven(fullZoneW - ((fullZoneW - MIN_ZONE_W) * diffNorm).toInt())
             .coerceAtLeast(MIN_ZONE_W)
 
-        // Centre de la zone, décalé aléatoirement dans l'espace disponible
         val baseCenterStart = makeEven((MAP_WIDTH - zoneWidth) / 2)
         val maxShift = makeEven(baseCenterStart - MIN_MARGIN)
         val halfSteps = maxShift / 2
@@ -71,7 +62,6 @@ object MapGenerator {
         val maxZoneStart = MAP_WIDTH - MIN_MARGIN - zoneWidth
         val unconstrained = (baseCenterStart + shift).coerceIn(MIN_MARGIN, maxZoneStart)
 
-        // Contrainte de navigation : zoneStart à ±MAX_NAV de la rangée précédente
         val zoneStart = if (prevZoneStart != null) {
             unconstrained.coerceIn(
                 (prevZoneStart - MAX_NAV).coerceAtLeast(MIN_MARGIN),
@@ -81,7 +71,6 @@ object MapGenerator {
 
         val zoneEnd = zoneStart + zoneWidth
 
-        // Largeur max des trous croît avec la difficulté
         val maxHoleW = makeEven((MIN_HOLE_W + (MAX_HOLE_W - MIN_HOLE_W) * diffNorm).toInt())
             .coerceAtLeast(MIN_HOLE_W)
 
