@@ -5,6 +5,7 @@ import fr.iutlens.mmi.demo.components.Bullet
 import fr.iutlens.mmi.demo.components.dino.GenericDino
 import fr.iutlens.mmi.demo.components.dino.Trex
 import fr.iutlens.mmi.demo.components.dino.Parasaur
+import fr.iutlens.mmi.demo.components.bonus.Bonus
 import fr.iutlens.mmi.demo.components.bonus.LifeBonus
 import fr.iutlens.mmi.demo.components.bonus.SlowBonus
 import fr.iutlens.mmi.demo.game.SlowEffect
@@ -171,14 +172,14 @@ class BubblePark : GameData() {
             if (!hasBonus && lifeBonusTimerMs >= nextLifeBonusDurationMs) {
                 lifeBonusTimerMs = 0L
                 nextLifeBonusDurationMs = Random.nextLong(8000L, 15000L)
-                val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 4) * tileArea.w + 2 * tileArea.w
-                (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(bonusX, 0f))
+                val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 10) * tileArea.w + 5 * tileArea.w
+                (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(bonusX, 0f, player))
             }
 
             if (!hasBonus && slowBonusTimerMs >= nextSlowBonusDurationMs) {
                 slowBonusTimerMs = 0L
                 nextSlowBonusDurationMs = Random.nextLong(10000L, 18000L)
-                val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 4) * tileArea.w + 2 * tileArea.w
+                val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 10) * tileArea.w + 5 * tileArea.w
                 (game.spriteList as? MutableList<Sprite>)?.add(SlowBonus(bonusX, 0f))
             }
 
@@ -189,8 +190,7 @@ class BubblePark : GameData() {
                 removeAll { (it as? Bullet)?.isStopped == true }
                 removeAll { (it as? EnemySprite)?.isDead == true }
                 removeAll { (it as? GenericDino)?.isDead == true }
-                removeAll { it is LifeBonus && (it.collected || it.y > mapHeight) }
-                removeAll { it is SlowBonus && (it.collected || it.y > mapHeight) }
+                removeAll { it is Bonus && (it.collected || it.y > mapHeight) }
             }
 
             game.spriteList.update()
@@ -208,15 +208,9 @@ class BubblePark : GameData() {
                 sprite is Bullet && !sprite.isStopped -> activeBullets.add(sprite)
                 sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
                 sprite is GenericDino && !sprite.isDead -> activeGenericDinos.add(sprite)
-                sprite is LifeBonus && !sprite.collected -> {
+                sprite is Bonus && !sprite.collected -> {
                     if (sprite.boundingBox.overlaps(player.boundingBox)) {
-                        player.heal()
-                        sprite.collected = true
-                    }
-                }
-                sprite is SlowBonus && !sprite.collected -> {
-                    if (sprite.boundingBox.overlaps(player.boundingBox)) {
-                        SlowEffect.activate()
+                        sprite.onCollect()
                         sprite.collected = true
                     }
                 }
