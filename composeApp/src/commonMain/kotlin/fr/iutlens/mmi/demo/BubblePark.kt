@@ -27,9 +27,7 @@ import fr.iutlens.mmi.demo.utils.distanceMap
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import kotlin.math.PI
 import kotlin.math.ceil
-import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.math.floor
@@ -54,8 +52,6 @@ class BubblePark : GameData() {
     var onLevelEnd: ((hasNextLevel: Boolean) -> Unit)? = null
     var levelIndex by mutableStateOf(0)
 
-    private var nextShotTime = 0L
-
     private var spawnTimerMs = 0L
     private var levelElapsedMs = 0L
     private lateinit var currentLevelDiff: LevelDifficulty
@@ -71,7 +67,6 @@ class BubblePark : GameData() {
 
     fun loadLevel(index: Int) {
         levelIndex = index
-        nextShotTime = 0L
         currentLevelDiff = DifficultyManager.getLevelDifficulty(index + 1)
         chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
         spawnTimerMs = 0L
@@ -91,6 +86,9 @@ class BubblePark : GameData() {
             mapArea = tileArea,
             joystickProvider = { game.joystickPosition },
             jumpActionProvider = { game.actionButtonB },
+            bulletRes = Res.drawable.bubble_sprite,
+            elapsedProvider = { game.elapsed },
+            onBulletCreated = { bullet -> (game.spriteList as? MutableList<Sprite>)?.add(bullet) },
             initialLife = savedLife
         )
 
@@ -312,17 +310,6 @@ class BubblePark : GameData() {
                 else -> sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
             }
         }
-    }
-
-    fun shoot(enableCollisions: Boolean = false, delayMs: Long = 300) {
-        val now = game.elapsed
-        if (now < nextShotTime) return
-        nextShotTime = now + delayMs
-
-        val step = PI / 4
-        val quantizedAngle = round(player.lastAngle / step) * step
-        val bullet = Bullet(player.x, player.y, quantizedAngle, tileArea, collides = enableCollisions, res = Res.drawable.bubble_sprite)
-        (game.spriteList as? MutableList<Sprite>)?.add(bullet)
     }
 
     init {

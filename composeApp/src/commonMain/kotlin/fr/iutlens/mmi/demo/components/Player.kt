@@ -10,6 +10,8 @@ import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
+import kotlin.math.PI
+import kotlin.math.round
 import org.jetbrains.compose.resources.DrawableResource
 
 class Player(
@@ -19,8 +21,13 @@ class Player(
     mapArea: TiledArea,
     val joystickProvider: () -> JoystickPosition?,
     val jumpActionProvider: () -> Boolean,
+    val bulletRes: DrawableResource,
+    val elapsedProvider: () -> Long,
+    val onBulletCreated: (Bullet) -> Unit,
     initialLife: Int = 3
 ) : PhysicsSprite(res, x, y, mapArea, gravity = 5.5f, jumpForce = -64f) {
+
+    private var nextShotTime = 0L
 
     // Variables de vie
     private var _life by mutableStateOf(initialLife.coerceIn(1, 3))
@@ -64,9 +71,21 @@ class Player(
         if (_life < 3) _life++
     }
 
+    fun shoot(enableCollisions: Boolean = false, delayMs: Long = 300) {
+        val now = elapsedProvider()
+        if (now < nextShotTime) return
+        nextShotTime = now + delayMs
+
+        val step = PI / 4
+        val quantizedAngle = round(lastAngle / step) * step
+        val bullet = Bullet(x, y, quantizedAngle, mapArea, collides = enableCollisions, res = bulletRes)
+        onBulletCreated(bullet)
+    }
+
     override fun reset(x: Float, y: Float) {
         super.reset(x, y)
         invincibilityFrames = 0
+        nextShotTime = 0L
     }
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {

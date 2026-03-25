@@ -126,7 +126,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 // Boutons
                 if (event.key == Key.A) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
-                        gameData.shoot()
+                        gameData.player.shoot(delayMs = 750L)
                     }
 
                     gameData.game.actionButtonA = (event.type == KeyEventType.KeyDown)
@@ -230,7 +230,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 modifier = Modifier.fillMaxSize(),
                 onJoystickChange = { gameData.game.joystickPosition = it },
                 onActionA = { pressed ->
-                    if (pressed && !gameData.game.actionButtonA) gameData.shoot()
+                    if (pressed && !gameData.game.actionButtonA) gameData.player.shoot()
                     gameData.game.actionButtonA = pressed
                 },
                 onActionB = { pressed -> gameData.game.actionButtonB = pressed }
