@@ -12,7 +12,7 @@ import fr.iutlens.mmi.demo.components.bonus.FastAmmoBonus
 import fr.iutlens.mmi.demo.game.SlowEffect
 import fr.iutlens.mmi.demo.game.FastAmmoEffect
 import fr.iutlens.mmi.demo.components.dino.Compy
-import fr.iutlens.mmi.demo.data.LevelData
+import fr.iutlens.mmi.demo.data.LevelGenerator
 import fr.iutlens.mmi.demo.game.Chrono
 import fr.iutlens.mmi.demo.game.DifficultyConfig
 import fr.iutlens.mmi.demo.game.DifficultyManager
@@ -29,12 +29,14 @@ import fr.iutlens.mmi.demo.game.sprite.EnemySprite
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.distanceMap
-import kotlin.math.PI
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import kotlin.math.ceil
-import kotlin.math.round
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.math.floor
+
 import kotlin.math.abs
 
 class BubblePark : GameData() {
@@ -54,9 +56,7 @@ class BubblePark : GameData() {
     private lateinit var distanceMap: DistanceMap
 
     var onLevelEnd: ((hasNextLevel: Boolean) -> Unit)? = null
-    private var currentLevelIndex = 0
-
-    private var nextShotTime = 0L
+    var levelIndex by mutableStateOf(0)
 
     private var spawnTimerMs = 0L
     private var levelElapsedMs = 0L
@@ -69,44 +69,10 @@ class BubblePark : GameData() {
     private val activeEnemies = mutableListOf<EnemySprite>()
     private val activeGenericDinos = mutableListOf<GenericDino>()
 
-    private val levels = listOf(
-        LevelData(
-            mapString = """
-                ..............................
-                ..............................
-                ..............................
-                ..............................
-                ...ef^?^?^?^?^?^?^?^?^?^?ab...
-                ...gh%)%)%)%)%)%)%)%)%)%)cd...
-                ..............................
-                ..............................
-                ..............................
-                ..............................
-                ...ef^?^?^?^?^?^?^?^?^?^?ab...
-                ...gh%)%)%)%)%)%)%)%)%)%)cd...
-                ..............................
-                ..............................
-                ..............................
-                ..............................
-                ...ef^?^?^?^?^?^?^?^?^?^?ab...
-                ...gh%)%)%)%)%)%)%)%)%)%)cd...
-                ..............................
-                ..............................
-                ..............................
-                ******************************
-                ##############################
-            """.trimIndent(),
-            tileSetRes = Res.drawable.environnement_map_sprite,
-            startX = 1.5f,
-            startY = 2.5f,
-            mapCode = ".abef^?#ghcd)%*"
-        )
-    )
-
-    fun loadNextLevel() = loadLevel(currentLevelIndex + 1)
+    fun loadNextLevel() = loadLevel(levelIndex + 1)
 
     fun loadLevel(index: Int) {
-        currentLevelIndex = index
+        levelIndex = index
         currentLevelDiff = DifficultyManager.getLevelDifficulty(index + 1)
         chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
         spawnTimerMs = 0L
@@ -115,17 +81,22 @@ class BubblePark : GameData() {
         SlowEffect.reset()
         FastAmmoEffect.reset()
 
-        val levelData = levels[index]
+        val levelData = LevelGenerator.generate(index)
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
         tileArea = TiledArea(levelData.tileSetRes, tileMap)
 
+        val savedLife = if (::player.isInitialized) player.life else 3
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
             x = levelData.startX * tileArea.w,
             y = (tileMap.geometry.sizeY - levelData.startY) * tileArea.h,
             mapArea = tileArea,
             joystickProvider = { game.joystickPosition },
-            jumpActionProvider = { game.actionButtonB }
+            jumpActionProvider = { game.actionButtonB },
+            bulletRes = Res.drawable.bubble_sprite,
+            elapsedProvider = { game.elapsed },
+            onBulletCreated = { bullet -> (game.spriteList as? MutableList<Sprite>)?.add(bullet) },
+            initialLife = savedLife
         )
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
@@ -154,7 +125,7 @@ class BubblePark : GameData() {
 
             if (chrono.isFinished()) {
                 game.paused = true
-                onLevelEnd?.invoke(currentLevelIndex + 1 < levels.size)
+                onLevelEnd?.invoke(true)
                 return@animation
             }
 
@@ -163,7 +134,7 @@ class BubblePark : GameData() {
                 trySpawnNextDino(currentMaxDino)
             }
 
-            if (FastAmmoEffect.isActive) shoot()
+            if (FastAmmoEffect.isActive) player.shoot(delayMs = FastAmmoEffect.shootDelayMs)
 
             bonusTimerMs += 20
 
@@ -253,11 +224,17 @@ class BubblePark : GameData() {
                     break
                 }
             }
-            if (bullet.isStopped) continue
+            if (bullet.isStopped || bullet.isExploding) continue
             for (dino in activeGenericDinos) {
                 if (dino.isDead || dino.isCaptured) continue
                 if (bullet.boundingBox.overlaps(dino.boundingBox)) {
-                    dino.isCaptured = true
+                    dino.currentHitCount++
+                    if (dino.currentHitCount >= dino.effectiveHitCount) {
+                        dino.isCaptured = true
+                        dino.currentHitCount = 0
+                    } else {
+                        dino.stunTimer = 50
+                    }
                     bullet.explode()
                     break
                 }
@@ -358,18 +335,6 @@ class BubblePark : GameData() {
                 else -> sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
             }
         }
-    }
-
-    fun shoot(enableCollisions: Boolean = false) {
-        val delayMs = FastAmmoEffect.shootDelayMs
-        val now = game.elapsed
-        if (now < nextShotTime) return
-        nextShotTime = now + delayMs
-
-        val step = PI / 4
-        val quantizedAngle = round(player.lastAngle / step) * step
-        val bullet = Bullet(player.x, player.y, quantizedAngle, tileArea, collides = enableCollisions, res = Res.drawable.bubble_sprite)
-        (game.spriteList as? MutableList<Sprite>)?.add(bullet)
     }
 
     init {
