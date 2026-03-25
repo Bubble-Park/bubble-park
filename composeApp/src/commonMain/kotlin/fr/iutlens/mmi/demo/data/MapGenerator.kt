@@ -34,7 +34,7 @@ object MapGenerator {
             prevZoneStart = zoneStart
         }
 
-        return grid.joinToString("\n") { String(it) }
+        return grid.joinToString("\n") { it.concatToString() }
     }
 
     /**
