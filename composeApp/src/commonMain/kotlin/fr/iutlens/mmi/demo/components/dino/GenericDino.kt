@@ -297,10 +297,11 @@ open class DefensiveDino(
 
     override fun updateBehavior(i: Int, j: Int) {
         val dm = distanceMap
-        val distToPlayer = dm[i, j]
+        val (pi, pj) = dm.targetTile
+        val directDist = kotlin.math.abs(pi - i) + kotlin.math.abs(pj - j)
 
         if (isAggressive) {
-            if (distToPlayer == null || distToPlayer > b.releaseTiles) {
+            if (directDist > b.releaseTiles) {
                 isAggressive = false
                 wanderMoving = false
                 currentPath = null
