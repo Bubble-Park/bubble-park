@@ -16,6 +16,8 @@ import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.parasaur_sprite
 import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.player_heart
+import fr.iutlens.mmi.demo.slow_debuff
+import fr.iutlens.mmi.demo.slow_bonus
 import fr.iutlens.mmi.demo.game.DifficultyConfig
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.ui.Controllers
@@ -75,6 +77,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.parasaur_sprite, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.player_heart, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.compy_sprite, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.slow_bonus, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.slow_debuff, 1, 1, filterQuality = FilterQuality.High)
 
     val gameData = remember { BubblePark() }
     var isPaused by remember { mutableStateOf(false) }
@@ -209,6 +213,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                     .clickable {
                         isPaused = true
                         gameData.game.paused = true
+                        gameData.chrono.pause()
                     }
             )
         }
@@ -221,6 +226,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 onResume = {
                     isPaused = false
                     gameData.game.paused = false
+                    gameData.chrono.resume()
                     gameData.game.invalidate()
                 },
                 onQuit = onExit

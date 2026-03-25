@@ -3,6 +3,9 @@ package fr.iutlens.mmi.demo.components.dino
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
+import fr.iutlens.mmi.demo.Res
+import fr.iutlens.mmi.demo.slow_debuff
+import fr.iutlens.mmi.demo.game.SlowEffect
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.game.sprite.hitRotation
 import fr.iutlens.mmi.demo.game.sprite.hitScale
@@ -12,6 +15,7 @@ import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PathPlan
 import fr.iutlens.mmi.demo.utils.PlatformGraph
+import fr.iutlens.mmi.demo.utils.SpriteSheet
 import org.jetbrains.compose.resources.DrawableResource
 import kotlin.math.floor
 import kotlin.random.Random
@@ -55,7 +59,22 @@ abstract class GenericDino(
                 if (rotation != 0f) rotate(rotation, pivot = Offset.Zero)
                 if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
             }) {
-                spriteSheet.paint(this, frameNdx, -w2, -h2, alpha = paintAlpha)
+                val alpha = if (SlowEffect.isActive) paintAlpha * 0.5f else paintAlpha
+                spriteSheet.paint(this, frameNdx, -w2, -h2, alpha = alpha)
+            }
+        }
+        if (SlowEffect.isActive) {
+            val debuff = SpriteSheet[Res.drawable.slow_debuff]
+            val iw2 = debuff.spriteWidth / 2
+            val ih2 = debuff.spriteHeight / 2
+            val iconSize = 45f
+            val scaleX = iconSize / debuff.spriteWidth
+            val scaleY = iconSize / debuff.spriteHeight
+            drawScope.withTransform({
+                translate(x, y - radius - iconSize - 5f)
+                scale(scaleX, scaleY, pivot = Offset.Zero)
+            }) {
+                debuff.paint(this, 0, -iw2, -ih2)
             }
         }
     }
@@ -140,7 +159,8 @@ open class WanderDino(
                 idleTimer = Random.nextInt(25, 101)
             }
         }
-        moveX(dirX * b.speed, b.speed)
+        val speed = b.speed * SlowEffect.speedMultiplier
+        moveX(dirX * speed, speed)
         applyPhysics()
     }
 }
@@ -215,7 +235,8 @@ open class FleeDino(
             }
         }
 
-        moveX(dirX * currentSpeed, currentSpeed)
+        val effectiveSpeed = currentSpeed * SlowEffect.speedMultiplier
+        moveX(dirX * effectiveSpeed, effectiveSpeed)
         applyPhysics()
     }
 
@@ -266,7 +287,8 @@ open class ChaseDino(
             }
         }
 
-        moveX(dirX * b.speed, b.speed)
+        val speed = b.speed * SlowEffect.speedMultiplier
+        moveX(dirX * speed, speed)
         applyPhysics()
     }
 
