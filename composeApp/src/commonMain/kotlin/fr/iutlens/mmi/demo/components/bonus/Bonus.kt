@@ -30,7 +30,7 @@ abstract class Bonus(res: DrawableResource, x: Float, y: Float, private val scal
     }
 
     override fun update() {
-        y += 0.8f
+        y += 3f
         phase += 0.15f
     }
 }

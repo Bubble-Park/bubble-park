@@ -19,9 +19,18 @@ import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.slow_debuff
 import fr.iutlens.mmi.demo.slow_bonus
 import fr.iutlens.mmi.demo.game.DifficultyConfig
+import fr.iutlens.mmi.demo.game.SlowEffect
+import fr.iutlens.mmi.demo.game.FastAmmoEffect
+import fr.iutlens.mmi.demo.fastammo_bonus
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.ui.Controllers
 import fr.iutlens.mmi.demo.utils.SpriteSheet
+import androidx.compose.material.Text
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.Font
+import fr.iutlens.mmi.demo.dudu_font
 
 import androidx.compose.foundation.focusable
 import androidx.compose.runtime.LaunchedEffect
@@ -79,6 +88,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.compy_sprite, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_bonus, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_debuff, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.fastammo_bonus, 1, 1, filterQuality = FilterQuality.High)
 
     val gameData = remember { BubblePark() }
     var isPaused by remember { mutableStateOf(false) }
@@ -204,18 +214,59 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 ShowScore(gameData.score.get())
                 ShowChrono(gameData.chrono.value)
             }
-            Image(
-                painter = painterResource(Res.drawable.pause),
-                contentDescription = "Pause",
-                modifier = Modifier
-                    .size(48.dp)
-                    .padding(8.dp)
-                    .clickable {
-                        isPaused = true
-                        gameData.game.paused = true
-                        gameData.chrono.pause()
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Image(
+                    painter = painterResource(Res.drawable.pause),
+                    contentDescription = "Pause",
+                    modifier = Modifier
+                        .size(48.dp)
+                        .padding(8.dp)
+                        .clickable {
+                            isPaused = true
+                            gameData.game.paused = true
+                            gameData.chrono.pause()
+                        }
+                )
+                val duduFont = FontFamily(Font(Res.font.dudu_font))
+                if (SlowEffect.isActive) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(Res.drawable.slow_bonus),
+                            contentDescription = "Buff ralentissement",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Text(
+                            text = "${(SlowEffect.timer / 50f).toInt()}s",
+                            color = Color(0xFF474534),
+                            fontSize = 16.sp,
+                            fontFamily = duduFont
+                        )
                     }
-            )
+                }
+                if (FastAmmoEffect.isActive) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(Res.drawable.fastammo_bonus),
+                            contentDescription = "Buff tir rapide",
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Text(
+                            text = "${(FastAmmoEffect.timer / 50f).toInt()}s",
+                            color = Color(0xFF474534),
+                            fontSize = 16.sp,
+                            fontFamily = duduFont
+                        )
+                    }
+                }
+            }
         }
 
         if (isPaused) {

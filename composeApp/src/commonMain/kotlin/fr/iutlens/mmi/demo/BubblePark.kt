@@ -8,7 +8,9 @@ import fr.iutlens.mmi.demo.components.dino.Parasaur
 import fr.iutlens.mmi.demo.components.bonus.Bonus
 import fr.iutlens.mmi.demo.components.bonus.LifeBonus
 import fr.iutlens.mmi.demo.components.bonus.SlowBonus
+import fr.iutlens.mmi.demo.components.bonus.FastAmmoBonus
 import fr.iutlens.mmi.demo.game.SlowEffect
+import fr.iutlens.mmi.demo.game.FastAmmoEffect
 import fr.iutlens.mmi.demo.components.dino.Compy
 import fr.iutlens.mmi.demo.data.LevelData
 import fr.iutlens.mmi.demo.game.Chrono
@@ -60,11 +62,8 @@ class BubblePark : GameData() {
     private var levelElapsedMs = 0L
     private lateinit var currentLevelDiff: LevelDifficulty
 
-    private var lifeBonusTimerMs = 0L
-    private var nextLifeBonusDurationMs = 0L
-
-    private var slowBonusTimerMs = 0L
-    private var nextSlowBonusDurationMs = 0L
+    private var bonusTimerMs = 0L
+    private var lastBonusIndex = -1
 
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
@@ -112,11 +111,9 @@ class BubblePark : GameData() {
         chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
         spawnTimerMs = 0L
         levelElapsedMs = 0L
-        lifeBonusTimerMs = 0L
-        nextLifeBonusDurationMs = Random.nextLong(8000L, 15000L)
-        slowBonusTimerMs = 0L
-        nextSlowBonusDurationMs = Random.nextLong(10000L, 18000L)
+        bonusTimerMs = 0L
         SlowEffect.reset()
+        FastAmmoEffect.reset()
 
         val levelData = levels[index]
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
@@ -147,9 +144,8 @@ class BubblePark : GameData() {
 
             levelElapsedMs += 20
             spawnTimerMs += 20
-            lifeBonusTimerMs += 20
-            slowBonusTimerMs += 20
             if (SlowEffect.isActive) SlowEffect.timer--
+            if (FastAmmoEffect.isActive) FastAmmoEffect.timer--
 
             val localDiff = DifficultyManager.updateLocalDifficulty(
                 currentLevelDiff.difficulty, levelElapsedMs / 1000f
@@ -167,20 +163,22 @@ class BubblePark : GameData() {
                 trySpawnNextDino(currentMaxDino)
             }
 
-            val hasBonus = game.spriteList.any { it is LifeBonus || it is SlowBonus }
+            if (FastAmmoEffect.isActive) shoot()
 
-            if (!hasBonus && lifeBonusTimerMs >= nextLifeBonusDurationMs) {
-                lifeBonusTimerMs = 0L
-                nextLifeBonusDurationMs = Random.nextLong(8000L, 15000L)
-                val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 10) * tileArea.w + 5 * tileArea.w
-                (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(bonusX, 0f, player))
-            }
+            bonusTimerMs += 20
 
-            if (!hasBonus && slowBonusTimerMs >= nextSlowBonusDurationMs) {
-                slowBonusTimerMs = 0L
-                nextSlowBonusDurationMs = Random.nextLong(10000L, 18000L)
+            if (bonusTimerMs >= 15000L) {
+                bonusTimerMs = 0L
+                val available = (0..2).filter { it != lastBonusIndex }
+                val pick = available[Random.nextInt(available.size)]
+                lastBonusIndex = pick
                 val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 10) * tileArea.w + 5 * tileArea.w
-                (game.spriteList as? MutableList<Sprite>)?.add(SlowBonus(bonusX, 0f))
+                val bonus: Bonus = when (pick) {
+                    0 -> LifeBonus(bonusX, 0f, player)
+                    1 -> SlowBonus(bonusX, 0f)
+                    else -> FastAmmoBonus(bonusX, 0f)
+                }
+                (game.spriteList as? MutableList<Sprite>)?.add(bonus)
             }
 
             distanceMap.update()
@@ -362,7 +360,8 @@ class BubblePark : GameData() {
         }
     }
 
-    fun shoot(enableCollisions: Boolean = false, delayMs: Long = 300) {
+    fun shoot(enableCollisions: Boolean = false) {
+        val delayMs = FastAmmoEffect.shootDelayMs
         val now = game.elapsed
         if (now < nextShotTime) return
         nextShotTime = now + delayMs
