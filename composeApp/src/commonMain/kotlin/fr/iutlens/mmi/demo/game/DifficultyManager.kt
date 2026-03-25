@@ -15,9 +15,10 @@ object DifficultyConfig {
 
     val TOTAL_LEVEL_TIME: Float = LOCAL_DIFF_INTERVAL * (MAX_LOCAL_INCREMENT + 1).toFloat()
 
-    const val RATIO_WANDER: Float = 0.25f
-    const val RATIO_FLEE: Float   = 0.45f
-    const val RATIO_CHASE = 0.30f
+    const val RATIO_WANDER: Float = 0.20f
+    const val RATIO_FLEE: Float   = 0.35f
+    const val RATIO_CHASE: Float  = 0.25f
+    const val RATIO_TRICE: Float  = 0.20f
 }
 
 data class LevelDifficulty(
