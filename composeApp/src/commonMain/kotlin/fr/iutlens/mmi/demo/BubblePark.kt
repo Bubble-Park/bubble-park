@@ -225,11 +225,17 @@ class BubblePark : GameData() {
                     break
                 }
             }
-            if (bullet.isStopped) continue
+            if (bullet.isStopped || bullet.isExploding) continue
             for (dino in activeGenericDinos) {
                 if (dino.isDead || dino.isCaptured) continue
                 if (bullet.boundingBox.overlaps(dino.boundingBox)) {
-                    dino.isCaptured = true
+                    dino.currentHitCount++
+                    if (dino.currentHitCount >= dino.effectiveHitCount) {
+                        dino.isCaptured = true
+                        dino.currentHitCount = 0
+                    } else {
+                        dino.stunTimer = 50
+                    }
                     bullet.explode()
                     break
                 }

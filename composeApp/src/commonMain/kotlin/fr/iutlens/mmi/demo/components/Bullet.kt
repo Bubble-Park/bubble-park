@@ -146,4 +146,7 @@ class Bullet(
 
     val isStopped: Boolean
         get() = state == State.STOPPED
+
+    val isExploding: Boolean
+        get() = isPlayingPopAnimation
 }

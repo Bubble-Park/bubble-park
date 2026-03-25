@@ -24,5 +24,8 @@ sealed class DinoBehavior {
     ) : DinoBehavior()
 
     /** Fonce vers le joueur en permanence. */
-    data class ChasePlayer(val speed: Float = 15f) : DinoBehavior()
+    data class ChasePlayer(
+        val speed: Float = 15f,
+        val hitCount: Int = 1
+    ) : DinoBehavior()
 }
