@@ -30,8 +30,24 @@ abstract class GenericDino(
 
     override val scoreValue get() = type.scoreValue
 
+    var currentHitCount = 0
+
+    val effectiveHitCount: Int
+        get() = when (val b = type.behavior) {
+            is DinoBehavior.ChasePlayer -> b.hitCount
+            else -> 1
+        }
+
+    override val paintAlpha: Float
+        get() = if (isCaptured || currentHitCount == 0) 1f else 1f / (currentHitCount + 1)
+
     companion object {
         const val PATH_REFRESH_INTERVAL = 25
+    }
+
+    override fun reset(x: Float, y: Float) {
+        super.reset(x, y)
+        currentHitCount = 0
     }
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {

@@ -20,7 +20,7 @@ class Trex(
         name = "Trex",
         scoreValue = 50,
         ndx = 8,
-        behavior = DinoBehavior.ChasePlayer(speed = 12f),
+        behavior = DinoBehavior.ChasePlayer(speed = 12f, hitCount = 2),
         damagesPlayer = true
     ),
     res, x, y, mapArea, distanceMap, graph
@@ -31,7 +31,7 @@ class Trex(
     }
 
     override val boundingBox: Rect
-        get() = Rect(x - Trex.Companion.HIT_RADIUS, y - Trex.Companion.HIT_RADIUS, x + Trex.Companion.HIT_RADIUS, y + Trex.Companion.HIT_RADIUS)
+        get() = Rect(x - Trex.Companion.HIT_RADIUS, y - Trex.Companion.HIT_RADIUS/2, x + Trex.Companion.HIT_RADIUS, y + Trex.Companion.HIT_RADIUS/2)
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.withTransform({
