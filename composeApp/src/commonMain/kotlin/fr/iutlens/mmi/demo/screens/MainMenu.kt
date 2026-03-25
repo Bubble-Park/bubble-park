@@ -86,51 +86,6 @@ fun MainMenu(onPlayClick: () -> Unit) {
                 .fillMaxSize()
         )
 
-        val offsetCloudPlan = animateOffsetBackground(durationMillis = 8000, initialValue = 0f, targetValue=50f)
-        Image (
-            painter = painterResource(Res.drawable.menu_nuages),
-            contentDescription = null,
-            contentScale = ContentScale.FillWidth,
-            modifier = Modifier
-                .fillMaxWidth()
-                .scale(1.2f)
-                .align(Alignment.TopCenter)
-                .offset { IntOffset(x = offsetCloudPlan.dp.roundToPx(), y = 30) }
-        )
-
-        Image (
-            painter = painterResource(Res.drawable.menu_volcan),
-            contentDescription = null,
-            contentScale = ContentScale.FillWidth,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopEnd)
-                .offset(y = 30.dp, x = 10.dp)
-                //.offset(y = 30.dp, x = 150.dp)
-        )
-
-        val offsetSecondPlan = animateOffsetBackground(durationMillis = 2000, initialValue = 40f, targetValue = 30f)
-        Image (
-            painter = painterResource(Res.drawable.menu_second_plan),
-            contentDescription = null,
-            contentScale = ContentScale.FillWidth,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .offset{ IntOffset(x = 0, y = offsetSecondPlan.dp.roundToPx()) }
-        )
-
-        val offsetPremierPlan = animateOffsetBackground(durationMillis = 2000, initialValue = 25f, targetValue = 20f)
-        Image (
-            painter = painterResource(Res.drawable.menu_premier_plan_up),
-            contentDescription = null,
-            contentScale = ContentScale.FillWidth,
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-                .offset { IntOffset(x = 0, y = offsetPremierPlan.dp.roundToPx()) }
-        )
-
         // Logo
         Image (
             painter = painterResource(Res.drawable.logo),

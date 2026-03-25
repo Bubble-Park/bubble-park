@@ -15,10 +15,10 @@ object DifficultyConfig {
 
     val TOTAL_LEVEL_TIME: Float = LOCAL_DIFF_INTERVAL * (MAX_LOCAL_INCREMENT + 1).toFloat()
 
-    const val RATIO_WANDER: Float = 0.20f
-    const val RATIO_FLEE: Float   = 0.35f
-    const val RATIO_CHASE: Float  = 0.25f
-    const val RATIO_TRICE: Float  = 0.20f
+    const val RATIO_WANDER: Float = 0.25f
+    const val RATIO_FLEE: Float   = 0.25f
+    const val RATIO_CHASE = 0.25f
+    const val RATIO_DEFENSIVE = 0.25f
 }
 
 data class LevelDifficulty(
@@ -28,7 +28,8 @@ data class LevelDifficulty(
     val spawnDelay: Float,
     val maxWander: Int,
     val maxFlee: Int,
-    val maxChase: Int
+    val maxChase: Int,
+    val maxDefensive: Int
 )
 
 object DifficultyManager {
@@ -45,10 +46,11 @@ object DifficultyManager {
 
         val maxWander  = (maxDino * DifficultyConfig.RATIO_WANDER).roundToInt()
         val maxFlee    = (maxDino * DifficultyConfig.RATIO_FLEE).roundToInt()
-        val maxChase   = maxDino - maxWander - maxFlee
+        val maxChase   = (maxDino * DifficultyConfig.RATIO_CHASE).roundToInt()
+        val maxDefensive = (maxDino * DifficultyConfig.RATIO_DEFENSIVE).roundToInt()
 
         return LevelDifficulty(level, difficulty, maxDino, spawnDelay,
-                               maxWander, maxFlee, maxChase)
+                               maxWander, maxFlee, maxChase, maxDefensive)
     }
 
     /**

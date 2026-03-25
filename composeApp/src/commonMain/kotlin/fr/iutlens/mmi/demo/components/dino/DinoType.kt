@@ -28,4 +28,11 @@ sealed class DinoBehavior {
         val speed: Float = 15f,
         val hitCount: Int = 1
     ) : DinoBehavior()
+
+    data class Defensive(
+        val walkSpeed: Float = 10f,
+        val attackSpeed: Float = 18f,
+        val hitCount: Int = 2,
+        val releaseTiles: Int = 12
+    ) : DinoBehavior()
 }
