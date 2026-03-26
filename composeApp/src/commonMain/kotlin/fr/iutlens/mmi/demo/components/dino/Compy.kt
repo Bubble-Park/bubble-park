@@ -18,13 +18,13 @@ class Compy(
         name = "Compy",
         scoreValue = 10,
         ndx = 0,
-        behavior = DinoBehavior.Wander(speed = 8f)
+        behavior = DinoBehavior.Wander(speed = 30f)
     ),
     res, x, y, mapArea, graph
 ) {
     companion object {
-        const val VISUAL_SCALE = 0.7f
-        const val HIT_RADIUS = 40f
+        const val VISUAL_SCALE = 0.5f
+        const val HIT_RADIUS = 70f
         const val VERTICAL_OFFSET = 15f
     }
 

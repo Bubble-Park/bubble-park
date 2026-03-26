@@ -58,6 +58,7 @@ import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
 import fr.iutlens.mmi.demo.niveau1_fond
 import fr.iutlens.mmi.demo.trex_sprite
+import fr.iutlens.mmi.demo.raptor_sprite
 import fr.iutlens.mmi.demo.soleil
 import fr.iutlens.mmi.demo.damage_border
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
@@ -73,6 +74,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.util.lerp
 import fr.iutlens.mmi.demo.compy_sprite
+import fr.iutlens.mmi.demo.dodo_sprite
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -85,11 +87,13 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.trex_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.raptor_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.parasaur_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.trice_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.stego_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.player_heart, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.compy_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.dodo_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_bonus, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_debuff, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.fastammo_bonus, 1, 1, filterQuality = FilterQuality.High)
