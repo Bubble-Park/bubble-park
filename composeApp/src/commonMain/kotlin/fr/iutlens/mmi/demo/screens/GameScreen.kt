@@ -14,6 +14,7 @@ import fr.iutlens.mmi.demo.BubblePark
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.parasaur_sprite
+import fr.iutlens.mmi.demo.gallimimus_sprite
 import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.slow_debuff
