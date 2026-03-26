@@ -348,8 +348,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         focusRequester.requestFocus()
     }
 
-    LaunchedEffect(gameData.player.isDead, gameData.levelIndex) {
-        if (gameData.player.isDead) onGameOver(gameData.score.get())
+    LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
+        if (gameData.player.isDeathAnimationComplete) onGameOver(gameData.score.get())
     }
 
     LaunchedEffect(Unit) {
