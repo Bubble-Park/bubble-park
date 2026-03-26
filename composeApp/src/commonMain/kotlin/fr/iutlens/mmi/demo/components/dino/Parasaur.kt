@@ -25,7 +25,7 @@ class Parasaur(
     res, x, y, mapArea, distanceMap, graph
 ) {
     companion object {
-        const val VISUAL_SCALE = 0.3f
+        const val VISUAL_SCALE = 1.1f
         const val HIT_RADIUS = 60f
     }
 

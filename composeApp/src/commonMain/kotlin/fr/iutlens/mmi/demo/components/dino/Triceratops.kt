@@ -26,7 +26,7 @@ class Triceratops(
     res, x, y, mapArea, distanceMap, graph
 ) {
     companion object {
-        const val VISUAL_SCALE = 0.5f
+        const val VISUAL_SCALE = 1.5f
         const val HIT_RADIUS = 70f
         const val VERTICAL_OFFSET = 15f
     }

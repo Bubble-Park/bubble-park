@@ -26,7 +26,7 @@ class Trex(
     res, x, y, mapArea, distanceMap, graph
 ) {
     companion object {
-        const val VISUAL_SCALE = 0.7f
+        const val VISUAL_SCALE = 2f
         const val HIT_RADIUS = 150f
     }
 

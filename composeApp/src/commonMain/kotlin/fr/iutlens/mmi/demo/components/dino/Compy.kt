@@ -23,9 +23,12 @@ class Compy(
     res, x, y, mapArea, graph
 ) {
     companion object {
-        const val VISUAL_SCALE = 1f
-        const val HIT_RADIUS = 70f
+        const val VISUAL_SCALE = 0.7f
+        const val HIT_RADIUS = 40f
+        const val VERTICAL_OFFSET = 15f
     }
+
+    override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE - VERTICAL_OFFSET
 
     override val boundingBox: Rect
         get() = Rect(x - HIT_RADIUS, y - HIT_RADIUS, x + HIT_RADIUS, y + HIT_RADIUS)
