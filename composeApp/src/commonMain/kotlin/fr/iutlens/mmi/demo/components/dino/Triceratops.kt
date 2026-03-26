@@ -28,9 +28,10 @@ class Triceratops(
     companion object {
         const val VISUAL_SCALE = 0.5f
         const val HIT_RADIUS = 70f
+        const val VERTICAL_OFFSET = 15f
     }
 
-    override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE
+    override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE - VERTICAL_OFFSET
     override val boundingBox: Rect get() = Rect(x - HIT_RADIUS, y - HIT_RADIUS, x + HIT_RADIUS, y + HIT_RADIUS)
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
