@@ -1,5 +1,9 @@
 package fr.iutlens.mmi.demo.components.dino
 
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PlatformGraph
@@ -20,4 +24,22 @@ class Triceratops(
         damagesPlayer = true
     ),
     res, x, y, mapArea, distanceMap, graph
-)
+) {
+    companion object {
+        const val VISUAL_SCALE = 0.5f
+        const val HIT_RADIUS = 70f
+    }
+
+    override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE
+    override val boundingBox: Rect get() = Rect(x - HIT_RADIUS, y - HIT_RADIUS, x + HIT_RADIUS, y + HIT_RADIUS)
+
+    override fun paint(drawScope: DrawScope, elapsed: Long) {
+        drawScope.withTransform({
+            translate(x, y)
+            scale(VISUAL_SCALE, VISUAL_SCALE, pivot = Offset.Zero)
+            translate(-x, -y)
+        }) {
+            super.paint(this, elapsed)
+        }
+    }
+}

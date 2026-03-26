@@ -316,7 +316,7 @@ class BubblePark : GameData() {
                         spawnedParasaur++
                     }
                     else -> {
-                        sprites.add(Triceratops(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        sprites.add(Triceratops(Res.drawable.trice_sprite, x, y, tileArea, distanceMap, platformGraph))
                         spawnedTriceratops++
                     }
                 }
@@ -353,7 +353,7 @@ class BubblePark : GameData() {
                 roll < chaseNeeded + wanderNeeded -> sprites.add(Compy(Res.drawable.compy_sprite, x, y, tileArea, platformGraph))
 
                 roll < chaseNeeded + wanderNeeded + fleeNeeded -> sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
-                else -> sprites.add(Triceratops(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
+                else -> sprites.add(Triceratops(Res.drawable.trice_sprite, x, y, tileArea, distanceMap, platformGraph))
             }
         }
     }
