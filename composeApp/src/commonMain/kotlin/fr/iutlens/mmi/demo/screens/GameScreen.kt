@@ -84,12 +84,12 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.trex_sprite, 1, 1, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.parasaur_sprite, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.trex_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.parasaur_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.trice_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.stego_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.player_heart, 1, 1, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.compy_sprite, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.compy_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_bonus, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_debuff, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.fastammo_bonus, 1, 1, filterQuality = FilterQuality.High)
@@ -223,7 +223,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                     painter = painterResource(Res.drawable.pause),
                     contentDescription = "Pause",
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(56.dp)
                         .padding(8.dp)
                         .clickable {
                             isPaused = true
@@ -241,7 +241,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                         Image(
                             painter = painterResource(Res.drawable.slow_bonus),
                             contentDescription = "Buff ralentissement",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(72.dp)
                         )
                         Text(
                             text = "${(SlowEffect.timer / 50f).toInt()}s",
@@ -260,7 +260,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                         Image(
                             painter = painterResource(Res.drawable.fastammo_bonus),
                             contentDescription = "Buff tir rapide",
-                            modifier = Modifier.size(24.dp)
+                            modifier = Modifier.size(72.dp)
                         )
                         Text(
                             text = "${(FastAmmoEffect.timer / 50f).toInt()}s",
