@@ -18,7 +18,7 @@ object Music {
     /**
      * mute permet d'activer ou désactiver le son joué par l'application
      */
-    var mute by mutableStateOf(true)
+    var mute by mutableStateOf(false)
 
     /**
      * Sound pool gère les bruitages (jusqu'à 10 en simultané ici)

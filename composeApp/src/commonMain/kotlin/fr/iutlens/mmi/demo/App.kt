@@ -2,12 +2,10 @@ package fr.iutlens.mmi.demo
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.size
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import fr.iutlens.mmi.demo.screens.GameOverScreen
 import fr.iutlens.mmi.demo.screens.GameScreen
 import fr.iutlens.mmi.demo.screens.MainMenu

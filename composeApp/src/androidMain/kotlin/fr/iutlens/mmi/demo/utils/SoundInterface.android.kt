@@ -1,12 +1,6 @@
 package fr.iutlens.mmi.demo.utils
 
-import android.content.ContentResolver
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.MediaPlayer
-import android.media.session.PlaybackState
-
-import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
@@ -107,7 +101,7 @@ actual open class SoundPool actual constructor() {
         rate: Float
     ) {
         val media = map[resource] ?: return
-        pool?.firstOrNull { it.playbackState !in setOf(PlaybackState.STATE_PLAYING, PlaybackState.STATE_BUFFERING) }?.apply {
+        pool?.firstOrNull { !it.isPlaying }?.apply {
             this.volume = (leftVolume+rightVolume)/2
             setMediaItem(media)
             prepare()
