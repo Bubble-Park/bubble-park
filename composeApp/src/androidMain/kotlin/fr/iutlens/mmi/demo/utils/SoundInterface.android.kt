@@ -61,15 +61,21 @@ actual open class MusicPlayer actual constructor(
 actual open class SoundPool actual constructor() {
     private var nativePool: android.media.SoundPool? = null
     private val soundIds = mutableMapOf<String, Int>()
+    private val readyIds = mutableSetOf<Int>()
+    private val loading = mutableSetOf<String>()
 
     @OptIn(ExperimentalResourceApi::class)
     actual fun load(context: Any?, res: String) {
         val ctx = context as? Context ?: return
-        if (soundIds.containsKey(res)) return
+        if (soundIds.containsKey(res) || loading.contains(res)) return
+        loading.add(res)
         if (nativePool == null) {
             nativePool = android.media.SoundPool.Builder()
                 .setMaxStreams(10)
                 .build()
+            nativePool!!.setOnLoadCompleteListener { _, sampleId, status ->
+                if (status == 0) readyIds.add(sampleId)
+            }
         }
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -80,7 +86,9 @@ actual open class SoundPool actual constructor() {
                     val id = nativePool!!.load(cacheFile.absolutePath, 1)
                     soundIds[res] = id
                 }
-            } catch (_: Exception) {}
+            } catch (_: Exception) {
+                loading.remove(res)
+            }
         }
     }
 
@@ -93,6 +101,7 @@ actual open class SoundPool actual constructor() {
         rate: Float
     ) {
         val id = soundIds[resource] ?: return
+        if (id !in readyIds) return
         nativePool?.play(id, leftVolume, rightVolume, priority, loop, rate)
     }
 }

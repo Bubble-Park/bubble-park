@@ -52,8 +52,6 @@ import androidx.compose.ui.unit.IntOffset
 import fr.iutlens.mmi.demo.menu_volcan
 import fr.iutlens.mmi.demo.ui.CloudsOverlay
 import androidx.compose.runtime.withFrameMillis
-import fr.iutlens.mmi.demo.utils.GameSound
-import kotlinx.coroutines.delay
 
 @Composable
 fun MainMenu(onPlayClick: () -> Unit) {
@@ -61,13 +59,6 @@ fun MainMenu(onPlayClick: () -> Unit) {
     val dinoFont = FontFamily(
         Font(Res.font.dino_font)
     )
-
-    // TEST TEMPORAIRE - sons
-    GameSound.loadAll()
-    LaunchedEffect(Unit) {
-        delay(500) // Laisse le temps au SoundPool de charger
-        GameSound.playHit(3)
-    }
 
     var menuElapsed by remember { mutableStateOf(0L) }
     LaunchedEffect(Unit) {

@@ -27,6 +27,7 @@ import fr.iutlens.mmi.demo.game.FastAmmoEffect
 import fr.iutlens.mmi.demo.fastammo_bonus
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.ui.Controllers
+import fr.iutlens.mmi.demo.utils.GameSound
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 import androidx.compose.material.Text
 import androidx.compose.ui.graphics.Color
@@ -104,6 +105,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.slow_bonus, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_debuff, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.fastammo_bonus, 1, 1, filterQuality = FilterQuality.High)
+    GameSound.loadAll()
 
     val gameData = remember { BubblePark() }
     var isPaused by remember { mutableStateOf(false) }

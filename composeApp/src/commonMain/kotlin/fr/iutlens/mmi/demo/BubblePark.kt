@@ -192,6 +192,7 @@ class BubblePark : GameData() {
                     if (sprite.boundingBox.overlaps(player.boundingBox)) {
                         sprite.onCollect()
                         sprite.collected = true
+                        GameSound.playBonus()
                     }
                 }
             }
@@ -202,7 +203,7 @@ class BubblePark : GameData() {
             if (enemy.stunTimer > 0) continue
             if (enemy.boundingBox.overlaps(player.boundingBox)) {
                 if (player.takeDamage()) {
-                    GameSound.playHit(player.life + 1)
+                    if (player.isDead) GameSound.playDown() else GameSound.playHit(player.life + 1)
                     enemy.stunTimer = 50
                 }
             }
@@ -214,7 +215,7 @@ class BubblePark : GameData() {
             if (dino.stunTimer > 0) continue
             if (dino.boundingBox.overlaps(player.boundingBox)) {
                 if (player.takeDamage()) {
-                    GameSound.playHit(player.life + 1)
+                    if (player.isDead) GameSound.playDown() else GameSound.playHit(player.life + 1)
                     dino.stunTimer = 50
                 }
             }
@@ -227,6 +228,7 @@ class BubblePark : GameData() {
                 dino.isDead = true
                 score.add(dino.scoreValue)
                 scorePopups.add(ScorePopup(popupCounter++, dino.x, dino.y, dino.scoreValue))
+                GameSound.playPointCombo()
                 break
             }
         }
