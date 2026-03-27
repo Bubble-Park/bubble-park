@@ -4,13 +4,19 @@ import fr.iutlens.mmi.demo.components.Player
 import fr.iutlens.mmi.demo.components.Bullet
 import fr.iutlens.mmi.demo.components.dino.GenericDino
 import fr.iutlens.mmi.demo.components.dino.Trex
+import fr.iutlens.mmi.demo.components.dino.Raptor
+import fr.iutlens.mmi.demo.components.dino.Dodo
+import fr.iutlens.mmi.demo.components.dino.Gallimimus
 import fr.iutlens.mmi.demo.components.dino.Parasaur
 import fr.iutlens.mmi.demo.components.bonus.Bonus
 import fr.iutlens.mmi.demo.components.bonus.LifeBonus
 import fr.iutlens.mmi.demo.components.bonus.SlowBonus
+import fr.iutlens.mmi.demo.components.bonus.FastAmmoBonus
 import fr.iutlens.mmi.demo.game.SlowEffect
+import fr.iutlens.mmi.demo.game.FastAmmoEffect
 import fr.iutlens.mmi.demo.components.dino.Compy
 import fr.iutlens.mmi.demo.components.dino.Triceratops
+import fr.iutlens.mmi.demo.components.dino.Stegosaurus
 import fr.iutlens.mmi.demo.data.LevelGenerator
 import fr.iutlens.mmi.demo.game.Chrono
 import fr.iutlens.mmi.demo.game.DifficultyConfig
@@ -29,12 +35,14 @@ import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.distanceMap
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlin.math.ceil
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.math.floor
+
 import kotlin.math.abs
 
 class BubblePark : GameData() {
@@ -45,6 +53,10 @@ class BubblePark : GameData() {
         private const val PLAYER_INIT_TILE_J = 20
         private const val INITIAL_SPAWN_RATIO = 0.3f
     }
+
+    data class ScorePopup(val id: Long, val worldX: Float, val worldY: Float, val points: Int)
+    val scorePopups = mutableStateListOf<ScorePopup>()
+    private var popupCounter = 0L
 
     val score = Score()
     var chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
@@ -60,11 +72,8 @@ class BubblePark : GameData() {
     private var levelElapsedMs = 0L
     private lateinit var currentLevelDiff: LevelDifficulty
 
-    private var lifeBonusTimerMs = 0L
-    private var nextLifeBonusDurationMs = 0L
-
-    private var slowBonusTimerMs = 0L
-    private var nextSlowBonusDurationMs = 0L
+    private var bonusTimerMs = 0L
+    private var lastBonusIndex = -1
 
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
@@ -78,11 +87,9 @@ class BubblePark : GameData() {
         chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
         spawnTimerMs = 0L
         levelElapsedMs = 0L
-        lifeBonusTimerMs = 0L
-        nextLifeBonusDurationMs = Random.nextLong(8000L, 15000L)
-        slowBonusTimerMs = 0L
-        nextSlowBonusDurationMs = Random.nextLong(10000L, 18000L)
+        bonusTimerMs = 0L
         SlowEffect.reset()
+        FastAmmoEffect.reset()
 
         val levelData = LevelGenerator.generate(index)
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
@@ -118,9 +125,8 @@ class BubblePark : GameData() {
 
             levelElapsedMs += 20
             spawnTimerMs += 20
-            lifeBonusTimerMs += 20
-            slowBonusTimerMs += 20
             if (SlowEffect.isActive) SlowEffect.timer--
+            if (FastAmmoEffect.isActive) FastAmmoEffect.timer--
 
             val localDiff = DifficultyManager.updateLocalDifficulty(
                 currentLevelDiff.difficulty, levelElapsedMs / 1000f
@@ -138,20 +144,22 @@ class BubblePark : GameData() {
                 trySpawnNextDino(currentMaxDino)
             }
 
-            val hasBonus = game.spriteList.any { it is LifeBonus || it is SlowBonus }
+            if (FastAmmoEffect.isActive) player.shoot(delayMs = FastAmmoEffect.shootDelayMs)
 
-            if (!hasBonus && lifeBonusTimerMs >= nextLifeBonusDurationMs) {
-                lifeBonusTimerMs = 0L
-                nextLifeBonusDurationMs = Random.nextLong(8000L, 15000L)
-                val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 10) * tileArea.w + 5 * tileArea.w
-                (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(bonusX, 0f, player))
-            }
+            bonusTimerMs += 20
 
-            if (!hasBonus && slowBonusTimerMs >= nextSlowBonusDurationMs) {
-                slowBonusTimerMs = 0L
-                nextSlowBonusDurationMs = Random.nextLong(10000L, 18000L)
+            if (bonusTimerMs >= 15000L) {
+                bonusTimerMs = 0L
+                val available = (0..2).filter { it != lastBonusIndex }
+                val pick = available[Random.nextInt(available.size)]
+                lastBonusIndex = pick
                 val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 10) * tileArea.w + 5 * tileArea.w
-                (game.spriteList as? MutableList<Sprite>)?.add(SlowBonus(bonusX, 0f))
+                val bonus: Bonus = when (pick) {
+                    0 -> LifeBonus(bonusX, 0f, player)
+                    1 -> SlowBonus(bonusX, 0f)
+                    else -> FastAmmoBonus(bonusX, 0f)
+                }
+                (game.spriteList as? MutableList<Sprite>)?.add(bonus)
             }
 
             distanceMap.update()
@@ -211,6 +219,7 @@ class BubblePark : GameData() {
             if (player.boundingBox.overlaps(dino.boundingBox)) {
                 dino.isDead = true
                 score.add(dino.scoreValue)
+                scorePopups.add(ScorePopup(popupCounter++, dino.x, dino.y, dino.scoreValue))
                 break
             }
         }
@@ -222,6 +231,7 @@ class BubblePark : GameData() {
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
                     score.add(enemy.scoreValue)
+                    scorePopups.add(ScorePopup(popupCounter++, enemy.x, enemy.y, enemy.scoreValue))
                     bullet.explode()
                     break
                 }
@@ -277,42 +287,77 @@ class BubblePark : GameData() {
 
     private fun spawnInitialDinos() {
         val initialCount = ceil(currentLevelDiff.maxDino * INITIAL_SPAWN_RATIO).toInt()
-        val targetTrex         = (initialCount * DifficultyConfig.RATIO_CHASE).roundToInt()
-        val targetCompy        = (initialCount * DifficultyConfig.RATIO_WANDER).roundToInt()
-        val targetParasaur     = (initialCount * DifficultyConfig.RATIO_FLEE).roundToInt()
-        val targetTriceratops  = initialCount - targetTrex - targetCompy - targetParasaur
+
+        val chaseTotal         = (initialCount * DifficultyConfig.RATIO_CHASE).roundToInt()
+        val targetTrex         = chaseTotal / 2
+        val targetRaptor       = chaseTotal - targetTrex
+        val wanderTotal        = (initialCount * DifficultyConfig.RATIO_WANDER).roundToInt()
+        val targetCompy        = wanderTotal / 2
+        val targetDodo         = wanderTotal - targetCompy
+        val fleeTotal          = (initialCount * DifficultyConfig.RATIO_FLEE).roundToInt()
+        val targetParasaur     = fleeTotal / 2
+        val targetGallimimus   = fleeTotal - targetParasaur
+        val defensiveTotal     = initialCount - chaseTotal - wanderTotal - fleeTotal
+        val targetTriceratops  = defensiveTotal / 2
+        val targetStegosaurus  = defensiveTotal - targetTriceratops
+
         var spawnedTrex = 0
+        var spawnedRaptor = 0
         var spawnedCompy = 0
+        var spawnedDodo = 0
         var spawnedParasaur = 0
+        var spawnedGallimimus = 0
         var spawnedTriceratops = 0
+        var spawnedStegosaurus = 0
         val sprites = game.spriteList as? MutableList<Sprite> ?: return
 
         repeat(initialCount) {
-            val chaseNeeded      = (targetTrex - spawnedTrex).coerceAtLeast(0)
-            val wanderNeeded     = (targetCompy - spawnedCompy).coerceAtLeast(0)
-            val fleeNeeded       = (targetParasaur - spawnedParasaur).coerceAtLeast(0)
-            val defensiveNeeded  = (targetTriceratops - spawnedTriceratops).coerceAtLeast(0)
-            val total = chaseNeeded + wanderNeeded + fleeNeeded + defensiveNeeded
+            val trexNeeded        = (targetTrex - spawnedTrex).coerceAtLeast(0)
+            val raptorNeeded      = (targetRaptor - spawnedRaptor).coerceAtLeast(0)
+            val compyNeeded       = (targetCompy - spawnedCompy).coerceAtLeast(0)
+            val dodoNeeded        = (targetDodo - spawnedDodo).coerceAtLeast(0)
+            val parasaurNeeded    = (targetParasaur - spawnedParasaur).coerceAtLeast(0)
+            val gallimimusNeeded  = (targetGallimimus - spawnedGallimimus).coerceAtLeast(0)
+            val triceNeeded       = (targetTriceratops - spawnedTriceratops).coerceAtLeast(0)
+            val stegoNeeded       = (targetStegosaurus - spawnedStegosaurus).coerceAtLeast(0)
+            val total = trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded + triceNeeded + stegoNeeded
+
             if (total == 0) return@repeat
 
             findSpawnPoint(PLAYER_INIT_TILE_I, PLAYER_INIT_TILE_J)?.let { (x, y) ->
                 val roll = Random.nextInt(total)
                 when {
-                    roll < chaseNeeded -> {
+                    roll < trexNeeded -> {
                         sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph))
                         spawnedTrex++
                     }
-                    roll < chaseNeeded + wanderNeeded -> {
+                    roll < trexNeeded + raptorNeeded -> {
+                        sprites.add(Raptor(Res.drawable.raptor_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        spawnedRaptor++
+                    }
+                    roll < trexNeeded + raptorNeeded + compyNeeded -> {
                         sprites.add(Compy(Res.drawable.compy_sprite, x, y, tileArea, platformGraph))
                         spawnedCompy++
                     }
-                    roll < chaseNeeded + wanderNeeded + fleeNeeded -> {
+                    roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded -> {
+                        sprites.add(Dodo(Res.drawable.dodo_sprite, x, y, tileArea, platformGraph))
+                        spawnedDodo++
+                    }
+                    roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded -> {
                         sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
                         spawnedParasaur++
                     }
-                    else -> {
-                        sprites.add(Triceratops(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
+                    roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded -> {
+                        sprites.add(Gallimimus(Res.drawable.gallimimus_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        spawnedGallimimus++
+                    }
+                    roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded + triceNeeded -> {
+                        sprites.add(Triceratops(Res.drawable.trice_sprite, x, y, tileArea, distanceMap, platformGraph))
                         spawnedTriceratops++
+                    }
+                    else -> {
+                        sprites.add(Stegosaurus(Res.drawable.stego_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        spawnedStegosaurus++
                     }
                 }
             }
@@ -320,32 +365,54 @@ class BubblePark : GameData() {
     }
 
     private fun trySpawnNextDino(maxDino: Int) {
+
         val activeTrex        = activeGenericDinos.count { it is Trex }
+        val activeRaptor      = activeGenericDinos.count { it is Raptor }
         val activeCompy       = activeGenericDinos.count { it is Compy }
+        val activeDodo        = activeGenericDinos.count { it is Dodo }
         val activeParasaur    = activeGenericDinos.count { it is Parasaur }
+        val activeGallimimus  = activeGenericDinos.count { it is Gallimimus }
         val activeTriceratops = activeGenericDinos.count { it is Triceratops }
-        if (activeTrex + activeCompy + activeParasaur + activeTriceratops >= maxDino) return
+        val activeStegosaurus = activeGenericDinos.count { it is Stegosaurus }
+        if (activeTrex + activeRaptor + activeCompy + activeDodo + activeParasaur + activeGallimimus + activeTriceratops + activeStegosaurus >= maxDino) return
 
-        val targetTrex        = (maxDino * DifficultyConfig.RATIO_CHASE).roundToInt()
-        val targetCompy       = (maxDino * DifficultyConfig.RATIO_WANDER).roundToInt()
-        val targetParasaur    = (maxDino * DifficultyConfig.RATIO_FLEE).roundToInt()
-        val targetTriceratops = maxDino - targetTrex - targetCompy - targetParasaur
+        val chaseTotal        = (maxDino * DifficultyConfig.RATIO_CHASE).roundToInt()
+        val targetTrex        = chaseTotal / 2
+        val targetRaptor      = chaseTotal - targetTrex
+        val wanderTotal       = (maxDino * DifficultyConfig.RATIO_WANDER).roundToInt()
+        val targetCompy       = wanderTotal / 2
+        val targetDodo        = wanderTotal - targetCompy
+        val fleeTotal         = (maxDino * DifficultyConfig.RATIO_FLEE).roundToInt()
+        val targetParasaur    = fleeTotal / 2
+        val targetGallimimus  = fleeTotal - targetParasaur
+        val defensiveTotal    = maxDino - chaseTotal - wanderTotal - fleeTotal
+        val targetTriceratops = defensiveTotal / 2
+        val targetStegosaurus = defensiveTotal - targetTriceratops
 
-        val chaseNeeded     = (targetTrex - activeTrex).coerceAtLeast(0)
-        val wanderNeeded    = (targetCompy - activeCompy).coerceAtLeast(0)
-        val fleeNeeded      = (targetParasaur - activeParasaur).coerceAtLeast(0)
-        val defensiveNeeded = (targetTriceratops - activeTriceratops).coerceAtLeast(0)
-        val total = chaseNeeded + wanderNeeded + fleeNeeded + defensiveNeeded
+        val trexNeeded        = (targetTrex - activeTrex).coerceAtLeast(0)
+        val raptorNeeded      = (targetRaptor - activeRaptor).coerceAtLeast(0)
+        val compyNeeded       = (targetCompy - activeCompy).coerceAtLeast(0)
+        val dodoNeeded        = (targetDodo - activeDodo).coerceAtLeast(0)
+        val parasaurNeeded    = (targetParasaur - activeParasaur).coerceAtLeast(0)
+        val gallimimusNeeded  = (targetGallimimus - activeGallimimus).coerceAtLeast(0)
+        val triceNeeded       = (targetTriceratops - activeTriceratops).coerceAtLeast(0)
+        val stegoNeeded       = (targetStegosaurus - activeStegosaurus).coerceAtLeast(0)
+        val total = trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded + triceNeeded + stegoNeeded
+
         if (total == 0) return
 
         val sprites = game.spriteList as? MutableList<Sprite> ?: return
         findSpawnPoint()?.let { (x, y) ->
             val roll = Random.nextInt(total)
             when {
-                roll < chaseNeeded -> sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph))
-                roll < chaseNeeded + wanderNeeded -> sprites.add(Compy(Res.drawable.compy_sprite, x, y, tileArea, platformGraph))
-                roll < chaseNeeded + wanderNeeded + fleeNeeded -> sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
-                else -> sprites.add(Triceratops(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
+                roll < trexNeeded -> sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph))
+                roll < trexNeeded + raptorNeeded -> sprites.add(Raptor(Res.drawable.raptor_sprite, x, y, tileArea, distanceMap, platformGraph))
+                roll < trexNeeded + raptorNeeded + compyNeeded -> sprites.add(Compy(Res.drawable.compy_sprite, x, y, tileArea, platformGraph))
+                roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded -> sprites.add(Dodo(Res.drawable.dodo_sprite, x, y, tileArea, platformGraph))
+                roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded -> sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
+                roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded -> sprites.add(Gallimimus(Res.drawable.gallimimus_sprite, x, y, tileArea, distanceMap, platformGraph))
+                roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded + triceNeeded -> sprites.add(Triceratops(Res.drawable.trice_sprite, x, y, tileArea, distanceMap, platformGraph))
+                else -> sprites.add(Stegosaurus(Res.drawable.stego_sprite, x, y, tileArea, distanceMap, platformGraph))
             }
         }
     }

@@ -8,24 +8,24 @@ import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import org.jetbrains.compose.resources.DrawableResource
 
-class Compy(
+class Dodo(
     res: DrawableResource,
     x: Float, y: Float,
     mapArea: TiledArea,
     graph: PlatformGraph
 ) : WanderDino(
     type = DinoType(
-        name = "Compy",
+        name = "Dodo",
         scoreValue = 10,
         ndx = 0,
-        behavior = DinoBehavior.Wander(speed = 30f)
+        behavior = DinoBehavior.Wander(speed = 8f)
     ),
     res, x, y, mapArea, graph
 ) {
     companion object {
-        const val VISUAL_SCALE = 0.5f
+        const val VISUAL_SCALE = 0.7f
         const val HIT_RADIUS = 80f
-        const val VERTICAL_OFFSET = 15f
+        const val VERTICAL_OFFSET = 5f
     }
 
     override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE - VERTICAL_OFFSET

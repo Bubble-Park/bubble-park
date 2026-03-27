@@ -5,33 +5,34 @@ import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
+import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import org.jetbrains.compose.resources.DrawableResource
 
-class Compy(
+class Stegosaurus(
     res: DrawableResource,
     x: Float, y: Float,
     mapArea: TiledArea,
+    distanceMap: DistanceMap,
     graph: PlatformGraph
-) : WanderDino(
+) : DefensiveDino(
     type = DinoType(
-        name = "Compy",
-        scoreValue = 10,
+        name = "Stegosaurus",
+        scoreValue = 30,
         ndx = 0,
-        behavior = DinoBehavior.Wander(speed = 30f)
+        behavior = DinoBehavior.Defensive(),
+        damagesPlayer = true
     ),
-    res, x, y, mapArea, graph
+    res, x, y, mapArea, distanceMap, graph
 ) {
     companion object {
-        const val VISUAL_SCALE = 0.5f
-        const val HIT_RADIUS = 80f
+        const val VISUAL_SCALE = 2f
+        const val HIT_RADIUS = 65f
         const val VERTICAL_OFFSET = 15f
     }
 
     override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE - VERTICAL_OFFSET
-
-    override val boundingBox: Rect
-        get() = Rect(x - HIT_RADIUS, y - HIT_RADIUS, x + HIT_RADIUS, y + HIT_RADIUS)
+    override val boundingBox: Rect get() = Rect(x - HIT_RADIUS, y - HIT_RADIUS, x + HIT_RADIUS, y + HIT_RADIUS)
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.withTransform({

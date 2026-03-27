@@ -43,9 +43,15 @@ import fr.iutlens.mmi.demo.utils.Music
 import fr.iutlens.mmi.demo.volume
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.IntOffset
 import fr.iutlens.mmi.demo.menu_volcan
+import fr.iutlens.mmi.demo.ui.CloudsOverlay
+import androidx.compose.runtime.withFrameMillis
 
 @Composable
 fun MainMenu(onPlayClick: () -> Unit) {
@@ -53,6 +59,14 @@ fun MainMenu(onPlayClick: () -> Unit) {
     val dinoFont = FontFamily(
         Font(Res.font.dino_font)
     )
+
+    var menuElapsed by remember { mutableStateOf(0L) }
+    LaunchedEffect(Unit) {
+        val start = withFrameMillis { it }
+        while (true) {
+            menuElapsed = withFrameMillis { it } - start
+        }
+    }
 
     BoxWithConstraints(
         modifier = Modifier
@@ -84,6 +98,15 @@ fun MainMenu(onPlayClick: () -> Unit) {
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
+        )
+
+        // Nuages arrière-plan (derrière logo et boutons)
+        CloudsOverlay(
+            elapsed = menuElapsed,
+            screenW = screenW,
+            screenH = screenH,
+            minDim = minOf(maxWidth, maxHeight),
+            foreground = false
         )
 
         // Logo

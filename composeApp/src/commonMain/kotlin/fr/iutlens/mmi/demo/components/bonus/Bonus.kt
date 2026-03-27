@@ -1,6 +1,7 @@
 package fr.iutlens.mmi.demo.components.bonus
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.game.sprite.BasicSprite
@@ -14,6 +15,12 @@ abstract class Bonus(res: DrawableResource, x: Float, y: Float, private val scal
     protected var phase = 0f
 
     abstract fun onCollect()
+
+    override val boundingBox get(): Rect {
+        val w2 = spriteSheet.spriteWidth * scale / 2
+        val h2 = spriteSheet.spriteHeight * scale / 2
+        return Rect(x - w2, y - h2, x + w2, y + h2)
+    }
 
     open fun rotation(): Float = if (sin(phase) > 0f) 8f else -8f
 
@@ -30,7 +37,7 @@ abstract class Bonus(res: DrawableResource, x: Float, y: Float, private val scal
     }
 
     override fun update() {
-        y += 0.8f
+        y += 3f
         phase += 0.15f
     }
 }

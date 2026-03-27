@@ -21,14 +21,14 @@ fun Buttons(
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Button(
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(110.dp),
             image = Res.drawable.button_B,
             onPress = { onActionB(true) },
             onRelease = { onActionB(false) }
         )
 
         Button(
-            modifier = Modifier.size(80.dp),
+            modifier = Modifier.size(110.dp),
             image = Res.drawable.button_A,
             onPress = { onActionA(true) },
             onRelease = { onActionA(false) }

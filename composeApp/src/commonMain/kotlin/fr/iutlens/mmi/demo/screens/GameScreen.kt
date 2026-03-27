@@ -14,14 +14,26 @@ import fr.iutlens.mmi.demo.BubblePark
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.parasaur_sprite
-import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.gallimimus_sprite
+import fr.iutlens.mmi.demo.level_background
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.slow_debuff
 import fr.iutlens.mmi.demo.slow_bonus
+import fr.iutlens.mmi.demo.trice_sprite
+import fr.iutlens.mmi.demo.stego_sprite
 import fr.iutlens.mmi.demo.game.DifficultyConfig
+import fr.iutlens.mmi.demo.game.SlowEffect
+import fr.iutlens.mmi.demo.game.FastAmmoEffect
+import fr.iutlens.mmi.demo.fastammo_bonus
 import fr.iutlens.mmi.demo.game.GameView
 import fr.iutlens.mmi.demo.ui.Controllers
 import fr.iutlens.mmi.demo.utils.SpriteSheet
+import androidx.compose.material.Text
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.sp
+import org.jetbrains.compose.resources.Font
+import fr.iutlens.mmi.demo.dudu_font
 
 import androidx.compose.foundation.focusable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,10 +55,14 @@ import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.ui.ShowChrono
 import fr.iutlens.mmi.demo.ui.ShowLife
 import fr.iutlens.mmi.demo.ui.ShowScore
+import fr.iutlens.mmi.demo.ui.ScorePopupText
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
 import fr.iutlens.mmi.demo.niveau1_fond
 import fr.iutlens.mmi.demo.trex_sprite
+import fr.iutlens.mmi.demo.raptor_sprite
 import fr.iutlens.mmi.demo.soleil
 import fr.iutlens.mmi.demo.damage_border
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
@@ -62,7 +78,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.util.lerp
 import fr.iutlens.mmi.demo.compy_sprite
+import fr.iutlens.mmi.demo.dodo_sprite
+import fr.iutlens.mmi.demo.tree
 import kotlin.math.PI
+import kotlin.random.Random
 import kotlin.math.sin
 
 import org.jetbrains.compose.resources.painterResource
@@ -73,12 +92,18 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.trex_sprite, 1, 1, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.parasaur_sprite, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.trex_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.raptor_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.parasaur_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.gallimimus_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.trice_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.stego_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.player_heart, 1, 1, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.compy_sprite, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.compy_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.dodo_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_bonus, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_debuff, 1, 1, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.fastammo_bonus, 1, 1, filterQuality = FilterQuality.High)
 
     val gameData = remember { BubblePark() }
     var isPaused by remember { mutableStateOf(false) }
@@ -156,7 +181,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     ) {
 
         Image(
-            painter = painterResource(Res.drawable.background),
+            painter = painterResource(Res.drawable.level_background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -164,6 +189,11 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
         val screenW = maxWidth.value
         val screenH = maxHeight.value
+        val minDim = minOf(maxWidth, maxHeight)
+        val heartSize = minDim * 0.09f
+        val uiFontSize = (minDim.value * 0.07f).sp
+        val debuffIconSize = minDim * 0.07f
+        val debuffFontSize = (minDim.value * 0.09f).sp
         val elapsed = gameData.game.elapsed
         val sunProgress = (1f - gameData.chrono.value / DifficultyConfig.TOTAL_LEVEL_TIME).coerceIn(0f, 1f)
         val sunX = lerp(-240f, screenW + 240f, sunProgress)
@@ -180,17 +210,47 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 .size(240.dp)
         )
 
+        // Arbre décoratif (derrière la grille)
+        val treeXRatio = remember(gameData.levelIndex) { Random.nextFloat() }
+        val treeSizeDp = minDim * 0.80f
+        val treeX = treeXRatio * (screenW - treeSizeDp.value)
+        val treeY = screenH - treeSizeDp.value * 0.95f
+        Image(
+            painter = painterResource(Res.drawable.tree),
+            contentDescription = null,
+            modifier = Modifier
+                .offset(x = treeX.dp, y = treeY.dp)
+                .size(treeSizeDp)
+        )
+
         // Rendu du jeu
         GameView(
             modifier = Modifier.fillMaxSize(),
             gameData = gameData
         )
 
+        // Score popups
+        val density = LocalDensity.current
+        val canvasWidthPx = with(density) { maxWidth.toPx() }
+        val canvasHeightPx = with(density) { maxHeight.toPx() }
+        val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+        gameData.scorePopups.toList().forEach { popup ->
+            val screenPosPx = matrix.map(Offset(popup.worldX, popup.worldY))
+            val screenXDp = with(density) { screenPosPx.x.toDp().value }
+            val screenYDp = with(density) { screenPosPx.y.toDp().value }
+            ScorePopupText(
+                popup = popup,
+                screenXDp = screenXDp,
+                screenYDp = screenYDp,
+                onDone = { gameData.scorePopups.remove(popup) }
+            )
+        }
+
         Image(
             painter = painterResource(Res.drawable.damage_border),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize().alpha(0.8f).scale(damageScaleAnim.value + damagePulse)
+            modifier = Modifier.fillMaxSize().alpha(0.2f).scale(damageScaleAnim.value + damagePulse)
         )
 
         Row(
@@ -199,23 +259,63 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             verticalAlignment = Alignment.Top
         ) {
             Column {
-                val elapsed = gameData.game.elapsed
-                ShowLife(gameData.player.life)
-                ShowScore(gameData.score.get())
-                ShowChrono(gameData.chrono.value)
+                ShowLife(gameData.player.life, heartSize = heartSize)
+                ShowScore(gameData.score.get(), fontSize = uiFontSize)
+                ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
             }
-            Image(
-                painter = painterResource(Res.drawable.pause),
-                contentDescription = "Pause",
-                modifier = Modifier
-                    .size(48.dp)
-                    .padding(8.dp)
-                    .clickable {
-                        isPaused = true
-                        gameData.game.paused = true
-                        gameData.chrono.pause()
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 24.dp)) {
+                Image(
+                    painter = painterResource(Res.drawable.pause),
+                    contentDescription = "Pause",
+                    modifier = Modifier
+                        .size(56.dp)
+                        .padding(8.dp)
+                        .clickable {
+                            isPaused = true
+                            gameData.game.paused = true
+                            gameData.chrono.pause()
+                        }
+                )
+                val duduFont = FontFamily(Font(Res.font.dudu_font))
+                if (SlowEffect.isActive) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(Res.drawable.slow_bonus),
+                            contentDescription = "Buff ralentissement",
+                            modifier = Modifier.size(debuffIconSize)
+                        )
+                        Text(
+                            text = "${(SlowEffect.timer / 50f).toInt()}s",
+                            color = Color(0xFF474534),
+                            fontSize = debuffFontSize,
+                            fontFamily = duduFont
+                        )
                     }
-            )
+                }
+                if (FastAmmoEffect.isActive) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.padding(end = 8.dp)
+                    ) {
+                        Image(
+                            painter = painterResource(Res.drawable.fastammo_bonus),
+                            contentDescription = "Buff tir rapide",
+                            modifier = Modifier.size(debuffIconSize)
+                        )
+                        Text(
+                            text = "${(FastAmmoEffect.timer / 50f).toInt()}s",
+                            color = Color(0xFF474534),
+                            fontSize = debuffFontSize,
+                            fontFamily = duduFont
+                        )
+                    }
+                }
+            }
         }
 
         if (isPaused) {
@@ -234,7 +334,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         } else {
             Controllers(
                 modifier = Modifier.fillMaxSize(),
-                onJoystickChange = { gameData.game.joystickPosition = it },
+                onJoystickChange = { pos -> gameData.game.joystickPosition = pos },
                 onActionA = { pressed ->
                     if (pressed && !gameData.game.actionButtonA) gameData.player.shoot()
                     gameData.game.actionButtonA = pressed

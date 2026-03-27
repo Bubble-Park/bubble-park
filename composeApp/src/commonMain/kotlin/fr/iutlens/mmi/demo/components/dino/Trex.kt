@@ -26,9 +26,11 @@ class Trex(
     res, x, y, mapArea, distanceMap, graph
 ) {
     companion object {
-        const val VISUAL_SCALE = 1.5f
+        const val VISUAL_SCALE = 2f
         const val HIT_RADIUS = 150f
     }
+
+    override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE
 
     override val boundingBox: Rect
         get() = Rect(x - Trex.Companion.HIT_RADIUS, y - Trex.Companion.HIT_RADIUS/2, x + Trex.Companion.HIT_RADIUS, y + Trex.Companion.HIT_RADIUS/2)
