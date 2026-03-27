@@ -58,6 +58,15 @@ class BubblePark : GameData() {
     val scorePopups = mutableStateListOf<ScorePopup>()
     private var popupCounter = 0L
 
+    var comboMultiplier by mutableStateOf(1.0f)
+
+    private fun addScoreWithCombo(basePoints: Int, x: Float, y: Float) {
+        val earned = kotlin.math.ceil(basePoints * comboMultiplier).toInt()
+        score.add(earned)
+        scorePopups.add(ScorePopup(popupCounter++, x, y, earned))
+        comboMultiplier += 0.01f
+    }
+
     val score = Score()
     var chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
     lateinit var player: Player
@@ -90,6 +99,7 @@ class BubblePark : GameData() {
         bonusTimerMs = 0L
         SlowEffect.reset()
         FastAmmoEffect.reset()
+        comboMultiplier = 1.0f
 
         val levelData = LevelGenerator.generate(index)
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
@@ -218,8 +228,7 @@ class BubblePark : GameData() {
             if (!dino.isCaptured) continue
             if (player.boundingBox.overlaps(dino.boundingBox)) {
                 dino.isDead = true
-                score.add(dino.scoreValue)
-                scorePopups.add(ScorePopup(popupCounter++, dino.x, dino.y, dino.scoreValue))
+                addScoreWithCombo(dino.scoreValue, dino.x, dino.y)
                 break
             }
         }
@@ -230,8 +239,7 @@ class BubblePark : GameData() {
                 if (enemy.isDead) continue
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
-                    score.add(enemy.scoreValue)
-                    scorePopups.add(ScorePopup(popupCounter++, enemy.x, enemy.y, enemy.scoreValue))
+                    addScoreWithCombo(enemy.scoreValue, enemy.x, enemy.y)
                     bullet.explode()
                     break
                 }
@@ -242,6 +250,7 @@ class BubblePark : GameData() {
                 if (bullet.boundingBox.overlaps(dino.boundingBox)) {
                     dino.currentHitCount++
                     dino.onHitByBullet()
+                    comboMultiplier += 0.01f
                     if (dino.currentHitCount >= dino.effectiveHitCount) {
                         dino.isCaptured = true
                         dino.currentHitCount = 0

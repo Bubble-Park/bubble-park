@@ -81,8 +81,11 @@ import fr.iutlens.mmi.demo.compy_sprite
 import fr.iutlens.mmi.demo.dodo_sprite
 import fr.iutlens.mmi.demo.tree
 import kotlin.math.PI
+import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.math.sin
+import kotlinx.coroutines.launch
+import androidx.compose.ui.unit.IntOffset
 
 import org.jetbrains.compose.resources.painterResource
 
@@ -145,10 +148,14 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         }
     }
 
+    val shakeX = remember { Animatable(0f) }
+    val shakeY = remember { Animatable(0f) }
+
     // Ecran de jeu
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
+            .offset { IntOffset(shakeX.value.roundToInt(), shakeY.value.roundToInt()) }
             .focusRequester(focusRequester)
             .focusable()
             .onKeyEvent { event ->
@@ -236,8 +243,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
         gameData.scorePopups.toList().forEach { popup ->
             val screenPosPx = matrix.map(Offset(popup.worldX, popup.worldY))
-            val screenXDp = with(density) { screenPosPx.x.toDp().value }
-            val screenYDp = with(density) { screenPosPx.y.toDp().value }
+            val screenXDp = density.run { screenPosPx.x.toDp().value }
+            val screenYDp = density.run { screenPosPx.y.toDp().value }
             ScorePopupText(
                 popup = popup,
                 screenXDp = screenXDp,
@@ -318,6 +325,23 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             }
         }
 
+        // Combo près du joueur
+        val comboMatrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+        val playerScreenPx = comboMatrix.map(Offset(gameData.player.x, gameData.player.y))
+        val comboXDp = density.run { (playerScreenPx.x + 55f).toDp() }
+        val comboYDp = density.run { (playerScreenPx.y - 30f).toDp() }
+        val comboFont = FontFamily(Font(Res.font.dudu_font))
+        Text(
+            text = "x${"%.2f".format(gameData.comboMultiplier)}",
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .offset(x = comboXDp, y = comboYDp)
+                .rotate(-12f),
+            color = Color(0xFFFF69B4),
+            fontSize = (minDim.value * 0.05f).sp,
+            fontFamily = comboFont
+        )
+
         if (isPaused) {
             PauseScreen(
                 life = gameData.player.life,
@@ -361,5 +385,16 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     LaunchedEffect(gameData.player.life, gameData.levelIndex) {
         damageScaleAnim.animateTo(lifeToScale(gameData.player.life), tween(500, easing = EaseInOut))
+    }
+
+    LaunchedEffect(gameData.comboMultiplier) {
+        if (gameData.comboMultiplier <= 1.01f) return@LaunchedEffect
+        repeat(3) {
+            launch { shakeX.animateTo(if (it % 2 == 0) 8f else -8f, tween(40)) }
+            launch { shakeY.animateTo(if (it % 2 == 0) 5f else -5f, tween(40)) }
+            kotlinx.coroutines.delay(40)
+        }
+        launch { shakeX.animateTo(0f, tween(40)) }
+        launch { shakeY.animateTo(0f, tween(40)) }
     }
 }
