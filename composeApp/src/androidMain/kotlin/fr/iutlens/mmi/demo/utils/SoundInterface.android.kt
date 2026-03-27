@@ -7,8 +7,13 @@ import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import fr.iutlens.mmi.demo.Res
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.ExperimentalResourceApi
+import java.io.File
 
 @UnstableApi
 actual open class MusicPlayer actual constructor(
@@ -44,7 +49,7 @@ actual open class MusicPlayer actual constructor(
         musicPlayer?.pause()
     }
 
-    actual fun stop(){
+    actual fun stop() {
         musicPlayer?.stop()
     }
 
@@ -54,41 +59,28 @@ actual open class MusicPlayer actual constructor(
 }
 
 actual open class SoundPool actual constructor() {
-    val map = mutableMapOf<String,MediaItem>()
-    var pool : Array<Player>? = null
+    private var nativePool: android.media.SoundPool? = null
+    private val soundIds = mutableMapOf<String, Int>()
 
-    /*(10){
-        ExoPlayer.Builder(context as Context)
-            .setMediaSourceFactory(
-                DefaultMediaSourceFactory(
-                    ResolvingByteArrayDataSource.Factory { uri ->
-                        runBlocking { Res.readBytes(uri.path!!) }
-                    }
-                )
-            )
-            .build()
-    }
-    */
-    @UnstableApi
     @OptIn(ExperimentalResourceApi::class)
     actual fun load(context: Any?, res: String) {
-        try {
-            if (pool == null) {
-                pool = Array(10) {
-                    ExoPlayer.Builder(context as Context)
-                        .setMediaSourceFactory(
-                            DefaultMediaSourceFactory(
-                                ResolvingByteArrayDataSource.Factory { uri ->
-                                    runBlocking { Res.readBytes(uri.path!!) }
-                                }
-                            )
-                        )
-                        .build()
+        val ctx = context as? Context ?: return
+        if (soundIds.containsKey(res)) return
+        if (nativePool == null) {
+            nativePool = android.media.SoundPool.Builder()
+                .setMaxStreams(10)
+                .build()
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val bytes = Res.readBytes("files/$res")
+                val cacheFile = File(ctx.cacheDir, res)
+                cacheFile.writeBytes(bytes)
+                withContext(Dispatchers.Main) {
+                    val id = nativePool!!.load(cacheFile.absolutePath, 1)
+                    soundIds[res] = id
                 }
-            }
-            map[res] = MediaItem.fromUri(res)
-        } catch (_: Exception) {
-            // Environnement preview ou contexte invalide, on ignore
+            } catch (_: Exception) {}
         }
     }
 
@@ -100,12 +92,7 @@ actual open class SoundPool actual constructor() {
         loop: Int,
         rate: Float
     ) {
-        val media = map[resource] ?: return
-        pool?.firstOrNull { !it.isPlaying }?.apply {
-            this.volume = (leftVolume+rightVolume)/2
-            setMediaItem(media)
-            prepare()
-            play()
-        }
+        val id = soundIds[resource] ?: return
+        nativePool?.play(id, leftVolume, rightVolume, priority, loop, rate)
     }
 }
