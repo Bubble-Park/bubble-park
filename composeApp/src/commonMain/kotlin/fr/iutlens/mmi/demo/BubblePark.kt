@@ -35,6 +35,7 @@ import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.distanceMap
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlin.math.ceil
@@ -52,6 +53,10 @@ class BubblePark : GameData() {
         private const val PLAYER_INIT_TILE_J = 20
         private const val INITIAL_SPAWN_RATIO = 0.3f
     }
+
+    data class ScorePopup(val id: Long, val worldX: Float, val worldY: Float, val points: Int)
+    val scorePopups = mutableStateListOf<ScorePopup>()
+    private var popupCounter = 0L
 
     val score = Score()
     var chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
@@ -214,6 +219,7 @@ class BubblePark : GameData() {
             if (player.boundingBox.overlaps(dino.boundingBox)) {
                 dino.isDead = true
                 score.add(dino.scoreValue)
+                scorePopups.add(ScorePopup(popupCounter++, dino.x, dino.y, dino.scoreValue))
                 break
             }
         }
@@ -225,6 +231,7 @@ class BubblePark : GameData() {
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
                     score.add(enemy.scoreValue)
+                    scorePopups.add(ScorePopup(popupCounter++, enemy.x, enemy.y, enemy.scoreValue))
                     bullet.explode()
                     break
                 }

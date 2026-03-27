@@ -19,7 +19,7 @@ fun Controllers(
 ) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val minDim = minOf(maxWidth, maxHeight)
-        val joystickSize = minDim * 0.32f
+        val joystickSize = minDim * 0.50f
         val bottomPadding = maxHeight * 0.08f
         val sidePadding = maxWidth * 0.04f
 

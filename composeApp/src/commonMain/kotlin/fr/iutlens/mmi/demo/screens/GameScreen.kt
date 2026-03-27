@@ -55,6 +55,9 @@ import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.ui.ShowChrono
 import fr.iutlens.mmi.demo.ui.ShowLife
 import fr.iutlens.mmi.demo.ui.ShowScore
+import fr.iutlens.mmi.demo.ui.ScorePopupText
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
 import fr.iutlens.mmi.demo.niveau1_fond
@@ -189,8 +192,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         val minDim = minOf(maxWidth, maxHeight)
         val heartSize = minDim * 0.09f
         val uiFontSize = (minDim.value * 0.07f).sp
-        val debuffIconSize = minDim * 0.04f
-        val debuffFontSize = (minDim.value * 0.055f).sp
+        val debuffIconSize = minDim * 0.07f
+        val debuffFontSize = (minDim.value * 0.09f).sp
         val elapsed = gameData.game.elapsed
         val sunProgress = (1f - gameData.chrono.value / DifficultyConfig.TOTAL_LEVEL_TIME).coerceIn(0f, 1f)
         val sunX = lerp(-240f, screenW + 240f, sunProgress)
@@ -226,11 +229,28 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             gameData = gameData
         )
 
+        // Score popups
+        val density = LocalDensity.current
+        val canvasWidthPx = with(density) { maxWidth.toPx() }
+        val canvasHeightPx = with(density) { maxHeight.toPx() }
+        val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+        gameData.scorePopups.toList().forEach { popup ->
+            val screenPosPx = matrix.map(Offset(popup.worldX, popup.worldY))
+            val screenXDp = with(density) { screenPosPx.x.toDp().value }
+            val screenYDp = with(density) { screenPosPx.y.toDp().value }
+            ScorePopupText(
+                popup = popup,
+                screenXDp = screenXDp,
+                screenYDp = screenYDp,
+                onDone = { gameData.scorePopups.remove(popup) }
+            )
+        }
+
         Image(
             painter = painterResource(Res.drawable.damage_border),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize().alpha(0.8f).scale(damageScaleAnim.value + damagePulse)
+            modifier = Modifier.fillMaxSize().alpha(0.2f).scale(damageScaleAnim.value + damagePulse)
         )
 
         Row(
@@ -243,7 +263,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 ShowScore(gameData.score.get(), fontSize = uiFontSize)
                 ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 24.dp)) {
                 Image(
                     painter = painterResource(Res.drawable.pause),
                     contentDescription = "Pause",

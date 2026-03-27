@@ -20,7 +20,7 @@ class Raptor(
         name = "Raptor",
         scoreValue = 45,
         ndx = 0,
-        behavior = DinoBehavior.ChasePlayer(speed = 35f, hitCount = 1),
+        behavior = DinoBehavior.ChasePlayer(speed = 30f, hitCount = 1),
         damagesPlayer = true
     ),
     res, x, y, mapArea, distanceMap, graph
