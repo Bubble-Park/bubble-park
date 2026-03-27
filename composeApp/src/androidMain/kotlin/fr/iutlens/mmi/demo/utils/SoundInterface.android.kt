@@ -23,22 +23,24 @@ actual open class MusicPlayer actual constructor(
     autoplay: Boolean
 ) {
     @OptIn(ExperimentalResourceApi::class)
-    private val musicPlayer = ExoPlayer.Builder(context as Context)
-        .setMediaSourceFactory(
-            DefaultMediaSourceFactory(
-                ResolvingByteArrayDataSource.Factory { uri ->
-                    runBlocking { Res.readBytes(uri.path!!) }
-                }
+    private val musicPlayer = try {
+        ExoPlayer.Builder(context as Context)
+            .setMediaSourceFactory(
+                DefaultMediaSourceFactory(
+                    ResolvingByteArrayDataSource.Factory { uri ->
+                        runBlocking { Res.readBytes(uri.path!!) }
+                    }
+                )
             )
-        )
-        .build()?.apply {
-            setMediaItem(MediaItem.fromUri(resource))
-            prepare()
-            if (autoplay){
-                play()
-                setRepeatMode(Player.REPEAT_MODE_ALL)
+            .build()?.apply {
+                setMediaItem(MediaItem.fromUri(resource))
+                prepare()
+                if (autoplay) {
+                    play()
+                    setRepeatMode(Player.REPEAT_MODE_ALL)
+                }
             }
-        }
+    } catch (_: Exception) { null }
 
     actual fun start() {
         musicPlayer?.play()
@@ -76,20 +78,24 @@ actual open class SoundPool actual constructor() {
     @UnstableApi
     @OptIn(ExperimentalResourceApi::class)
     actual fun load(context: Any?, res: String) {
-        if (pool == null){
-            pool = Array(10){
-                ExoPlayer.Builder(context as Context)
-                    .setMediaSourceFactory(
-                        DefaultMediaSourceFactory(
-                            ResolvingByteArrayDataSource.Factory { uri ->
-                                runBlocking { Res.readBytes(uri.path!!) }
-                            }
+        try {
+            if (pool == null) {
+                pool = Array(10) {
+                    ExoPlayer.Builder(context as Context)
+                        .setMediaSourceFactory(
+                            DefaultMediaSourceFactory(
+                                ResolvingByteArrayDataSource.Factory { uri ->
+                                    runBlocking { Res.readBytes(uri.path!!) }
+                                }
+                            )
                         )
-                    )
-                    .build()
+                        .build()
+                }
             }
+            map[res] = MediaItem.fromUri(res)
+        } catch (_: Exception) {
+            // Environnement preview ou contexte invalide, on ignore
         }
-        map[res] = MediaItem.fromUri(res)
     }
 
     actual fun play(

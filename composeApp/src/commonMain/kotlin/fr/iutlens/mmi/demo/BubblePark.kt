@@ -32,6 +32,7 @@ import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
 import fr.iutlens.mmi.demo.utils.DistanceMap
+import fr.iutlens.mmi.demo.utils.GameSound
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.distanceMap
 import androidx.compose.runtime.getValue
@@ -200,7 +201,10 @@ class BubblePark : GameData() {
         for (enemy in activeEnemies) {
             if (enemy.stunTimer > 0) continue
             if (enemy.boundingBox.overlaps(player.boundingBox)) {
-                if (player.takeDamage()) enemy.stunTimer = 50
+                if (player.takeDamage()) {
+                    GameSound.playHit(player.life + 1)
+                    enemy.stunTimer = 50
+                }
             }
         }
 
@@ -209,7 +213,10 @@ class BubblePark : GameData() {
             if (!dino.type.damagesPlayer) continue
             if (dino.stunTimer > 0) continue
             if (dino.boundingBox.overlaps(player.boundingBox)) {
-                if (player.takeDamage()) dino.stunTimer = 50
+                if (player.takeDamage()) {
+                    GameSound.playHit(player.life + 1)
+                    dino.stunTimer = 50
+                }
             }
         }
 
