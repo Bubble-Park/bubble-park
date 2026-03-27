@@ -15,7 +15,7 @@ import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.parasaur_sprite
 import fr.iutlens.mmi.demo.gallimimus_sprite
-import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.level_background
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.slow_debuff
 import fr.iutlens.mmi.demo.slow_bonus
@@ -76,7 +76,9 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.util.lerp
 import fr.iutlens.mmi.demo.compy_sprite
 import fr.iutlens.mmi.demo.dodo_sprite
+import fr.iutlens.mmi.demo.tree
 import kotlin.math.PI
+import kotlin.random.Random
 import kotlin.math.sin
 
 import org.jetbrains.compose.resources.painterResource
@@ -90,6 +92,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.trex_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.raptor_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.parasaur_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.gallimimus_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.trice_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.stego_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.player_heart, 1, 1, filterQuality = FilterQuality.High)
@@ -175,7 +178,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     ) {
 
         Image(
-            painter = painterResource(Res.drawable.background),
+            painter = painterResource(Res.drawable.level_background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -183,6 +186,11 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
         val screenW = maxWidth.value
         val screenH = maxHeight.value
+        val minDim = minOf(maxWidth, maxHeight)
+        val heartSize = minDim * 0.09f
+        val uiFontSize = (minDim.value * 0.07f).sp
+        val debuffIconSize = minDim * 0.04f
+        val debuffFontSize = (minDim.value * 0.055f).sp
         val elapsed = gameData.game.elapsed
         val sunProgress = (1f - gameData.chrono.value / DifficultyConfig.TOTAL_LEVEL_TIME).coerceIn(0f, 1f)
         val sunX = lerp(-240f, screenW + 240f, sunProgress)
@@ -197,6 +205,19 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 .offset(x = sunX.dp, y = sunY.dp)
                 .rotate(sunRotation)
                 .size(240.dp)
+        )
+
+        // Arbre décoratif (derrière la grille)
+        val treeXRatio = remember(gameData.levelIndex) { Random.nextFloat() }
+        val treeSizeDp = minDim * 0.80f
+        val treeX = treeXRatio * (screenW - treeSizeDp.value)
+        val treeY = screenH - treeSizeDp.value * 0.95f
+        Image(
+            painter = painterResource(Res.drawable.tree),
+            contentDescription = null,
+            modifier = Modifier
+                .offset(x = treeX.dp, y = treeY.dp)
+                .size(treeSizeDp)
         )
 
         // Rendu du jeu
@@ -218,10 +239,9 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             verticalAlignment = Alignment.Top
         ) {
             Column {
-                val elapsed = gameData.game.elapsed
-                ShowLife(gameData.player.life)
-                ShowScore(gameData.score.get())
-                ShowChrono(gameData.chrono.value)
+                ShowLife(gameData.player.life, heartSize = heartSize)
+                ShowScore(gameData.score.get(), fontSize = uiFontSize)
+                ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Image(
@@ -240,18 +260,18 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 if (SlowEffect.isActive) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Image(
                             painter = painterResource(Res.drawable.slow_bonus),
                             contentDescription = "Buff ralentissement",
-                            modifier = Modifier.size(72.dp)
+                            modifier = Modifier.size(debuffIconSize)
                         )
                         Text(
                             text = "${(SlowEffect.timer / 50f).toInt()}s",
                             color = Color(0xFF474534),
-                            fontSize = 16.sp,
+                            fontSize = debuffFontSize,
                             fontFamily = duduFont
                         )
                     }
@@ -259,18 +279,18 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 if (FastAmmoEffect.isActive) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
                         modifier = Modifier.padding(end = 8.dp)
                     ) {
                         Image(
                             painter = painterResource(Res.drawable.fastammo_bonus),
                             contentDescription = "Buff tir rapide",
-                            modifier = Modifier.size(72.dp)
+                            modifier = Modifier.size(debuffIconSize)
                         )
                         Text(
                             text = "${(FastAmmoEffect.timer / 50f).toInt()}s",
                             color = Color(0xFF474534),
-                            fontSize = 16.sp,
+                            fontSize = debuffFontSize,
                             fontFamily = duduFont
                         )
                     }
@@ -294,7 +314,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         } else {
             Controllers(
                 modifier = Modifier.fillMaxSize(),
-                onJoystickChange = { gameData.game.joystickPosition = it },
+                onJoystickChange = { pos -> gameData.game.joystickPosition = pos },
                 onActionA = { pressed ->
                     if (pressed && !gameData.game.actionButtonA) gameData.player.shoot()
                     gameData.game.actionButtonA = pressed

@@ -6,6 +6,7 @@ import fr.iutlens.mmi.demo.components.dino.GenericDino
 import fr.iutlens.mmi.demo.components.dino.Trex
 import fr.iutlens.mmi.demo.components.dino.Raptor
 import fr.iutlens.mmi.demo.components.dino.Dodo
+import fr.iutlens.mmi.demo.components.dino.Gallimimus
 import fr.iutlens.mmi.demo.components.dino.Parasaur
 import fr.iutlens.mmi.demo.components.bonus.Bonus
 import fr.iutlens.mmi.demo.components.bonus.LifeBonus
@@ -286,8 +287,10 @@ class BubblePark : GameData() {
         val wanderTotal        = (initialCount * DifficultyConfig.RATIO_WANDER).roundToInt()
         val targetCompy        = wanderTotal / 2
         val targetDodo         = wanderTotal - targetCompy
-        val targetParasaur     = (initialCount * DifficultyConfig.RATIO_FLEE).roundToInt()
-        val defensiveTotal     = initialCount - chaseTotal - wanderTotal - targetParasaur
+        val fleeTotal          = (initialCount * DifficultyConfig.RATIO_FLEE).roundToInt()
+        val targetParasaur     = fleeTotal / 2
+        val targetGallimimus   = fleeTotal - targetParasaur
+        val defensiveTotal     = initialCount - chaseTotal - wanderTotal - fleeTotal
         val targetTriceratops  = defensiveTotal / 2
         val targetStegosaurus  = defensiveTotal - targetTriceratops
 
@@ -296,19 +299,21 @@ class BubblePark : GameData() {
         var spawnedCompy = 0
         var spawnedDodo = 0
         var spawnedParasaur = 0
+        var spawnedGallimimus = 0
         var spawnedTriceratops = 0
         var spawnedStegosaurus = 0
         val sprites = game.spriteList as? MutableList<Sprite> ?: return
 
         repeat(initialCount) {
-            val trexNeeded       = (targetTrex - spawnedTrex).coerceAtLeast(0)
-            val raptorNeeded     = (targetRaptor - spawnedRaptor).coerceAtLeast(0)
-            val compyNeeded      = (targetCompy - spawnedCompy).coerceAtLeast(0)
-            val dodoNeeded       = (targetDodo - spawnedDodo).coerceAtLeast(0)
-            val fleeNeeded       = (targetParasaur - spawnedParasaur).coerceAtLeast(0)
-            val triceNeeded      = (targetTriceratops - spawnedTriceratops).coerceAtLeast(0)
-            val stegoNeeded      = (targetStegosaurus - spawnedStegosaurus).coerceAtLeast(0)
-            val total = trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + fleeNeeded + triceNeeded + stegoNeeded
+            val trexNeeded        = (targetTrex - spawnedTrex).coerceAtLeast(0)
+            val raptorNeeded      = (targetRaptor - spawnedRaptor).coerceAtLeast(0)
+            val compyNeeded       = (targetCompy - spawnedCompy).coerceAtLeast(0)
+            val dodoNeeded        = (targetDodo - spawnedDodo).coerceAtLeast(0)
+            val parasaurNeeded    = (targetParasaur - spawnedParasaur).coerceAtLeast(0)
+            val gallimimusNeeded  = (targetGallimimus - spawnedGallimimus).coerceAtLeast(0)
+            val triceNeeded       = (targetTriceratops - spawnedTriceratops).coerceAtLeast(0)
+            val stegoNeeded       = (targetStegosaurus - spawnedStegosaurus).coerceAtLeast(0)
+            val total = trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded + triceNeeded + stegoNeeded
 
             if (total == 0) return@repeat
 
@@ -331,11 +336,15 @@ class BubblePark : GameData() {
                         sprites.add(Dodo(Res.drawable.dodo_sprite, x, y, tileArea, platformGraph))
                         spawnedDodo++
                     }
-                    roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + fleeNeeded -> {
+                    roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded -> {
                         sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
                         spawnedParasaur++
                     }
-                    roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + fleeNeeded + triceNeeded -> {
+                    roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded -> {
+                        sprites.add(Gallimimus(Res.drawable.gallimimus_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        spawnedGallimimus++
+                    }
+                    roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded + triceNeeded -> {
                         sprites.add(Triceratops(Res.drawable.trice_sprite, x, y, tileArea, distanceMap, platformGraph))
                         spawnedTriceratops++
                     }
@@ -355,9 +364,10 @@ class BubblePark : GameData() {
         val activeCompy       = activeGenericDinos.count { it is Compy }
         val activeDodo        = activeGenericDinos.count { it is Dodo }
         val activeParasaur    = activeGenericDinos.count { it is Parasaur }
+        val activeGallimimus  = activeGenericDinos.count { it is Gallimimus }
         val activeTriceratops = activeGenericDinos.count { it is Triceratops }
         val activeStegosaurus = activeGenericDinos.count { it is Stegosaurus }
-        if (activeTrex + activeRaptor + activeCompy + activeDodo + activeParasaur + activeTriceratops + activeStegosaurus >= maxDino) return
+        if (activeTrex + activeRaptor + activeCompy + activeDodo + activeParasaur + activeGallimimus + activeTriceratops + activeStegosaurus >= maxDino) return
 
         val chaseTotal        = (maxDino * DifficultyConfig.RATIO_CHASE).roundToInt()
         val targetTrex        = chaseTotal / 2
@@ -365,19 +375,22 @@ class BubblePark : GameData() {
         val wanderTotal       = (maxDino * DifficultyConfig.RATIO_WANDER).roundToInt()
         val targetCompy       = wanderTotal / 2
         val targetDodo        = wanderTotal - targetCompy
-        val targetParasaur    = (maxDino * DifficultyConfig.RATIO_FLEE).roundToInt()
-        val defensiveTotal    = maxDino - chaseTotal - wanderTotal - targetParasaur
+        val fleeTotal         = (maxDino * DifficultyConfig.RATIO_FLEE).roundToInt()
+        val targetParasaur    = fleeTotal / 2
+        val targetGallimimus  = fleeTotal - targetParasaur
+        val defensiveTotal    = maxDino - chaseTotal - wanderTotal - fleeTotal
         val targetTriceratops = defensiveTotal / 2
         val targetStegosaurus = defensiveTotal - targetTriceratops
 
-        val trexNeeded   = (targetTrex - activeTrex).coerceAtLeast(0)
-        val raptorNeeded = (targetRaptor - activeRaptor).coerceAtLeast(0)
-        val compyNeeded  = (targetCompy - activeCompy).coerceAtLeast(0)
-        val dodoNeeded   = (targetDodo - activeDodo).coerceAtLeast(0)
-        val fleeNeeded   = (targetParasaur - activeParasaur).coerceAtLeast(0)
-        val triceNeeded  = (targetTriceratops - activeTriceratops).coerceAtLeast(0)
-        val stegoNeeded  = (targetStegosaurus - activeStegosaurus).coerceAtLeast(0)
-        val total = trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + fleeNeeded + triceNeeded + stegoNeeded
+        val trexNeeded        = (targetTrex - activeTrex).coerceAtLeast(0)
+        val raptorNeeded      = (targetRaptor - activeRaptor).coerceAtLeast(0)
+        val compyNeeded       = (targetCompy - activeCompy).coerceAtLeast(0)
+        val dodoNeeded        = (targetDodo - activeDodo).coerceAtLeast(0)
+        val parasaurNeeded    = (targetParasaur - activeParasaur).coerceAtLeast(0)
+        val gallimimusNeeded  = (targetGallimimus - activeGallimimus).coerceAtLeast(0)
+        val triceNeeded       = (targetTriceratops - activeTriceratops).coerceAtLeast(0)
+        val stegoNeeded       = (targetStegosaurus - activeStegosaurus).coerceAtLeast(0)
+        val total = trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded + triceNeeded + stegoNeeded
 
         if (total == 0) return
 
@@ -389,8 +402,9 @@ class BubblePark : GameData() {
                 roll < trexNeeded + raptorNeeded -> sprites.add(Raptor(Res.drawable.raptor_sprite, x, y, tileArea, distanceMap, platformGraph))
                 roll < trexNeeded + raptorNeeded + compyNeeded -> sprites.add(Compy(Res.drawable.compy_sprite, x, y, tileArea, platformGraph))
                 roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded -> sprites.add(Dodo(Res.drawable.dodo_sprite, x, y, tileArea, platformGraph))
-                roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + fleeNeeded -> sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
-                roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + fleeNeeded + triceNeeded -> sprites.add(Triceratops(Res.drawable.trice_sprite, x, y, tileArea, distanceMap, platformGraph))
+                roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded -> sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
+                roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded -> sprites.add(Gallimimus(Res.drawable.gallimimus_sprite, x, y, tileArea, distanceMap, platformGraph))
+                roll < trexNeeded + raptorNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded + triceNeeded -> sprites.add(Triceratops(Res.drawable.trice_sprite, x, y, tileArea, distanceMap, platformGraph))
                 else -> sprites.add(Stegosaurus(Res.drawable.stego_sprite, x, y, tileArea, distanceMap, platformGraph))
             }
         }

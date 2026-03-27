@@ -31,7 +31,7 @@ class JoystickPosition(offset: Offset, size: IntSize){
 @Composable
 fun Joystick(
     modifier: Modifier,
-    onChange: (JoystickPosition) -> Unit
+    onChange: (JoystickPosition?) -> Unit
 ) {
     var knobOffset by remember { mutableStateOf(Offset.Zero) }
 
@@ -66,7 +66,7 @@ fun Joystick(
                         }
 
                         knobOffset = Offset.Zero
-                        onChange(JoystickPosition.centered)
+                        onChange(null)
                     }
                 }
             }

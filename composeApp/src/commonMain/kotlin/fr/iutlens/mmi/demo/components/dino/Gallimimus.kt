@@ -32,18 +32,21 @@ class Gallimimus(
     companion object {
         const val VISUAL_SCALE = 1.2f
         const val HIT_RADIUS = 65f
+        const val VISUAL_Y_OFFSET = 0f
     }
 
     override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE
     override val boundingBox: Rect get() = Rect(x - HIT_RADIUS, y - HIT_RADIUS, x + HIT_RADIUS, y + HIT_RADIUS)
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
-        drawScope.withTransform({
-            translate(x, y)
-            scale(VISUAL_SCALE, VISUAL_SCALE, pivot = Offset.Zero)
-            translate(-x, -y)
-        }) {
-            super.paint(this, elapsed)
+        drawScope.withTransform({ translate(0f, VISUAL_Y_OFFSET) }) {
+            withTransform({
+                translate(x, y)
+                scale(VISUAL_SCALE, VISUAL_SCALE, pivot = Offset.Zero)
+                translate(-x, -y)
+            }) {
+                super.paint(this, elapsed)
+            }
         }
     }
 }

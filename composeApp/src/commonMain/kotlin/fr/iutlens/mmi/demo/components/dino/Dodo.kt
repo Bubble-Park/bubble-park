@@ -24,7 +24,7 @@ class Dodo(
 ) {
     companion object {
         const val VISUAL_SCALE = 0.7f
-        const val HIT_RADIUS = 60f
+        const val HIT_RADIUS = 80f
         const val VERTICAL_OFFSET = 5f
     }
 
