@@ -41,6 +41,7 @@ import fr.iutlens.mmi.demo.menu_premier_plan_up
 import fr.iutlens.mmi.demo.menu_second_plan
 import fr.iutlens.mmi.demo.utils.Music
 import fr.iutlens.mmi.demo.volume
+import fr.iutlens.mmi.demo.bestiaire
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,7 +55,7 @@ import fr.iutlens.mmi.demo.ui.CloudsOverlay
 import androidx.compose.runtime.withFrameMillis
 
 @Composable
-fun MainMenu(onPlayClick: () -> Unit) {
+fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}) {
 
     val dinoFont = FontFamily(
         Font(Res.font.dino_font)
@@ -151,6 +152,17 @@ fun MainMenu(onPlayClick: () -> Unit) {
             )
         }
         
+        // Icône Bestiaire
+        Image(
+            painter = painterResource(Res.drawable.bestiaire),
+            contentDescription = "Bestiaire",
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 24.dp)
+                .size((minOf(maxWidth, maxHeight) * 0.16f))
+                .clickable { onBestiaryClick() }
+        )
+
         // Version
         Text(
             text = "v1.0.0",
