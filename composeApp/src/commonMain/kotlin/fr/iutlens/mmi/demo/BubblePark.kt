@@ -22,6 +22,7 @@ import fr.iutlens.mmi.demo.game.Chrono
 import fr.iutlens.mmi.demo.game.DifficultyConfig
 import fr.iutlens.mmi.demo.game.DifficultyManager
 import fr.iutlens.mmi.demo.game.LevelDifficulty
+import fr.iutlens.mmi.demo.game.SpawnRatios
 import fr.iutlens.mmi.demo.game.GameData
 import fr.iutlens.mmi.demo.game.Score
 import fr.iutlens.mmi.demo.game.sprite.Sprite
@@ -81,6 +82,7 @@ class BubblePark : GameData() {
     private var spawnTimerMs = 0L
     private var levelElapsedMs = 0L
     private lateinit var currentLevelDiff: LevelDifficulty
+    private lateinit var spawnRatios: SpawnRatios
 
     private var bonusTimerMs = 0L
     private var lastBonusIndex = -1
@@ -94,6 +96,7 @@ class BubblePark : GameData() {
     fun loadLevel(index: Int) {
         levelIndex = index
         currentLevelDiff = DifficultyManager.getLevelDifficulty(index + 1)
+        spawnRatios = DifficultyManager.getSpawnRatios(index + 1)
         chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
         spawnTimerMs = 0L
         levelElapsedMs = 0L
@@ -106,7 +109,7 @@ class BubblePark : GameData() {
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
         tileArea = TiledArea(levelData.tileSetRes, tileMap)
 
-        val savedLife = if (::player.isInitialized) player.life else 3
+        val savedLife = if (::player.isInitialized) minOf(player.life + 1, 3) else 3
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
             x = levelData.startX * tileArea.w,
@@ -309,13 +312,13 @@ class BubblePark : GameData() {
     private fun spawnInitialDinos() {
         val initialCount = ceil(currentLevelDiff.maxDino * INITIAL_SPAWN_RATIO).toInt()
 
-        val chaseTotal         = (initialCount * DifficultyConfig.RATIO_CHASE).roundToInt()
+        val chaseTotal         = (initialCount * spawnRatios.chase).roundToInt()
         val targetTrex         = chaseTotal / 2
         val targetRaptor       = chaseTotal - targetTrex
-        val wanderTotal        = (initialCount * DifficultyConfig.RATIO_WANDER).roundToInt()
+        val wanderTotal        = (initialCount * spawnRatios.wander).roundToInt()
         val targetCompy        = wanderTotal / 2
         val targetDodo         = wanderTotal - targetCompy
-        val fleeTotal          = (initialCount * DifficultyConfig.RATIO_FLEE).roundToInt()
+        val fleeTotal          = (initialCount * spawnRatios.flee).roundToInt()
         val targetParasaur     = fleeTotal / 2
         val targetGallimimus   = fleeTotal - targetParasaur
         val defensiveTotal     = initialCount - chaseTotal - wanderTotal - fleeTotal
@@ -397,13 +400,13 @@ class BubblePark : GameData() {
         val activeStegosaurus = activeGenericDinos.count { it is Stegosaurus }
         if (activeTrex + activeRaptor + activeCompy + activeDodo + activeParasaur + activeGallimimus + activeTriceratops + activeStegosaurus >= maxDino) return
 
-        val chaseTotal        = (maxDino * DifficultyConfig.RATIO_CHASE).roundToInt()
+        val chaseTotal        = (maxDino * spawnRatios.chase).roundToInt()
         val targetTrex        = chaseTotal / 2
         val targetRaptor      = chaseTotal - targetTrex
-        val wanderTotal       = (maxDino * DifficultyConfig.RATIO_WANDER).roundToInt()
+        val wanderTotal       = (maxDino * spawnRatios.wander).roundToInt()
         val targetCompy       = wanderTotal / 2
         val targetDodo        = wanderTotal - targetCompy
-        val fleeTotal         = (maxDino * DifficultyConfig.RATIO_FLEE).roundToInt()
+        val fleeTotal         = (maxDino * spawnRatios.flee).roundToInt()
         val targetParasaur    = fleeTotal / 2
         val targetGallimimus  = fleeTotal - targetParasaur
         val defensiveTotal    = maxDino - chaseTotal - wanderTotal - fleeTotal
