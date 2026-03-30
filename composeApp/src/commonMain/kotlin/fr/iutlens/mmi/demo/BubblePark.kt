@@ -239,6 +239,7 @@ class BubblePark : GameData() {
                 addScoreWithCombo(dino.scoreValue, dino.x, dino.y)
                 // score.add(dino.scoreValue)
                 // scorePopups.add(ScorePopup(popupCounter++, dino.x, dino.y, dino.scoreValue))
+
                 GameSound.playPointCombo()
                 break
             }
