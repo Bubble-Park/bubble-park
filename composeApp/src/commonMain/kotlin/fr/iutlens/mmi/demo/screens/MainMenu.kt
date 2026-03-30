@@ -57,6 +57,8 @@ import androidx.compose.runtime.withFrameMillis
 @Composable
 fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}) {
 
+    Music("files/main_theme.mp3")
+
     val dinoFont = FontFamily(
         Font(Res.font.dino_font)
     )

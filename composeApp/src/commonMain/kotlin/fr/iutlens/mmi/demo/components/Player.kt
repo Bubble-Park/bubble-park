@@ -41,6 +41,14 @@ class Player(
         get() = if (invincibilityFrames > 0 && invincibilityFrames % 8 < 4) 0.6f else 1f
     private val INVINCIBILITY_DURATION = 120
 
+    // Variables d'animation de mort
+    private val DEATH_ANIM_DURATION = 60
+    private var deathAnimTimer = 0
+    private var deathRotation = 0f
+
+    var isDeathAnimationComplete by mutableStateOf(false)
+        private set
+
     // Variables d'animation
     private var facingRight = true
     private var walkPhase = 0f
@@ -86,15 +94,19 @@ class Player(
         super.reset(x, y)
         invincibilityFrames = 0
         nextShotTime = 0L
+        deathAnimTimer = 0
+        deathRotation = 0f
+        isDeathAnimationComplete = false
     }
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         val w2 = spriteSheet.spriteWidth / 2
         val h2 = spriteSheet.spriteHeight / 2
         val walkRotation = if (isOnGround) squareWaveRotation(phase = walkPhase, intensity = 12f) else 0f
+        val effectiveRotation = if (isDead && deathAnimTimer > 0) deathRotation else walkRotation
         drawScope.withTransform({
             translate(x, y + 20f)
-            rotate(walkRotation, pivot = Offset.Zero)
+            rotate(effectiveRotation, pivot = Offset.Zero)
             if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
         }) {
             spriteSheet.paint(this, ndx, -w2, -h2, alpha = paintAlpha)
@@ -107,6 +119,19 @@ class Player(
         }
 
         if (isDead) {
+            if (deathAnimTimer == 0) {
+                vy = jumpForce
+                isOnGround = false
+                deathAnimTimer = 1
+            } else if (deathAnimTimer < DEATH_ANIM_DURATION) {
+                vy += gravity
+                y += (vy/2)
+                deathRotation -= 3f * if (facingRight) 1f else -1f
+                deathAnimTimer++
+                //ndx = jumpFrame
+            } else if (!isDeathAnimationComplete) {
+                isDeathAnimationComplete = true
+            }
             super.update()
             return
         }
@@ -136,7 +161,7 @@ class Player(
     private fun updateAnimationState(speed: Float) {
         val constant = 0.2f
         ndx = when {
-            !isOnGround -> if (vy < 0) jumpFrame else fallFrame
+            !isOnGround && !isDead -> if (vy < 0) jumpFrame else fallFrame
             speed != 0f && (speed > mapArea.w * constant || speed < -mapArea.w * constant) -> runFrame
             else -> walkFrame
         }
