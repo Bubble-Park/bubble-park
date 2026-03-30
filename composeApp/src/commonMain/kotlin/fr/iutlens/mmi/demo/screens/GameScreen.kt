@@ -389,8 +389,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         damageScaleAnim.animateTo(lifeToScale(gameData.player.life), tween(500, easing = EaseInOut))
     }
 
-    LaunchedEffect(gameData.comboMultiplier) {
-        if (gameData.comboMultiplier <= 1.01f) return@LaunchedEffect
+    LaunchedEffect(gameData.damageCount) {
+        if (gameData.damageCount == 0) return@LaunchedEffect
         repeat(3) {
             launch { shakeX.animateTo(if (it % 2 == 0) 8f else -8f, tween(40)) }
             launch { shakeY.animateTo(if (it % 2 == 0) 5f else -5f, tween(40)) }
