@@ -272,7 +272,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 ShowScore(gameData.score.get(), fontSize = uiFontSize)
                 ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 24.dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 24.dp, end = 24.dp)) {
                 Image(
                     painter = painterResource(Res.drawable.pause),
                     contentDescription = "Pause",

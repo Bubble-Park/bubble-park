@@ -30,7 +30,6 @@ import fr.iutlens.mmi.demo.game.sprite.mutableSpriteListOf
 import fr.iutlens.mmi.demo.game.sprite.toTileMap
 import fr.iutlens.mmi.demo.game.transform.Constraint
 import fr.iutlens.mmi.demo.game.transform.GenericTransform
-import fr.iutlens.mmi.demo.utils.savedSettings
 import fr.iutlens.mmi.demo.game.sprite.EnemySprite
 import fr.iutlens.mmi.demo.utils.DistanceMap
 import fr.iutlens.mmi.demo.utils.GameSound
@@ -237,8 +236,10 @@ class BubblePark : GameData() {
             if (!dino.isCaptured) continue
             if (player.boundingBox.overlaps(dino.boundingBox)) {
                 dino.isDead = true
-                score.add(dino.scoreValue)
-                scorePopups.add(ScorePopup(popupCounter++, dino.x, dino.y, dino.scoreValue))
+                addScoreWithCombo(dino.scoreValue, dino.x, dino.y)
+                // score.add(dino.scoreValue)
+                // scorePopups.add(ScorePopup(popupCounter++, dino.x, dino.y, dino.scoreValue))
+
                 GameSound.playPointCombo()
                 break
             }
