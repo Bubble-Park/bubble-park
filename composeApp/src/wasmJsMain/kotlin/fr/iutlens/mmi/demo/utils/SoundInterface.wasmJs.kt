@@ -61,7 +61,7 @@ actual open class SoundPool actual constructor() {
         map[res] = document.body?.appendElement("audio") {
             this as HTMLAudioElement
             this.id = "sound-$res"
-            this.src = Res.getUri(res)
+            this.src = Res.getUri("files/$res")
             this.load()
         } as Audio
     }
