@@ -39,7 +39,7 @@ actual open class MusicPlayer actual constructor(
                     setRepeatMode(Player.REPEAT_MODE_ALL)
                 }
             }
-    } catch (_: Exception) { null }
+    } catch (_: Throwable) { null }
 
     actual fun start() {
         musicPlayer?.play()
@@ -69,13 +69,18 @@ actual open class SoundPool actual constructor() {
         val ctx = context as? Context ?: return
         if (soundIds.containsKey(res) || loading.contains(res)) return
         loading.add(res)
-        if (nativePool == null) {
-            nativePool = android.media.SoundPool.Builder()
-                .setMaxStreams(10)
-                .build()
-            nativePool!!.setOnLoadCompleteListener { _, sampleId, status ->
-                if (status == 0) readyIds.add(sampleId)
+        try {
+            if (nativePool == null) {
+                nativePool = android.media.SoundPool.Builder()
+                    .setMaxStreams(10)
+                    .build()
+                nativePool!!.setOnLoadCompleteListener { _, sampleId, status ->
+                    if (status == 0) readyIds.add(sampleId)
+                }
             }
+        } catch (_: Throwable) {
+            loading.remove(res)
+            return
         }
         CoroutineScope(Dispatchers.IO).launch {
             try {
@@ -86,7 +91,7 @@ actual open class SoundPool actual constructor() {
                     val id = nativePool!!.load(cacheFile.absolutePath, 1)
                     soundIds[res] = id
                 }
-            } catch (_: Exception) {
+            } catch (_: Throwable) {
                 loading.remove(res)
             }
         }
