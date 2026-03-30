@@ -140,6 +140,12 @@ class Player(
 
         if (!position.isCentered) {
             lastAngle = position.angle
+        } else {
+            if (facingRight)
+                lastAngle = 0.0
+            else {
+                lastAngle = 135.0
+            }
         }
 
         if (jumpActionProvider()) {
