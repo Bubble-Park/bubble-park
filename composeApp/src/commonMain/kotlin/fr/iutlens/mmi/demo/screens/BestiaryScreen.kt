@@ -40,19 +40,18 @@ import fr.iutlens.mmi.demo.trex_sprite
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.utils.OnceSpriteLoaded
 import fr.iutlens.mmi.demo.utils.SpriteSheet
-import fr.iutlens.mmi.demo.utils.savedSettings
 import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
 private val dinoSprites = listOf(
-    Res.drawable.trex_sprite to "Trex",
-    Res.drawable.raptor_sprite to "Raptor",
-    Res.drawable.parasaur_sprite to "Parasaur",
-    Res.drawable.gallimimus_sprite to "Gallimimus",
-    Res.drawable.trice_sprite to "Triceratops",
-    Res.drawable.stego_sprite to "Stegosaurus",
-    Res.drawable.compy_sprite to "Compy",
-    Res.drawable.dodo_sprite to "Dodo",
+    Res.drawable.trex_sprite,
+    Res.drawable.raptor_sprite,
+    Res.drawable.parasaur_sprite,
+    Res.drawable.gallimimus_sprite,
+    Res.drawable.trice_sprite,
+    Res.drawable.stego_sprite,
+    Res.drawable.compy_sprite,
+    Res.drawable.dodo_sprite,
 )
 
 @Composable
@@ -84,7 +83,7 @@ fun BestiaryScreen(onBack: () -> Unit) {
             modifier = Modifier.fillMaxSize()
         )
 
-        OnceSpriteLoaded(*dinoSprites.map { it.first }.toTypedArray()) {
+        OnceSpriteLoaded(*dinoSprites.toTypedArray()) {
             Column(
                 modifier = Modifier.align(Alignment.Center),
                 verticalArrangement = Arrangement.spacedBy(gridSpacing),
@@ -95,9 +94,7 @@ fun BestiaryScreen(onBack: () -> Unit) {
                         for (col in 0 until 4) {
                             val idx = row * 4 + col
                             if (idx < dinoSprites.size) {
-                                val (res, key) = dinoSprites[idx]
-                                val unlocked = savedSettings.boolean.load("bestiary_$key", false)
-                                DinoHead(res = res, sizeDp = portraitSize, elapsed = elapsed, phaseOffset = idx * 1.3f, unlocked = unlocked)
+                                DinoHead(res = dinoSprites[idx], sizeDp = portraitSize, elapsed = elapsed, phaseOffset = idx * 1.3f)
                             }
                         }
                     }
@@ -118,7 +115,7 @@ fun BestiaryScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun DinoHead(res: DrawableResource, sizeDp: Dp, elapsed: Long, phaseOffset: Float, unlocked: Boolean) {
+private fun DinoHead(res: DrawableResource, sizeDp: Dp, elapsed: Long, phaseOffset: Float) {
     val rotation = squareWaveRotation(elapsed * 0.004f + phaseOffset, 7f)
     Canvas(modifier = Modifier.size(sizeDp).rotate(rotation)) {
         val sheet = SpriteSheet[res]
@@ -128,6 +125,6 @@ private fun DinoHead(res: DrawableResource, sizeDp: Dp, elapsed: Long, phaseOffs
         val drawH = (sheet.spriteHeight * scale).toInt()
         val drawX = (px - drawW) / 2
         val drawY = (px - drawH) / 2
-        sheet.paint(this, 2, drawX, drawY, IntSize(drawW, drawH), alpha = if (unlocked) 1f else 0.25f)
+        sheet.paint(this, 2, drawX, drawY, IntSize(drawW, drawH))
     }
 }
