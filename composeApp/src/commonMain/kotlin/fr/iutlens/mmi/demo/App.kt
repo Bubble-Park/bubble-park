@@ -6,6 +6,8 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import fr.iutlens.mmi.demo.screens.BestiaryScreen
 import fr.iutlens.mmi.demo.screens.GameOverScreen
 import fr.iutlens.mmi.demo.screens.GameScreen
 import fr.iutlens.mmi.demo.screens.MainMenu
@@ -13,7 +15,8 @@ import fr.iutlens.mmi.demo.screens.MainMenu
 enum class GameState {
     MENU,
     PLAYING,
-    GAME_OVER
+    GAME_OVER,
+    BESTIARY
 }
 
 @Composable
@@ -25,7 +28,11 @@ fun App(modifier: Modifier = Modifier) {
         Box(modifier = modifier.fillMaxSize()) {
             when (currentState) {
                 GameState.MENU -> MainMenu(
-                    onPlayClick = { currentState = GameState.PLAYING }
+                    onPlayClick = { currentState = GameState.PLAYING },
+                    onBestiaryClick = { currentState = GameState.BESTIARY }
+                )
+                GameState.BESTIARY -> BestiaryScreen(
+                    onBack = { currentState = GameState.MENU }
                 )
                 GameState.PLAYING -> GameScreen(
                     onExit = { currentState = GameState.MENU },
