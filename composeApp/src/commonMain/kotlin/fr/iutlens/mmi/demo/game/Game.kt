@@ -4,6 +4,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -13,6 +14,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.input.pointer.pointerInput
 import fr.iutlens.mmi.demo.JoystickPosition
+import fr.iutlens.mmi.demo.currentPadAction
 import fr.iutlens.mmi.demo.game.sprite.Sprite
 import fr.iutlens.mmi.demo.game.sprite.SpriteList
 import fr.iutlens.mmi.demo.game.transform.CameraTransform
@@ -38,6 +40,9 @@ class Game(val background : Sprite,
     var onTap: ((Offset)-> Unit)? = null
     var padAction: ((Offset) -> Unit)? = null
     var joystickPosition: JoystickPosition? = null
+    var actionButtonA = false
+    var actionButtonB = false
+    var paused = false
 
     val timeSource = TimeSource.Monotonic
 
@@ -84,6 +89,12 @@ class Game(val background : Sprite,
      */
     @Composable
     fun View(modifier: Modifier) {
+        DisposableEffect(this){
+            currentGame = this@Game
+            onDispose {
+                currentGame = null
+            }
+        }
         var m = modifier
         onTap?.let { _onTap ->
             m = m.pointerInput(key1 = _onTap) {
@@ -119,10 +130,12 @@ class Game(val background : Sprite,
                     val current = (timeSource.markNow()-start).inWholeMilliseconds
                     val next = elapsed+ delay
                     if (next>current) delay(next-current)
-                    myUpdate()
+                    if (!paused) myUpdate()
                 }
             }
         }
     }
 }
+
+var currentGame : Game? = null
 

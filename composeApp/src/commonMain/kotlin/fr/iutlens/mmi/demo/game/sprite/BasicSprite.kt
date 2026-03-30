@@ -32,9 +32,11 @@ open class BasicSprite(var res : DrawableResource,
     private val w2 get() = spriteSheet.spriteWidth / 2
     private val h2 get() = spriteSheet.spriteHeight / 2
 
+    open val paintAlpha: Float get() = 1f
+
     override fun paint(drawScope: DrawScope, elapsed: Long) =
         drawScope.withTransform({translate(x,y)}){
-            spriteSheet.paint(this, ndx, -w2, -h2)
+            spriteSheet.paint(this, ndx, -w2, -h2, alpha = paintAlpha)
         }
 
 

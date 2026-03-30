@@ -9,19 +9,15 @@ import androidx.compose.runtime.setValue
 
 
 expect @Composable fun getContext() : Any?
-/**
- * Music permet de jouer de la musique ou des sons pendant le jeu
- *
- */
 object Music {
 
     /**
-     * mute permet d'activer ou désactiver le son joué par l'application
+     * activer ou désactiver le son joué
      */
-    var mute by mutableStateOf(true)
+    var mute by mutableStateOf(false)
 
     /**
-     * Sound pool gère les bruitages (jusqu'à 10 en simultané ici)
+     * gère les bruitages
      */
     private val soundPool = SoundPool()
 
@@ -32,7 +28,7 @@ object Music {
     }
 
     /**
-     * Play sound joue un son précédemment chargé (ne fait rien sinon)
+     * joue un son (qui a été chargé)
      *
      * @param id
      * @param leftVolume

@@ -6,65 +6,161 @@ import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.game.sprite.contains
 import kotlin.math.floor
 
+data class NextMove(
+    val target: Pair<Int, Int>,
+    val action: MoveAction,
+    val dirX: Float
+)
+
 /**
- * Distance map
+ * distance map
  * table des distances à la cible pour chaque position atteignable
- * @property map
- * @property target
- * @property neighbor
- * @constructor Create empty Distance map
  */
-class DistanceMap(val map : TiledArea, var target : Sprite,
-                  val neighbor : (pos : Pair<Int,Int>, visit : (Pair<Int,Int>)-> Unit)-> Unit) {
-    private val distance = mutableMapOf<Pair<Int,Int>,Int>()
+class DistanceMap(
+    val map: TiledArea,
+    var target: Sprite,
+    private val reverseNeighbor: (Pair<Int, Int>, (Pair<Int, Int>) -> Unit) -> Unit,
+    private val forwardNeighbor: (Pair<Int, Int>, (Pair<Int, Int>) -> Unit) -> Unit,
+    private val graph: PlatformGraph? = null
+) {
+    private val distance = mutableMapOf<Pair<Int, Int>, Int>()
+    private var lastTargetPos: Pair<Int, Int>? = null
 
-    // Accès aux distance
+    // getters
+    operator fun get(pos: Pair<Int, Int>): Int? = distance[pos]
+    operator fun get(i: Int, j: Int): Int? = distance[i to j]
 
-    operator fun get(pos : Pair<Int,Int>) : Int? = distance[pos]
-    operator fun get(i : Int, j : Int) : Int? = distance[i to j]
+    operator fun contains(pos: Pair<Int, Int>) = pos in distance
 
-    operator fun contains(pos : Pair<Int,Int>) = pos in distance
+    /** Distances BFS depuis la cible (player) vers toutes les tiles atteignables */
+    val distances: Map<Pair<Int, Int>, Int> get() = distance
 
-    /**
-     * Next
-     * Trouve parmis les cases voisines celle qui est le plus proche de la cible et la retourne
-     * @param pos
-     * @return null si cible pas atteignable ou déjà atteinte
-     */
-    fun next(pos : Pair<Int,Int>) : Pair<Int,Int>? {
-        val list = mutableListOf<Pair<Pair<Int,Int>,Int>>()
-        neighbor(pos){n ->
-            get(n)?.let {  list.add(n to it) } }
-        val best =   list.minByOrNull { it.second } ?: return null
-        val current = get(pos)
-        if (current != null && best.second>current) return null
-        return best.first
+    /** Position tile courante de la cible (player) */
+    val targetTile: Pair<Int, Int> get() = getTargetIJ()
+
+    fun farthest(): Pair<Int, Int>? {
+        return distance.entries.maxByOrNull { it.value }?.key
     }
 
-    private fun getTargetIJ() : Pair<Int,Int>{
+    /**
+     * Trouve parmi les voisins directs celui qui est le plus proche
+     * de la cible
+     * @param pos position initiale
+     * @return position la plus proche de la cible
+     */
+    fun next(pos: Pair<Int, Int>): Pair<Int, Int>? {
+        var bestPos: Pair<Int, Int>? = null
+        var bestDist = Int.MAX_VALUE
+
+        forwardNeighbor(pos) { n ->
+            val d = get(n)
+            if (d != null && d < bestDist) {
+                bestDist = d
+                bestPos = n
+            }
+        }
+
+        if (bestPos == null) return null
+
+        val currentDist = get(pos)
+        if (currentDist != null && bestDist > currentDist) return null
+
+        return bestPos
+    }
+
+    /**
+     * Retourne la prochaine position + l'action à effectuer
+     * @param pos position initiale
+     * @return la prochaine position + l'action à effectuer
+     */
+    fun nextWithAction(pos: Pair<Int, Int>): NextMove? {
+        val target = next(pos) ?: return null
+        val action = graph?.getAction(pos, target) ?: MoveAction.WALK
+        val dirX = when {
+            target.first < pos.first -> -1f
+            target.first > pos.first -> 1f
+            else -> 0f
+        }
+        return NextMove(target, action, dirX)
+    }
+
+    /**
+     * trouve parmi les voisins directs celui qui est le plus loin de la cible
+     * @param pos position initiale
+     * @return position la plus loin de la cible
+     */
+    fun nextFlee(pos: Pair<Int, Int>): Pair<Int, Int>? {
+        var bestPos: Pair<Int, Int>? = null
+        var bestDist = -1
+
+        forwardNeighbor(pos) { n ->
+            val d = get(n)
+            if (d != null && d > bestDist) {
+                bestDist = d
+                bestPos = n
+            }
+        }
+
+        return bestPos
+    }
+
+    /**
+     * Trouve la prochaine position pour les FLEE + l'action à effectuer
+     * @param pos position initiale
+     * @return la prochaine position pour les FLEE + l'action à effectuer
+     */
+    fun nextFleeWithAction(pos: Pair<Int, Int>): NextMove? {
+        val target = nextFlee(pos) ?: return null
+        val action = graph?.getAction(pos, target) ?: MoveAction.WALK
+        val dirX = when {
+            target.first < pos.first -> -1f
+            target.first > pos.first -> 1f
+            else -> 0f
+        }
+        return NextMove(target, action, dirX)
+    }
+
+    /**
+     * Trouve la posiition de la cible
+     * @return position de la cible
+     */
+    private fun getTargetIJ(): Pair<Int, Int> {
         val x = target.boundingBox.center.x
-        val y = target.boundingBox.center.y
-        val i = floor( x/map.w).toInt()
-        val j = floor(( y/map.h)).toInt()
+        val y = target.boundingBox.bottom - 1f
+        val i = floor(x / map.w).toInt()
+        val j = floor(y / map.h).toInt()
+
+        if (graph != null && !graph.isStandable(i, j)) {
+            return graph.nearestStandable(i, j) ?: (i to j)
+        }
+
         return i to j
     }
 
     /**
-     * Update
-     * Recalcule la table des distances
+     * recalcule la table des distances sur le graphe inversé
+     * @param force force la recalculations
      */
-    fun update(){
-        distance.clear()
+    fun update(force: Boolean = false) {
         val start = getTargetIJ()
+
+        if (!force && start == lastTargetPos) {
+            return
+        }
+        lastTargetPos = start
+
+        distance.clear()
+
         var current = mutableListOf(start)
         var d = 0
         distance[start] = d
-        while (current.isNotEmpty()){
+
+        while (current.isNotEmpty()) {
             d++
-            val next = mutableListOf<Pair<Int,Int>>()
-            for(pos in current){
-                neighbor(pos){ n ->
-                    if (n !in distance){
+            val next = mutableListOf<Pair<Int, Int>>()
+            for (pos in current) {
+                reverseNeighbor(pos) { n ->
+                    if (n !in distance) {
                         distance[n] = d
                         next.add(n)
                     }
@@ -75,11 +171,11 @@ class DistanceMap(val map : TiledArea, var target : Sprite,
     }
 
     init {
-        update()
+        update(force = true)
     }
 }
 
-enum class Direction(val vec : Pair<Int,Int>){
+enum class Direction(val vec: Pair<Int, Int>) {
     N(0 to -1),
     S(0 to 1),
     E(1 to 0),
@@ -87,29 +183,36 @@ enum class Direction(val vec : Pair<Int,Int>){
 }
 
 /**
- * Neighbor
- * retourne une fonction qui parcours les voisins valides (par défaut : tous)
- * @param valid
- * @receiver
+ * retourne une fonction qui parcours les voisins valides
  */
-fun TileMap.neighbor(valid : TileMap.(Int,Int) -> Boolean = { _,_ ->true}) =
-{pos : Pair<Int,Int>, visit : (Pair<Int,Int>)-> Unit  ->
-    for(dir in Direction.entries){
-        val i = pos.first + dir.vec.first
-        val j = pos.second +  dir.vec.second
-        if ((i to j) in this.geometry && this.valid(i,j)){
-            visit(i to j)
+fun TileMap.neighbor(valid: TileMap.(Int, Int) -> Boolean = { _, _ -> true }) =
+    { pos: Pair<Int, Int>, visit: (Pair<Int, Int>) -> Unit ->
+        for (dir in Direction.entries) {
+            val i = pos.first + dir.vec.first
+            val j = pos.second + dir.vec.second
+            if ((i to j) in this.geometry && this.valid(i, j)) {
+                visit(i to j)
+            }
         }
     }
-}
 
 /**
- * Distance map
- * Construit la table des distance, avec comme paramètre la cible et une fonction indiquant
- * si une case est valide
- * @param target
- * @param valid
- * @receiver
+ * distance map via PlatformGraph
  */
-fun TiledArea.distanceMap(target : Sprite, valid : TileMap.(Int,Int) -> Boolean) =
-    DistanceMap(this, target, this.tileMap.neighbor(valid))
+fun TiledArea.distanceMap(target: Sprite, graph: PlatformGraph) =
+    DistanceMap(
+        this, target,
+        reverseNeighbor = graph.reverseNeighborFn(),
+        forwardNeighbor = graph.forwardNeighborFn(),
+        graph = graph
+    )
+
+/**
+ * distance map legacy
+ */
+/*fun TiledArea.distanceMap(target: Sprite, valid: TileMap.(Int, Int) -> Boolean): DistanceMap {
+    val neighborFn = this.tileMap.neighbor(valid)
+    return DistanceMap(this, target,
+        reverseNeighbor = neighborFn,
+        forwardNeighbor = neighborFn)
+}*/

@@ -38,16 +38,16 @@ class SpriteSheet(
      * SpriteHeight : hauteur d'un sprite
      */
     val spriteHeight = _rawSpriteHeight-padding*2
-    val size = IntSize(spriteWidth+1,spriteHeight+1)
+    val size = IntSize(spriteWidth,spriteHeight)
 
     fun left(ndx : Int) = (ndx%sizeX)* _rawSpriteWidth+padding
     fun top(ndx: Int) = (ndx/sizeX)* _rawSpriteHeight+padding
     fun offset(ndx: Int) = IntOffset(left(ndx),top(ndx))
 
-    fun paint(drawScope: DrawScope, ndx : Int, x : Int, y : Int, size: IntSize = this.size){
+    fun paint(drawScope: DrawScope, ndx : Int, x : Int, y : Int, size: IntSize = this.size, alpha: Float = 1f){
       //  if (spriteSheet==null) throw NoSuchElementException("No SpriteSheet for this image resource. Use SpriteSheet.load(resource)")
         drawScope.drawImage(bitmap, offset(ndx), this.size, IntOffset(x,y), size,
-            alpha = 1f,
+            alpha = alpha,
             filterQuality = filterQuality ?: defaultFilterQuality)
     }
 

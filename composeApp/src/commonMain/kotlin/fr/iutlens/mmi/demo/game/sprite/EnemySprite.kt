@@ -1,41 +1,79 @@
 package fr.iutlens.mmi.demo.game.sprite
 
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import fr.iutlens.mmi.demo.utils.DistanceMap
-import fr.iutlens.mmi.demo.utils.SpriteSheet
+import fr.iutlens.mmi.demo.utils.MoveAction
 import org.jetbrains.compose.resources.DrawableResource
 import kotlin.math.floor
 
+enum class EnemyBehavior {
+    ATTACK,
+    FLEE
+}
 
-class EnemySprite( res: DrawableResource,
-                  x : Float,
-                  y : Float,
-                  val distanceMap: DistanceMap,
-                  var speed: Float =0.1f
-) : BasicSprite(res,x,y) {
+class EnemySprite(
+    res: DrawableResource,
+    x: Float,
+    y: Float,
+    mapArea: TiledArea,
+    val distanceMap: DistanceMap,
+    val behavior: EnemyBehavior,
+    var speed: Float = if (behavior == EnemyBehavior.FLEE) 32f else 22f
+) : PhysicsSprite(res, x, y, mapArea, gravity = 8f, jumpForce = -110f) {
 
-    private var target : Pair<Int,Int>? = null
-    var dx = 0f
-    var dy = 0f
-    var progress = 0f
+    val scoreValue: Int = if (behavior == EnemyBehavior.ATTACK) 3 else 2
+    var stunTimer = 0
+    var jumpCooldown = 0
+    val radius = 60f
+    var isDead = false
 
+    override val boundingBox: Rect
+        get() = Rect(x - radius, y - radius, x + radius, y + radius)
+
+    override fun paint(drawScope: DrawScope, elapsed: Long) {
+        val color = if (behavior == EnemyBehavior.ATTACK) Color.Red else Color.Blue
+        drawScope.drawCircle(
+            color = color,
+            radius = radius,
+            center = androidx.compose.ui.geometry.Offset(x, y)
+        )
+    }
 
     override fun update() {
-        if (target == null){ // Si pas de cible atteignable, on en cherche une
-            val i = floor( x/distanceMap.map.w).toInt()
-            val j = floor( y/distanceMap.map.h).toInt()
-            target = distanceMap.next(i to j)?.also { // calcule la direction vers la prochaine case
-                dx = (it.first-i)*distanceMap.map.w*speed
-                dy = (it.second-j)*distanceMap.map.h*speed
+        if (isDead) return
+
+        if (stunTimer > 0) {
+            stunTimer--
+            applyPhysics()
+            return
+        }
+
+        if (jumpCooldown > 0) jumpCooldown--
+
+        val i = floor(x / mapArea.w).toInt()
+        val j = floor((y + radius - 1f) / mapArea.h).toInt()
+
+        val move = when (behavior) {
+            EnemyBehavior.ATTACK -> distanceMap.nextWithAction(i to j)
+            EnemyBehavior.FLEE -> distanceMap.nextFleeWithAction(i to j)
+        }
+
+        val dirX = move?.dirX ?: 0f
+
+        if (move != null && isOnGround && jumpCooldown <= 0) {
+            when (move.action) {
+                MoveAction.JUMP -> {
+                    jump()
+                    jumpCooldown = if (behavior == EnemyBehavior.FLEE) 30 else 50
+                }
+                MoveAction.FALL, MoveAction.WALK -> { /* gravité ou marche normale */ }
             }
         }
-        if (target != null){ // on se déplace
-            x += dx
-            y += dy
-            progress += speed
-            if (progress>=1f) { // si on a atteint la prochaine case, il faudra recalculer la direction
-                progress = 0f
-                target = null
-            }
-        }
+
+        moveX(dirX * speed, speed)
+        applyPhysics()
+        super.update()
     }
 }
