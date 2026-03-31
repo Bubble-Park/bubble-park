@@ -122,7 +122,7 @@ compose.desktop {
 
     application {
         mainClass = "$myPackage.MainKt"
-        javaHome = System.getenv("JAVA_HOME") ?: "/Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home"
+        //javaHome = System.getenv("JAVA_HOME") ?: "/Library/Java/JavaVirtualMachines/temurin-25.jdk/Contents/Home"
 
         jvmArgs("--enable-native-access=ALL-UNNAMED")
 
