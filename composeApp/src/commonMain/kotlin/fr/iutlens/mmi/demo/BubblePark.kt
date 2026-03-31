@@ -54,19 +54,42 @@ class BubblePark : GameData() {
         private const val PLAYER_INIT_TILE_I = 1
         private const val PLAYER_INIT_TILE_J = 20
         private const val INITIAL_SPAWN_RATIO = 0.3f
+
+        // Combo settings
+        const val COMBO_TRIGGER_COUNT = 2           // nb de captures avant que le multiplicateur s'active
+        const val COMBO_RESET_INTERVAL_MS = 2000L   // délai sans capture avant reset du combo (ms)
     }
 
     data class ScorePopup(val id: Long, val worldX: Float, val worldY: Float, val points: Int)
     val scorePopups = mutableStateListOf<ScorePopup>()
     private var popupCounter = 0L
 
-    var comboMultiplier by mutableStateOf(1.0f)
+    var comboMultiplier by mutableStateOf(1)
+    private var captureCount = 0
+    private var lastCaptureMs = -1L
 
-    private fun addScoreWithCombo(basePoints: Int, x: Float, y: Float) {
-        val earned = kotlin.math.ceil(basePoints * comboMultiplier).toInt()
+    /** Appelé quand un dino devient isCaptured (bullet le touche suffisamment). */
+    private fun onDinoCaptured() {
+        captureCount++
+        lastCaptureMs = levelElapsedMs
+        comboMultiplier = maxOf(1, captureCount - COMBO_TRIGGER_COUNT + 1)
+    }
+
+    /** Reset le combo si l'intervalle sans capture est dépassé. */
+    private fun checkComboReset() {
+        if (lastCaptureMs < 0) return
+        if (levelElapsedMs - lastCaptureMs > COMBO_RESET_INTERVAL_MS) {
+            captureCount = 0
+            lastCaptureMs = -1L
+            comboMultiplier = 1
+        }
+    }
+
+    /** Points accordés quand le joueur collecte un dino capturé dans la bulle. */
+    private fun collectCapturedDino(scoreValue: Int, x: Float, y: Float) {
+        val earned = scoreValue * comboMultiplier
         score.add(earned)
         scorePopups.add(ScorePopup(popupCounter++, x, y, earned))
-        comboMultiplier += 0.01f
     }
 
     val score = Score()
@@ -103,7 +126,9 @@ class BubblePark : GameData() {
         bonusTimerMs = 0L
         SlowEffect.reset()
         FastAmmoEffect.reset()
-        comboMultiplier = 1.0f
+        comboMultiplier = 1
+        captureCount = 0
+        lastCaptureMs = -1L
 
         val levelData = LevelGenerator.generate(index)
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
@@ -135,6 +160,7 @@ class BubblePark : GameData() {
         spawnInitialDinos()
 
         game.animation(20) {
+            checkComboReset()
             handleCollisions()
 
             levelElapsedMs += 20
@@ -239,10 +265,7 @@ class BubblePark : GameData() {
             if (!dino.isCaptured) continue
             if (player.boundingBox.overlaps(dino.boundingBox)) {
                 dino.isDead = true
-                addScoreWithCombo(dino.scoreValue, dino.x, dino.y)
-                // score.add(dino.scoreValue)
-                // scorePopups.add(ScorePopup(popupCounter++, dino.x, dino.y, dino.scoreValue))
-
+                collectCapturedDino(dino.scoreValue, dino.x, dino.y)
                 GameSound.playPointCombo()
                 break
             }
@@ -254,7 +277,8 @@ class BubblePark : GameData() {
                 if (enemy.isDead) continue
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
-                    addScoreWithCombo(enemy.scoreValue, enemy.x, enemy.y)
+                    score.add(enemy.scoreValue)
+                    scorePopups.add(ScorePopup(popupCounter++, enemy.x, enemy.y, enemy.scoreValue))
                     bullet.explode()
                     break
                 }
@@ -265,10 +289,10 @@ class BubblePark : GameData() {
                 if (bullet.boundingBox.overlaps(dino.boundingBox)) {
                     dino.currentHitCount++
                     dino.onHitByBullet()
-                    comboMultiplier += 0.01f
                     if (dino.currentHitCount >= dino.effectiveHitCount) {
                         dino.isCaptured = true
                         dino.currentHitCount = 0
+                        onDinoCaptured()
                     } else {
                         dino.stunTimer = 50
                     }
