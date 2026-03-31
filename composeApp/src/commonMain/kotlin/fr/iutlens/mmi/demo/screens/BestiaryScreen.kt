@@ -27,7 +27,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.Res
-import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.compy_sprite
 import fr.iutlens.mmi.demo.dodo_sprite
 import fr.iutlens.mmi.demo.gallimimus_sprite
@@ -75,13 +74,6 @@ fun BestiaryScreen(onBack: () -> Unit) {
         val minDim = minOf(maxWidth, maxHeight)
         val portraitSize = minDim * 0.45f
         val gridSpacing = minDim * 0.04f
-
-        Image(
-            painter = painterResource(Res.drawable.background),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
 
         OnceSpriteLoaded(*dinoSprites.toTypedArray()) {
             Column(
