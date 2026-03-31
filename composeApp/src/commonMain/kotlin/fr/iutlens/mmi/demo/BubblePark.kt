@@ -3,6 +3,7 @@ package fr.iutlens.mmi.demo
 import fr.iutlens.mmi.demo.components.Player
 import fr.iutlens.mmi.demo.components.Bullet
 import fr.iutlens.mmi.demo.components.dino.GenericDino
+import fr.iutlens.mmi.demo.components.dino.WalkingDino
 import fr.iutlens.mmi.demo.components.dino.Trex
 import fr.iutlens.mmi.demo.components.dino.Raptor
 import fr.iutlens.mmi.demo.components.dino.Dodo
@@ -57,7 +58,7 @@ class BubblePark : GameData() {
 
         // Combo settings
         const val COMBO_TRIGGER_COUNT = 2           // nb de captures avant que le multiplicateur s'active
-        const val COMBO_RESET_INTERVAL_MS = 2000L   // délai sans capture avant reset du combo (ms)
+        const val COMBO_RESET_INTERVAL_MS = 3000L   // délai sans capture avant reset du combo (ms)
     }
 
     data class ScorePopup(val id: Long, val worldX: Float, val worldY: Float, val points: Int)
@@ -65,6 +66,7 @@ class BubblePark : GameData() {
     private var popupCounter = 0L
 
     var comboMultiplier by mutableStateOf(1)
+    var comboTimeRemainingMs by mutableStateOf(0L)
     private var captureCount = 0
     private var lastCaptureMs = -1L
 
@@ -72,16 +74,21 @@ class BubblePark : GameData() {
     private fun onDinoCaptured() {
         captureCount++
         lastCaptureMs = levelElapsedMs
+        comboTimeRemainingMs = COMBO_RESET_INTERVAL_MS
         comboMultiplier = maxOf(1, captureCount - COMBO_TRIGGER_COUNT + 1)
     }
 
     /** Reset le combo si l'intervalle sans capture est dépassé. */
     private fun checkComboReset() {
         if (lastCaptureMs < 0) return
-        if (levelElapsedMs - lastCaptureMs > COMBO_RESET_INTERVAL_MS) {
+        val elapsed = levelElapsedMs - lastCaptureMs
+        if (elapsed > COMBO_RESET_INTERVAL_MS) {
             captureCount = 0
             lastCaptureMs = -1L
             comboMultiplier = 1
+            comboTimeRemainingMs = 0L
+        } else {
+            comboTimeRemainingMs = COMBO_RESET_INTERVAL_MS - elapsed
         }
     }
 
@@ -127,6 +134,7 @@ class BubblePark : GameData() {
         SlowEffect.reset()
         FastAmmoEffect.reset()
         comboMultiplier = 1
+        comboTimeRemainingMs = 0L
         captureCount = 0
         lastCaptureMs = -1L
 
@@ -134,7 +142,8 @@ class BubblePark : GameData() {
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
         tileArea = TiledArea(levelData.tileSetRes, tileMap)
 
-        val savedLife = if (::player.isInitialized) minOf(player.life + 1, 3) else 3
+        val isFirstLevel = !::player.isInitialized
+        val savedLife = if (isFirstLevel) 3 else player.life
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
             x = levelData.startX * tileArea.w,
@@ -158,6 +167,12 @@ class BubblePark : GameData() {
         )
 
         spawnInitialDinos()
+
+        if (!isFirstLevel) {
+            findSpawnPoint()?.let { (x, y) ->
+                (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(x, y, player))
+            }
+        }
 
         game.animation(20) {
             checkComboReset()
@@ -255,7 +270,7 @@ class BubblePark : GameData() {
             if (dino.boundingBox.overlaps(player.boundingBox)) {
                 if (player.takeDamage()) {
                     if (player.isDead) GameSound.playDown() else GameSound.playHit(player.life + 1)
-                    dino.stunTimer = 50
+                    dino.stunTimer = WalkingDino.ATTACK_STUN_DURATION
                 }
             }
         }
@@ -294,7 +309,7 @@ class BubblePark : GameData() {
                         dino.currentHitCount = 0
                         onDinoCaptured()
                     } else {
-                        dino.stunTimer = 50
+                        dino.stunTimer = WalkingDino.HIT_STUN_DURATION
                     }
                     bullet.explode()
                     break
