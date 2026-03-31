@@ -59,6 +59,11 @@ class BubblePark : GameData() {
         // Combo settings
         const val COMBO_TRIGGER_COUNT = 2           // nb de captures avant que le multiplicateur s'active
         const val COMBO_RESET_INTERVAL_MS = 3000L   // délai sans capture avant reset du combo (ms)
+
+        // Bonus spawn interval
+        const val BONUS_INTERVAL_START_MS = 12000L  // délai au niveau 1
+        const val BONUS_INTERVAL_MIN_MS   = 4000L   // délai minimum atteint au niveau 15
+        const val BONUS_INTERVAL_MAX_LEVEL = 14     // index du niveau où l'on atteint le minimum (niveau 15)
     }
 
     data class ScorePopup(val id: Long, val worldX: Float, val worldY: Float, val points: Int)
@@ -203,7 +208,11 @@ class BubblePark : GameData() {
 
             bonusTimerMs += 20
 
-            if (bonusTimerMs >= 5000L) {
+            val bonusInterval = run {
+                val t = (levelIndex.toFloat() / BONUS_INTERVAL_MAX_LEVEL).coerceIn(0f, 1f)
+                (BONUS_INTERVAL_START_MS - (BONUS_INTERVAL_START_MS - BONUS_INTERVAL_MIN_MS) * t).toLong()
+            }
+            if (bonusTimerMs >= bonusInterval) {
                 bonusTimerMs = 0L
                 val available = (0..2).filter { it != lastBonusIndex }
                 val pick = available[Random.nextInt(available.size)]
@@ -281,7 +290,7 @@ class BubblePark : GameData() {
             if (player.boundingBox.overlaps(dino.boundingBox)) {
                 dino.isDead = true
                 collectCapturedDino(dino.scoreValue, dino.x, dino.y)
-                GameSound.playPointCombo()
+                GameSound.playPointCombo(comboMultiplier)
                 break
             }
         }
@@ -481,6 +490,6 @@ class BubblePark : GameData() {
     }
 
     init {
-        loadLevel(0)
+        loadLevel(6)
     }
 }

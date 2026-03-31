@@ -49,6 +49,10 @@ object Music {
     }
 
 
+    fun stopSound(id: String) {
+        soundPool.stop(id)
+    }
+
     @Composable
     operator fun invoke(id: String){
         val context = getContext() ?: this

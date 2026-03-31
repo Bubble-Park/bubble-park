@@ -10,6 +10,7 @@ import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
+import fr.iutlens.mmi.demo.utils.GameSound
 import kotlin.math.PI
 import kotlin.math.round
 import org.jetbrains.compose.resources.DrawableResource
@@ -38,7 +39,7 @@ class Player(
     private var invincibilityFrames = 0
 
     override val paintAlpha: Float
-        get() = if (invincibilityFrames > 0 && invincibilityFrames % 8 < 4) 0.6f else 1f
+        get() = if (invincibilityFrames > 0 && invincibilityFrames % 8 < 4) 0.2f else 1f
     private val INVINCIBILITY_DURATION = 120
 
     // Variables d'animation de mort
@@ -52,6 +53,9 @@ class Player(
     // Variables d'animation
     private var facingRight = true
     private var walkPhase = 0f
+
+    private val WALK_SOUND_INTERVAL_FRAMES = 130
+    private var walkSoundTimer = 0
 
     private val walkFrame  = 0
     private val runFrame   = 1
@@ -88,6 +92,7 @@ class Player(
         val quantizedAngle = round(lastAngle / step) * step
         val bullet = Bullet(x, y, quantizedAngle, mapArea, collides = enableCollisions, res = bulletRes)
         onBulletCreated(bullet)
+        GameSound.playBubble()
     }
 
     override fun reset(x: Float, y: Float) {
@@ -149,6 +154,7 @@ class Player(
         }
 
         if (jumpActionProvider()) {
+            if (isOnGround) GameSound.playJump()
             jump()
         }
 
@@ -172,10 +178,19 @@ class Player(
             else -> walkFrame
         }
 
-        if (isOnGround && speed != 0f) {
+        val isWalking = isOnGround && speed != 0f
+        if (isWalking) {
             walkPhase += 0.126f
+            if (walkSoundTimer <= 0) {
+                GameSound.playWalk()
+                walkSoundTimer = WALK_SOUND_INTERVAL_FRAMES
+            } else {
+                walkSoundTimer--
+            }
         } else {
+            if (walkSoundTimer > 0) GameSound.stopWalk()
             walkPhase = 0f
+            walkSoundTimer = 0
         }
     }
 }

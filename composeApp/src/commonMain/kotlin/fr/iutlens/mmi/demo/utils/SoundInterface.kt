@@ -15,4 +15,5 @@ expect open class SoundPool(){
              priority: Int,
              loop: Int,
              rate: Float)
+    fun stop(resource: String)
 }
