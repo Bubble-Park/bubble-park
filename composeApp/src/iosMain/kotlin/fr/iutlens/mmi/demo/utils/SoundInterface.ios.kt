@@ -31,4 +31,7 @@ actual open class SoundPool actual constructor() {
         rate: Float
     ) {
     }
+
+    actual fun stop(resource: String) {
+    }
 }
