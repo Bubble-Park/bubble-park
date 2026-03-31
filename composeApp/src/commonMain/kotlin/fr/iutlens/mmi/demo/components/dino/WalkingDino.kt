@@ -52,6 +52,8 @@ open class WalkingDino(
         const val CAPTURED_FRAME = 1    // frame fictive spritesheet, à ajuster
         const val CAPTURE_DURATION = 400 // 8s à 20ms/frame
         const val FLOAT_SPEED = 5f      // px/frame de montée vers y=0
+        const val ATTACK_STUN_DURATION = 50  // stun après que le dino attaque le joueur
+        const val HIT_STUN_DURATION = ATTACK_STUN_DURATION / 2  // stun après réception d'une bulle
     }
 
     override fun reset(x: Float, y: Float) {

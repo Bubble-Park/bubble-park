@@ -334,14 +334,17 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             val comboXDp = density.run { (playerScreenPx.x + 55f).toDp() }
             val comboYDp = density.run { (playerScreenPx.y - 30f).toDp() }
             val comboFont = FontFamily(Font(Res.font.dudu_font))
+            val comboFadeThresholdMs = BubblePark.COMBO_RESET_INTERVAL_MS / 2f
+            val comboScale = (gameData.comboTimeRemainingMs / comboFadeThresholdMs).coerceIn(0f, 1f)
             Text(
                 text = "x${gameData.comboMultiplier}",
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .offset(x = comboXDp, y = comboYDp)
-                    .rotate(-12f),
+                    .rotate(-12f)
+                    .scale(comboScale),
                 color = Color(0xFFFF69B4),
-                fontSize = (minDim.value * 0.05f).sp,
+                fontSize = (minDim.value * 0.09f).sp,
                 fontFamily = comboFont
             )
         }
