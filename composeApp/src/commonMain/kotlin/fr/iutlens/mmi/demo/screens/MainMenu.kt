@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.sp
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.dino_font
 import fr.iutlens.mmi.demo.logo
-import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.menu_content_fond
 import fr.iutlens.mmi.demo.menu_nuages
 import fr.iutlens.mmi.demo.menu_premier_plan_up
@@ -93,15 +92,6 @@ fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}) {
 
         // Strokes
         val dynamicStrokeWidth = screenH * 0.03f
-
-        // Images de fond - Layer pour les animations
-        Image (
-            painter = painterResource(Res.drawable.background),
-            contentDescription = "Fond du menu",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-        )
 
         // Nuages arrière-plan (derrière logo et boutons)
         CloudsOverlay(

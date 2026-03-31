@@ -259,7 +259,6 @@ class BubblePark : GameData() {
                 if (player.takeDamage()) {
                     if (player.isDead) GameSound.playDown() else GameSound.playHit(player.life + 1)
                     enemy.stunTimer = 50
-                    damageCount++
                 }
             }
         }
