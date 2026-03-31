@@ -203,7 +203,7 @@ class BubblePark : GameData() {
 
             bonusTimerMs += 20
 
-            if (bonusTimerMs >= 15000L) {
+            if (bonusTimerMs >= 5000L) {
                 bonusTimerMs = 0L
                 val available = (0..2).filter { it != lastBonusIndex }
                 val pick = available[Random.nextInt(available.size)]
@@ -259,6 +259,7 @@ class BubblePark : GameData() {
                 if (player.takeDamage()) {
                     if (player.isDead) GameSound.playDown() else GameSound.playHit(player.life + 1)
                     enemy.stunTimer = 50
+                    damageCount++
                 }
             }
         }

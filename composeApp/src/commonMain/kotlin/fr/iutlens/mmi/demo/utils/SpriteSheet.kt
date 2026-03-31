@@ -3,6 +3,7 @@ package fr.iutlens.mmi.demo.utils
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.FilterQuality
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.DrawScope
@@ -44,10 +45,10 @@ class SpriteSheet(
     fun top(ndx: Int) = (ndx/sizeX)* _rawSpriteHeight+padding
     fun offset(ndx: Int) = IntOffset(left(ndx),top(ndx))
 
-    fun paint(drawScope: DrawScope, ndx : Int, x : Int, y : Int, size: IntSize = this.size, alpha: Float = 1f){
-      //  if (spriteSheet==null) throw NoSuchElementException("No SpriteSheet for this image resource. Use SpriteSheet.load(resource)")
+    fun paint(drawScope: DrawScope, ndx : Int, x : Int, y : Int, size: IntSize = this.size, alpha: Float = 1f, colorFilter: ColorFilter? = null){
         drawScope.drawImage(bitmap, offset(ndx), this.size, IntOffset(x,y), size,
             alpha = alpha,
+            colorFilter = colorFilter,
             filterQuality = filterQuality ?: defaultFilterQuality)
     }
 
