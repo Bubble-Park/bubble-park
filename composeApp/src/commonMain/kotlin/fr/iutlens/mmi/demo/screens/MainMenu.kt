@@ -41,7 +41,8 @@ import fr.iutlens.mmi.demo.menu_nuages
 import fr.iutlens.mmi.demo.menu_premier_plan_up
 import fr.iutlens.mmi.demo.menu_second_plan
 import fr.iutlens.mmi.demo.utils.Music
-import fr.iutlens.mmi.demo.volume
+import fr.iutlens.mmi.demo.volume_cut
+import fr.iutlens.mmi.demo.volume_full
 import fr.iutlens.mmi.demo.bestiaire
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.runtime.getValue
@@ -202,8 +203,9 @@ fun BoxScope.MenuPanel(
 
 @Composable
 fun VolumeButton(modifier: Modifier = Modifier) {
+    val icon = if (Music.mute) Res.drawable.volume_cut else Res.drawable.volume_full
     Image(
-        painter = painterResource(Res.drawable.volume),
+        painter = painterResource(icon),
         contentDescription = if (Music.mute) "Son coupé" else "Son actif",
         modifier = modifier.clickable { Music.mute = !Music.mute }
     )
