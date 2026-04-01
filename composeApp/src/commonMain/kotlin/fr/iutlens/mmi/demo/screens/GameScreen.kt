@@ -271,7 +271,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             verticalAlignment = Alignment.Top
         ) {
             Column {
-                ShowLife(gameData.player.life, heartSize = heartSize)
+                ShowLife(gameData.player.life, maxLife = gameData.player.maxLife, heartSize = heartSize)
                 ShowScore(gameData.score.get(), fontSize = uiFontSize)
                 if (!gameData.isBossRound) ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
             }
@@ -390,6 +390,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         if (isPaused) {
             PauseScreen(
                 life = gameData.player.life,
+                maxLife = gameData.player.maxLife,
                 score = gameData.score.get(),
                 damageScale = damageScaleAnim.value + damagePulse,
                 onResume = {
@@ -399,6 +400,11 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                     gameData.game.invalidate()
                 },
                 onQuit = onExit
+            )
+        } else if (gameData.showUpgradeScreen) {
+            UpgradeScreen(
+                choices = gameData.upgradeChoices,
+                onUpgradeSelected = { upgrade -> gameData.selectUpgrade(upgrade) }
             )
         } else {
             Controllers(

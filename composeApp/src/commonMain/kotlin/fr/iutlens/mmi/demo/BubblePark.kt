@@ -50,6 +50,8 @@ import kotlin.math.floor
 import kotlin.math.abs
 import fr.iutlens.mmi.demo.game.BossDifficultyConfig
 import fr.iutlens.mmi.demo.game.BossConfig
+import fr.iutlens.mmi.demo.game.upgrade.Upgrade
+import fr.iutlens.mmi.demo.game.upgrade.UpgradeManager
 
 class BubblePark : GameData() {
 
@@ -110,6 +112,10 @@ class BubblePark : GameData() {
         scorePopups.add(ScorePopup(popupCounter++, x, y, earned))
     }
 
+    val upgradeManager = UpgradeManager()
+    var showUpgradeScreen by mutableStateOf(false)
+    var upgradeChoices by mutableStateOf<List<Upgrade>>(emptyList())
+
     val score = Score()
     var chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
     lateinit var player: Player
@@ -163,7 +169,8 @@ class BubblePark : GameData() {
         tileArea = TiledArea(levelData.tileSetRes, tileMap, decorScales)
 
         val isFirstLevel = !::player.isInitialized
-        val savedLife = if (isFirstLevel) 3 else player.life
+        val maxLife = upgradeManager.getMaxLife()
+        val savedLife = if (isFirstLevel) maxLife else player.life.coerceIn(1, maxLife)
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
             x = levelData.startX * tileArea.w,
@@ -174,7 +181,8 @@ class BubblePark : GameData() {
             bulletRes = Res.drawable.bubble_sprite,
             elapsedProvider = { game.elapsed },
             onBulletCreated = { bullet -> (game.spriteList as? MutableList<Sprite>)?.add(bullet) },
-            initialLife = savedLife
+            initialLife = savedLife,
+            initialMaxLife = maxLife
         )
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
@@ -227,7 +235,13 @@ class BubblePark : GameData() {
                     isBossRound = false
                     bossGigano = null
                     game.paused = true
-                    onLevelEnd?.invoke(true)
+                    val choices = upgradeManager.getRandomCandidates(3)
+                    if (choices.isNotEmpty()) {
+                        upgradeChoices = choices
+                        showUpgradeScreen = true
+                    } else {
+                        onLevelEnd?.invoke(true)
+                    }
                     return@animation
                 }
             } else {
@@ -602,7 +616,15 @@ class BubblePark : GameData() {
         }
     }
 
+    fun selectUpgrade(upgrade: Upgrade) {
+        upgradeManager.acquire(upgrade, player)
+        showUpgradeScreen = false
+        upgradeChoices = emptyList()
+        game.paused = false
+        onLevelEnd?.invoke(true)
+    }
+
     init {
-        loadLevel(0)
+        loadLevel(4)
     }
 }
