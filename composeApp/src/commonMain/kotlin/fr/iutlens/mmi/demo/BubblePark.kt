@@ -63,10 +63,13 @@ class BubblePark : GameData() {
         const val COMBO_TRIGGER_COUNT = 2           // nb de captures avant que le multiplicateur s'active
         const val COMBO_RESET_INTERVAL_MS = 3000L   // délai sans capture avant reset du combo (ms)
 
-        // Bonus spawn interval
+        // Bonus spawn interval (manches normales)
         const val BONUS_INTERVAL_START_MS = 12000L  // délai au niveau 1
         const val BONUS_INTERVAL_MIN_MS   = 4000L   // délai minimum atteint au niveau 15
         const val BONUS_INTERVAL_MAX_LEVEL = 14     // index du niveau où l'on atteint le minimum (niveau 15)
+
+        // Bonus spawn interval (manches boss)
+        const val BOSS_BONUS_INTERVAL_MS = 3000L
     }
 
     data class ScorePopup(val id: Long, val worldX: Float, val worldY: Float, val points: Int)
@@ -128,6 +131,7 @@ class BubblePark : GameData() {
     var isBossRound by mutableStateOf(false)
     var bossGigano: Gigano? by mutableStateOf(null)
     private var bossWaveTimerMs = 0L
+    private var bossBonusTimerMs = 0L
 
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
@@ -185,6 +189,7 @@ class BubblePark : GameData() {
         isBossRound = false
         bossGigano = null
         bossWaveTimerMs = 0L
+        bossBonusTimerMs = 0L
 
         if (BossDifficultyConfig.isBossLevel(levelIndex)) {
             startBossRound()
@@ -208,10 +213,15 @@ class BubblePark : GameData() {
 
             if (isBossRound) {
                 bossWaveTimerMs += 20
+                bossBonusTimerMs += 20
                 val bossConfig = BossDifficultyConfig.getConfig(levelIndex)
                 if (bossWaveTimerMs >= bossConfig.spawnIntervalMs) {
                     bossWaveTimerMs = 0L
                     spawnBossWave(bossConfig.spawnCount)
+                }
+                if (bossBonusTimerMs >= BOSS_BONUS_INTERVAL_MS) {
+                    bossBonusTimerMs = 0L
+                    spawnRandomBonus()
                 }
                 if (bossGigano?.isDead == true) {
                     isBossRound = false
@@ -241,24 +251,16 @@ class BubblePark : GameData() {
 
             if (FastAmmoEffect.isActive) player.shoot(delayMs = FastAmmoEffect.shootDelayMs)
 
-            bonusTimerMs += 20
-
-            val bonusInterval = run {
-                val t = (levelIndex.toFloat() / BONUS_INTERVAL_MAX_LEVEL).coerceIn(0f, 1f)
-                (BONUS_INTERVAL_START_MS - (BONUS_INTERVAL_START_MS - BONUS_INTERVAL_MIN_MS) * t).toLong()
-            }
-            if (bonusTimerMs >= bonusInterval) {
-                bonusTimerMs = 0L
-                val available = (0..2).filter { it != lastBonusIndex }
-                val pick = available[Random.nextInt(available.size)]
-                lastBonusIndex = pick
-                val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 10) * tileArea.w + 5 * tileArea.w
-                val bonus: Bonus = when (pick) {
-                    0 -> LifeBonus(bonusX, 0f, player)
-                    1 -> SlowBonus(bonusX, 0f)
-                    else -> FastAmmoBonus(bonusX, 0f)
+            if (!isBossRound) {
+                bonusTimerMs += 20
+                val bonusInterval = run {
+                    val t = (levelIndex.toFloat() / BONUS_INTERVAL_MAX_LEVEL).coerceIn(0f, 1f)
+                    (BONUS_INTERVAL_START_MS - (BONUS_INTERVAL_START_MS - BONUS_INTERVAL_MIN_MS) * t).toLong()
                 }
-                (game.spriteList as? MutableList<Sprite>)?.add(bonus)
+                if (bonusTimerMs >= bonusInterval) {
+                    bonusTimerMs = 0L
+                    spawnRandomBonus()
+                }
             }
 
             distanceMap.update()
@@ -291,11 +293,26 @@ class BubblePark : GameData() {
         return null
     }
 
+    private fun spawnRandomBonus() {
+        val available = (0..2).filter { it != lastBonusIndex }
+        val pick = available[Random.nextInt(available.size)]
+        lastBonusIndex = pick
+        val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 10) * tileArea.w + 5 * tileArea.w
+        val bonus: Bonus = when (pick) {
+            0 -> LifeBonus(bonusX, 0f, player)
+            1 -> SlowBonus(bonusX, 0f)
+            else -> FastAmmoBonus(bonusX, 0f)
+        }
+        (game.spriteList as? MutableList<Sprite>)?.add(bonus)
+    }
+
     private fun startBossRound() {
         isBossRound = true
         bossWaveTimerMs = 0L
+        bossBonusTimerMs = 0L
         val bossConfig = BossDifficultyConfig.getConfig(levelIndex)
         val sprites = game.spriteList as? MutableList<Sprite> ?: return
+        spawnRandomBonus()
         findGiganoSpawnPoint()?.let { (x, y) ->
             val gigano = Gigano(
                 res = Res.drawable.gigano_sprite,
