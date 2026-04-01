@@ -26,7 +26,7 @@ import fr.iutlens.mmi.demo.bubblechtein_sprites
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun PauseScreen(life: Int, score: Int, damageScale: Float, onResume: () -> Unit, onQuit: () -> Unit) {
+fun PauseScreen(life: Int, maxLife: Int = 3, score: Int, damageScale: Float, onResume: () -> Unit, onQuit: () -> Unit) {
     val dinoFont = FontFamily(Font(Res.font.dino_font))
     val duduFont = FontFamily(Font(Res.font.dudu_font))
 
@@ -77,7 +77,7 @@ fun PauseScreen(life: Int, score: Int, damageScale: Float, onResume: () -> Unit,
                     modifier = Modifier.fillMaxHeight(0.65f).aspectRatio(1f)
                 )
                 Box(modifier = Modifier.padding(end = (screenW * 0.02f).dp)) {
-                    ShowLife(life, heartSize = (screenH * 0.12f).dp)
+                    ShowLife(life, maxLife = maxLife, heartSize = (screenH * 0.12f).dp)
                 }
             }
 
