@@ -1,13 +1,18 @@
 package fr.iutlens.mmi.demo.screens
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Easing
 import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -164,6 +169,20 @@ fun BoxScope.MenuPanel(
     val secondFontSize = (screenH * 0.10f).sp
     val volumeSize = (screenH * 0.15f).dp
 
+    val scaleJouer = remember { Animatable(0f) }
+    val scaleCredits = remember { Animatable(0f) }
+    val scaleBestiaire = remember { Animatable(0f) }
+    val scaleVolume = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        launch { scaleJouer.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
+        delay(120)
+        launch { scaleCredits.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
+        launch { scaleBestiaire.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
+        delay(120)
+        launch { scaleVolume.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
+    }
+
     Column(
         modifier = Modifier
             .align(Alignment.BottomEnd)
@@ -181,7 +200,7 @@ fun BoxScope.MenuPanel(
             outlineColor = Color.Transparent,
             fontSize = joueurFontSize,
             strokeWidth = 0f,
-            modifier = Modifier.rotate(rotJouer)
+            modifier = Modifier.rotate(rotJouer).scale(scaleJouer.value)
         )
 
         Row(
@@ -197,7 +216,7 @@ fun BoxScope.MenuPanel(
                 outlineColor = Color.Transparent,
                 fontSize = secondFontSize,
                 strokeWidth = 0f,
-                modifier = Modifier.rotate(rotCredits)
+                modifier = Modifier.rotate(rotCredits).scale(scaleCredits.value)
             )
             MenuButton(
                 onClick = onBestiaryClick,
@@ -207,11 +226,11 @@ fun BoxScope.MenuPanel(
                 outlineColor = Color.Transparent,
                 fontSize = secondFontSize,
                 strokeWidth = 0f,
-                modifier = Modifier.rotate(rotBestiaire)
+                modifier = Modifier.rotate(rotBestiaire).scale(scaleBestiaire.value)
             )
         }
 
-        VolumeButton(modifier = Modifier.size(volumeSize).rotate(rotVolume))
+        VolumeButton(modifier = Modifier.size(volumeSize).rotate(rotVolume).scale(scaleVolume.value))
     }
 }
 
