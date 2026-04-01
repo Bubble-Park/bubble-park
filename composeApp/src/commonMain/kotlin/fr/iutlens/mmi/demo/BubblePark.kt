@@ -625,6 +625,6 @@ class BubblePark : GameData() {
     }
 
     init {
-        loadLevel(4)
+        loadLevel(0)
     }
 }
