@@ -1,6 +1,9 @@
 package fr.iutlens.mmi.demo.components.dino
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.Res
@@ -31,6 +34,7 @@ abstract class GenericDino(
     override val scoreValue get() = type.scoreValue
 
     var currentHitCount = 0
+    open val isStunImmune: Boolean = false
 
     val effectiveHitCount: Int
         get() = when (val b = type.behavior) {
@@ -61,7 +65,7 @@ abstract class GenericDino(
             val w2 = spriteSheet.spriteWidth / 2
             val h2 = spriteSheet.spriteHeight / 2
             val (rotation, scaleF) = when {
-                isCaptured -> 0f to 1f
+                isCaptured -> squareWaveRotation(phase = captureTimer * 0.08f, intensity = 5f) to 1f
                 spawnTimer > SPAWN_ANIM_DURATION -> {
                     val ratio = (spawnTimer - SPAWN_ANIM_DURATION).toFloat() / SPAWN_ANIM_DURATION
                     spawnRotation(ratio) to spawnScale(ratio)
@@ -78,8 +82,8 @@ abstract class GenericDino(
                 if (rotation != 0f) rotate(rotation, pivot = Offset.Zero)
                 if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
             }) {
-                val alpha = if (SlowEffect.isActive) paintAlpha * 0.5f else paintAlpha
-                spriteSheet.paint(this, frameNdx, -w2, -h2, alpha = alpha)
+                val colorFilter = if (SlowEffect.isActive) ColorFilter.tint(Color(0x880000FF.toInt()), BlendMode.SrcAtop) else null
+                spriteSheet.paint(this, frameNdx, -w2, -h2, alpha = paintAlpha, colorFilter = colorFilter)
             }
         }
         if (SlowEffect.isActive) {

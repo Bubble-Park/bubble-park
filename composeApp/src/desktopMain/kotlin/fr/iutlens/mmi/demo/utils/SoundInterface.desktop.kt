@@ -72,7 +72,9 @@ actual open class MusicPlayer actual constructor(
 
 actual open class SoundPool actual constructor() {
 
-    val map = mutableMapOf<String,SoundResource>()
+    val map = mutableMapOf<String, SoundResource>()
+    private val activePlayers = mutableMapOf<String, Player?>()
+    private val activeJobs = mutableMapOf<String, Job>()
 
     actual fun load(context: Any?, res: String) {
         map[res] = SoundResource(res)
@@ -87,8 +89,20 @@ actual open class SoundPool actual constructor() {
         rate: Float
     ) {
         val soundResource = map[resource] ?: return
-        CoroutineScope( Dispatchers.IO).launch {
-            soundResource.player.play()
+        activeJobs[resource]?.cancel()
+        activePlayers[resource]?.close()
+        val job = CoroutineScope(Dispatchers.IO).launch {
+            val p = soundResource.player
+            activePlayers[resource] = p
+            p.play()
+            activePlayers.remove(resource)
+            activeJobs.remove(resource)
         }
+        activeJobs[resource] = job
+    }
+
+    actual fun stop(resource: String) {
+        activeJobs.remove(resource)?.cancel()
+        activePlayers.remove(resource)?.close()
     }
 }

@@ -63,6 +63,7 @@ actual open class SoundPool actual constructor() {
     private val soundIds = mutableMapOf<String, Int>()
     private val readyIds = mutableSetOf<Int>()
     private val loading = mutableSetOf<String>()
+    private val activeStreams = mutableMapOf<String, Int>()
 
     @OptIn(ExperimentalResourceApi::class)
     actual fun load(context: Any?, res: String) {
@@ -107,6 +108,12 @@ actual open class SoundPool actual constructor() {
     ) {
         val id = soundIds[resource] ?: return
         if (id !in readyIds) return
-        nativePool?.play(id, leftVolume, rightVolume, priority, loop, rate)
+        val streamId = nativePool?.play(id, leftVolume, rightVolume, priority, loop, rate) ?: return
+        activeStreams[resource] = streamId
+    }
+
+    actual fun stop(resource: String) {
+        val streamId = activeStreams.remove(resource) ?: return
+        nativePool?.stop(streamId)
     }
 }

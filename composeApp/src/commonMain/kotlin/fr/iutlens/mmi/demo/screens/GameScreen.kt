@@ -1,6 +1,7 @@
 package fr.iutlens.mmi.demo.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,13 +15,14 @@ import fr.iutlens.mmi.demo.BubblePark
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.parasaur_sprite
-import fr.iutlens.mmi.demo.gallimimus_sprite
+import fr.iutlens.mmi.demo.galliminus_sprite
 import fr.iutlens.mmi.demo.level_background
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.slow_debuff
 import fr.iutlens.mmi.demo.slow_bonus
 import fr.iutlens.mmi.demo.trice_sprite
 import fr.iutlens.mmi.demo.stego_sprite
+import fr.iutlens.mmi.demo.gigano_sprite
 import fr.iutlens.mmi.demo.game.DifficultyConfig
 import fr.iutlens.mmi.demo.game.SlowEffect
 import fr.iutlens.mmi.demo.game.FastAmmoEffect
@@ -93,18 +95,19 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
-    SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 3, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 4, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.trex_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.raptor_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.parasaur_sprite, 2, 2, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.gallimimus_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.galliminus_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.trice_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.stego_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.player_heart, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.compy_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.dodo_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.gigano_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_bonus, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_debuff, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.fastammo_bonus, 1, 1, filterQuality = FilterQuality.High)
@@ -268,9 +271,9 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             verticalAlignment = Alignment.Top
         ) {
             Column {
-                ShowLife(gameData.player.life, heartSize = heartSize)
+                ShowLife(gameData.player.life, maxLife = gameData.player.maxLife, heartSize = heartSize)
                 ShowScore(gameData.score.get(), fontSize = uiFontSize)
-                ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
+                if (!gameData.isBossRound) ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 24.dp, end = 24.dp)) {
                 Image(
@@ -327,26 +330,67 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             }
         }
 
-        // Combo près du joueur
-        val comboMatrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
-        val playerScreenPx = comboMatrix.map(Offset(gameData.player.x, gameData.player.y))
-        val comboXDp = density.run { (playerScreenPx.x + 55f).toDp() }
-        val comboYDp = density.run { (playerScreenPx.y - 30f).toDp() }
-        val comboFont = FontFamily(Font(Res.font.dudu_font))
-        Text(
-            text = "x${"%.2f".format(gameData.comboMultiplier)}",
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .offset(x = comboXDp, y = comboYDp)
-                .rotate(-12f),
-            color = Color(0xFFFF69B4),
-            fontSize = (minDim.value * 0.05f).sp,
-            fontFamily = comboFont
-        )
+        // Barre de vie du boss
+        val currentBossGigano = gameData.bossGigano
+        if (gameData.isBossRound && currentBossGigano != null) {
+            val maxHits = currentBossGigano.effectiveHitCount.toFloat()
+            val hitsReceived = currentBossGigano.currentHitCount.toFloat()
+            val hpFraction = (1f - hitsReceived / maxHits).coerceIn(0f, 1f)
+            val duduFont = FontFamily(Font(Res.font.dudu_font))
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "GIGANO",
+                    color = Color(0xFFCC2200),
+                    fontSize = (minDim.value * 0.05f).sp,
+                    fontFamily = duduFont
+                )
+                Box(
+                    modifier = Modifier
+                        .width((screenW * 0.45f).dp)
+                        .height(14.dp)
+                        .background(Color(0xFF333333), shape = RoundedCornerShape(7.dp))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(hpFraction)
+                            .background(Color(0xFFCC2200), shape = RoundedCornerShape(7.dp))
+                    )
+                }
+            }
+        }
+
+        // Combo près du joueur (masqué si x1)
+        if (gameData.comboMultiplier > 1) {
+            val comboMatrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+            val playerScreenPx = comboMatrix.map(Offset(gameData.player.x, gameData.player.y))
+            val comboXDp = density.run { (playerScreenPx.x + 55f).toDp() }
+            val comboYDp = density.run { (playerScreenPx.y - 30f).toDp() }
+            val comboFont = FontFamily(Font(Res.font.dudu_font))
+            val comboFadeThresholdMs = BubblePark.COMBO_RESET_INTERVAL_MS / 2f
+            val comboScale = (gameData.comboTimeRemainingMs / comboFadeThresholdMs).coerceIn(0f, 1f)
+            Text(
+                text = "x${gameData.comboMultiplier}",
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .offset(x = comboXDp, y = comboYDp)
+                    .rotate(-12f)
+                    .scale(comboScale),
+                color = Color(0xFFFF69B4),
+                fontSize = (minDim.value * 0.09f).sp,
+                fontFamily = comboFont
+            )
+        }
 
         if (isPaused) {
             PauseScreen(
                 life = gameData.player.life,
+                maxLife = gameData.player.maxLife,
                 score = gameData.score.get(),
                 damageScale = damageScaleAnim.value + damagePulse,
                 onResume = {
@@ -356,6 +400,11 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                     gameData.game.invalidate()
                 },
                 onQuit = onExit
+            )
+        } else if (gameData.showUpgradeScreen) {
+            UpgradeScreen(
+                choices = gameData.upgradeChoices,
+                onUpgradeSelected = { upgrade -> gameData.selectUpgrade(upgrade) }
             )
         } else {
             Controllers(
@@ -390,7 +439,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     }
 
     LaunchedEffect(gameData.comboMultiplier) {
-        if (gameData.comboMultiplier <= 1.01f) return@LaunchedEffect
+        if (gameData.comboMultiplier <= 1) return@LaunchedEffect
         repeat(3) {
             launch { shakeX.animateTo(if (it % 2 == 0) 8f else -8f, tween(40)) }
             launch { shakeY.animateTo(if (it % 2 == 0) 5f else -5f, tween(40)) }

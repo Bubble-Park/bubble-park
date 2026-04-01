@@ -51,14 +51,14 @@ fun ShowChrono(time: Float, fontSize: TextUnit = 44.sp) {
     )
 }
 
+private val heartRotations = listOf(4f, -8f, 6f, -5f, 7f, -4f)
+
 @Composable
-fun ShowLife(life: Int, heartSize: Dp = 72.dp) {
+fun ShowLife(life: Int, maxLife: Int = 3, heartSize: Dp = 72.dp) {
     Row(modifier = Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        repeat(3) { index ->
+        repeat(maxLife) { index ->
             val isFullHeart = index < life
-            var rotate: Float = 4f
-            if (index == 1) rotate = -8f
-            else if (index == 2) rotate = 6f
+            val rotate = heartRotations.getOrElse(index) { if (index % 2 == 0) 4f else -6f }
             val iconRes = if (isFullHeart) Res.drawable.player_heart else Res.drawable.player_heart_empty
             val iconDesc = if (isFullHeart) "Coeur plein" else "Coeur vide"
             Image(
