@@ -1,16 +1,13 @@
 package fr.iutlens.mmi.demo.screens
 
-import androidx.compose.animation.core.EaseInElastic
-import androidx.compose.animation.core.EaseInExpo
-import androidx.compose.animation.core.EaseInOut
-import androidx.compose.animation.core.EaseInQuad
 import androidx.compose.animation.core.Easing
-import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -72,32 +69,11 @@ fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}, onCredit
         }
     }
 
-    val infiniteTransition = rememberInfiniteTransition(label = "menu_rot")
-    val rotLogo by infiniteTransition.animateFloat(
-        initialValue = -2f, targetValue = 1f,
-        animationSpec = infiniteRepeatable(tween(3200, easing = LinearEasing), RepeatMode.Reverse),
-        label = "rotLogo"
-    )
-    val rotJouer by infiniteTransition.animateFloat(
-        initialValue = -1.5f, targetValue = 2f,
-        animationSpec = infiniteRepeatable(tween(2800, easing = LinearEasing), RepeatMode.Reverse),
-        label = "rotJouer"
-    )
-    val rotCredits by infiniteTransition.animateFloat(
-        initialValue = -6f, targetValue = -3f,
-        animationSpec = infiniteRepeatable(tween(3600, easing = LinearEasing), RepeatMode.Reverse),
-        label = "rotCredits"
-    )
-    val rotBestiaire by infiniteTransition.animateFloat(
-        initialValue = -1f, targetValue = 2.5f,
-        animationSpec = infiniteRepeatable(tween(3000, easing = LinearEasing), RepeatMode.Reverse),
-        label = "rotBestiaire"
-    )
-    val rotVolume by infiniteTransition.animateFloat(
-        initialValue = 2f, targetValue = -1f,
-        animationSpec = infiniteRepeatable(tween(4000, easing = LinearEasing), RepeatMode.Reverse),
-        label = "rotVolume"
-    )
+    val rotLogo = squareWaveRotation(menuElapsed * 0.0015f, 2f)
+    val rotJouer = squareWaveRotation(menuElapsed * 0.002f + 1f, 2f)
+    val rotCredits = squareWaveRotation(menuElapsed * 0.0018f + 2f, 1.5f)
+    val rotBestiaire = squareWaveRotation(menuElapsed * 0.0022f + 3f, 2f)
+    val rotVolume = squareWaveRotation(menuElapsed * 0.0025f + 4f, 1.5f)
 
     BoxWithConstraints(
         modifier = Modifier
