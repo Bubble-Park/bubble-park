@@ -30,7 +30,8 @@ import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.compy_sprite
 import fr.iutlens.mmi.demo.dodo_sprite
-import fr.iutlens.mmi.demo.gallimimus_sprite
+import fr.iutlens.mmi.demo.gigano_sprite
+import fr.iutlens.mmi.demo.galliminus_sprite
 import fr.iutlens.mmi.demo.parasaur_sprite
 import fr.iutlens.mmi.demo.quit
 import fr.iutlens.mmi.demo.pause
@@ -48,11 +49,12 @@ private val dinoSprites = listOf(
     Res.drawable.trex_sprite,
     Res.drawable.raptor_sprite,
     Res.drawable.parasaur_sprite,
-    Res.drawable.gallimimus_sprite,
+    Res.drawable.galliminus_sprite,
     Res.drawable.trice_sprite,
     Res.drawable.stego_sprite,
     Res.drawable.compy_sprite,
     Res.drawable.dodo_sprite,
+    Res.drawable.gigano_sprite,
 )
 
 @Composable
@@ -66,11 +68,12 @@ fun BestiaryScreen(onBack: () -> Unit) {
     SpriteSheet.load(Res.drawable.trex_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.raptor_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.parasaur_sprite, 2, 2, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.gallimimus_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.galliminus_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.trice_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.stego_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.compy_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.dodo_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.gigano_sprite, 2, 2, filterQuality = FilterQuality.High)
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val minDim = minOf(maxWidth, maxHeight)
@@ -83,7 +86,7 @@ fun BestiaryScreen(onBack: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(gridSpacing),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                for (row in 0 until 2) {
+                for (row in 0 until 3) {
                     Row(horizontalArrangement = Arrangement.spacedBy(gridSpacing)) {
                         for (col in 0 until 4) {
                             val idx = row * 4 + col
