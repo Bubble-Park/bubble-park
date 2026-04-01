@@ -35,6 +35,7 @@ import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.dino_font
 import fr.iutlens.mmi.demo.logo
 import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.menu_accueil
 import fr.iutlens.mmi.demo.menu_content_fond
 import fr.iutlens.mmi.demo.menu_nuages
 import fr.iutlens.mmi.demo.menu_premier_plan_up
@@ -55,7 +56,7 @@ import fr.iutlens.mmi.demo.ui.CloudsOverlay
 import androidx.compose.runtime.withFrameMillis
 
 @Composable
-fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}) {
+fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}, onCreditsClick: () -> Unit = {}) {
 
     Music("files/main_theme.mp3")
 
@@ -96,7 +97,7 @@ fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}) {
 
         // Images de fond - Layer pour les animations
         Image (
-            painter = painterResource(Res.drawable.background),
+            painter = painterResource(Res.drawable.menu_accueil),
             contentDescription = "Fond du menu",
             contentScale = ContentScale.Crop,
             modifier = Modifier
@@ -136,7 +137,7 @@ fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}) {
                     .padding(start = playPaddingStart, top = playPaddingTop)
             )
             MenuButton(
-                onClick = onPlayClick,
+                onClick = onCreditsClick,
                 text = "CREDITS",
                 fontFamily = dinoFont,
                 fillColor = Color.White,

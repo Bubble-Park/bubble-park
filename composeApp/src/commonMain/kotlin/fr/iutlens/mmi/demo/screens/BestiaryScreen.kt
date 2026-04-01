@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,6 +33,7 @@ import fr.iutlens.mmi.demo.compy_sprite
 import fr.iutlens.mmi.demo.dodo_sprite
 import fr.iutlens.mmi.demo.gallimimus_sprite
 import fr.iutlens.mmi.demo.parasaur_sprite
+import fr.iutlens.mmi.demo.quit
 import fr.iutlens.mmi.demo.pause
 import fr.iutlens.mmi.demo.raptor_sprite
 import fr.iutlens.mmi.demo.stego_sprite
@@ -103,12 +105,12 @@ fun BestiaryScreen(onBack: () -> Unit) {
         }
 
         Image(
-            painter = painterResource(Res.drawable.pause),
+            painter = painterResource(Res.drawable.quit),
             contentDescription = "Retour",
             modifier = Modifier
                 .align(Alignment.TopStart)
-                .padding(16.dp)
-                .size(48.dp)
+                .offset(x = (-8).dp)
+                .size(110.dp)
                 .clickable { onBack() }
         )
     }
