@@ -14,13 +14,14 @@ import fr.iutlens.mmi.demo.BubblePark
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.parasaur_sprite
-import fr.iutlens.mmi.demo.gallimimus_sprite
+import fr.iutlens.mmi.demo.galliminus_sprite
 import fr.iutlens.mmi.demo.level_background
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.slow_debuff
 import fr.iutlens.mmi.demo.slow_bonus
 import fr.iutlens.mmi.demo.trice_sprite
 import fr.iutlens.mmi.demo.stego_sprite
+import fr.iutlens.mmi.demo.gigano_sprite
 import fr.iutlens.mmi.demo.game.DifficultyConfig
 import fr.iutlens.mmi.demo.game.SlowEffect
 import fr.iutlens.mmi.demo.game.FastAmmoEffect
@@ -99,12 +100,13 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     SpriteSheet.load(Res.drawable.trex_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.raptor_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.parasaur_sprite, 2, 2, filterQuality = FilterQuality.High)
-    SpriteSheet.load(Res.drawable.gallimimus_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.galliminus_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.trice_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.stego_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.player_heart, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.compy_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.dodo_sprite, 2, 2, filterQuality = FilterQuality.High)
+    SpriteSheet.load(Res.drawable.gigano_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_bonus, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.slow_debuff, 1, 1, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.fastammo_bonus, 1, 1, filterQuality = FilterQuality.High)
