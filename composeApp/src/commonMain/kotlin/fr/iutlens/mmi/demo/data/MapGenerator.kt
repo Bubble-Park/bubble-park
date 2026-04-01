@@ -6,7 +6,7 @@ import kotlin.random.Random
 object MapGenerator {
     const val MAP_WIDTH = 30
     const val MAP_HEIGHT = 23
-    const val MAP_CODE = ".abef^?#ghcd)%*"
+    const val MAP_CODE = ".abef^?#ghcd)%*ijk"  // i=buisson, j=rocher1, k=rocher2
 
     private val PLATFORM_ROW_TOPS = intArrayOf(4, 10, 16)
 
@@ -34,6 +34,8 @@ object MapGenerator {
             for (range in segments) placePlatformSegment(grid, topRow, range)
             prevZoneStart = zoneStart
         }
+
+        placeDecor(grid, Random.Default)
 
         return grid.joinToString("\n") { it.concatToString() }
     }
@@ -130,4 +132,52 @@ object MapGenerator {
     }
 
     private fun makeEven(n: Int): Int = if (n % 2 == 0) n else n - 1
+
+    private val SOLID_TOPS = setOf('#', '^', '?', 'e', 'f', 'a', 'b')
+    private val DECOR_CHARS = charArrayOf('i', 'j', 'k') // i=buisson, j=rocher1, k=rocher2
+    private const val MIN_DECOR_GAP = 6
+    private const val DECOR_PROB = 0.05f
+    private const val DECOR_EDGE_MARGIN = 4
+
+    private fun placeDecor(grid: Array<CharArray>, rng: Random) {
+        var decorIndex = 0
+
+        for (row in 1 until MAP_HEIGHT - 1) {
+            var lastPlacedCol = -MIN_DECOR_GAP - 1
+            for (col in DECOR_EDGE_MARGIN until MAP_WIDTH - DECOR_EDGE_MARGIN) {
+                if (grid[row][col] != '.') continue
+                if (grid[row + 1][col] !in SOLID_TOPS) continue
+                if (col - lastPlacedCol < MIN_DECOR_GAP) continue
+
+                if (rng.nextFloat() < DECOR_PROB) {
+                    grid[row][col] = DECOR_CHARS[decorIndex % DECOR_CHARS.size]
+                    decorIndex++
+                    lastPlacedCol = col
+                }
+            }
+        }
+
+        // Garantie : au moins un de chaque type de décor
+        val candidates = buildList {
+            for (row in 1 until MAP_HEIGHT - 1)
+                for (col in DECOR_EDGE_MARGIN until MAP_WIDTH - DECOR_EDGE_MARGIN)
+                    if (grid[row][col] == '.' && grid[row + 1][col] in SOLID_TOPS)
+                        add(row to col)
+        }
+        if (candidates.isEmpty()) return
+
+        for (charIndex in DECOR_CHARS.indices) {
+            val char = DECOR_CHARS[charIndex]
+            val alreadyPresent = (1 until MAP_HEIGHT - 1).any { row ->
+                (DECOR_EDGE_MARGIN until MAP_WIDTH - DECOR_EDGE_MARGIN).any { col -> grid[row][col] == char }
+            }
+            if (!alreadyPresent) {
+                val available = candidates.filter { (r, c) -> grid[r][c] == '.' }
+                if (available.isNotEmpty()) {
+                    val pos = available[rng.nextInt(available.size)]
+                    grid[pos.first][pos.second] = char
+                }
+            }
+        }
+    }
 }
