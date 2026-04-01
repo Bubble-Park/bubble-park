@@ -145,7 +145,11 @@ class BubblePark : GameData() {
 
         val levelData = LevelGenerator.generate(index)
         val tileMap = levelData.mapString.toTileMap(levelData.mapCode)
-        tileArea = TiledArea(levelData.tileSetRes, tileMap)
+        val decorScales = listOf('i', 'j', 'k')
+            .map { levelData.mapCode.indexOf(it) }
+            .filter { it >= 0 }
+            .associateWith { 2f..3f }
+        tileArea = TiledArea(levelData.tileSetRes, tileMap, decorScales)
 
         val isFirstLevel = !::player.isInitialized
         val savedLife = if (isFirstLevel) 3 else player.life
@@ -490,6 +494,6 @@ class BubblePark : GameData() {
     }
 
     init {
-        loadLevel(6)
+        loadLevel(0)
     }
 }

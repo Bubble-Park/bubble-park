@@ -2,7 +2,9 @@ package fr.iutlens.mmi.demo.game.sprite
 
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.utils.SpriteSheet
+import kotlin.random.Random
 import org.jetbrains.compose.resources.DrawableResource
 
 /**
@@ -17,7 +19,7 @@ import org.jetbrains.compose.resources.DrawableResource
  * @constructor Crée une grille de sprite à partir de la feuille de sprite (spriteSheet) et d'un
  * tableau des numéros de sprites (data)
  */
-class TiledArea(var res : DrawableResource,  val  tileMap: TileMap) : Sprite {
+class TiledArea(var res : DrawableResource, val tileMap: TileMap, val scaledTiles: Map<Int, ClosedFloatingPointRange<Float>> = emptyMap()) : Sprite {
 
     val sprite get() = SpriteSheet[res]
     /**
@@ -31,15 +33,22 @@ class TiledArea(var res : DrawableResource,  val  tileMap: TileMap) : Sprite {
     val h  get() = sprite.spriteHeight-3
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
-        tileMap.foreach{x,y, value ->
-                sprite.paint(
-                    drawScope,
-                    value,
-                    (x * w) / tileMap.tileSizeX,
-                    (y * h) / tileMap.tileSizeY
-                )
+        tileMap.foreach { x, y, value ->
+            val px = (x * w) / tileMap.tileSizeX
+            val py = (y * h) / tileMap.tileSizeY
+            val scaleRange = scaledTiles[value]
+            if (scaleRange != null) {
+                val tileRng = Random(x.toLong() * 1000L + y.toLong())
+                val scale = scaleRange.start + tileRng.nextFloat() * (scaleRange.endInclusive - scaleRange.start)
+                val scaledW = (sprite.spriteWidth * scale).toInt()
+                val scaledH = (sprite.spriteHeight * scale).toInt()
+                val scaledX = px + sprite.spriteWidth / 2 - scaledW / 2
+                val scaledY = py + sprite.spriteHeight - scaledH
+                sprite.paint(drawScope, value, scaledX, scaledY, IntSize(scaledW, scaledH))
+            } else {
+                sprite.paint(drawScope, value, px, py)
+            }
         }
-
     }
 
     override val boundingBox get() = Rect(0f,0f,
