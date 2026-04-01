@@ -1,15 +1,13 @@
 package fr.iutlens.mmi.demo.screens
 
-import androidx.compose.animation.core.EaseInElastic
-import androidx.compose.animation.core.EaseInExpo
-import androidx.compose.animation.core.EaseInOut
-import androidx.compose.animation.core.EaseInQuad
 import androidx.compose.animation.core.Easing
+import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,8 +30,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.iutlens.mmi.demo.Res
-import fr.iutlens.mmi.demo.dino_font
-import fr.iutlens.mmi.demo.logo
+import fr.iutlens.mmi.demo.dudu_font
+import fr.iutlens.mmi.demo.logo_medium
 import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.menu_accueil
 import fr.iutlens.mmi.demo.menu_content_fond
@@ -60,7 +58,7 @@ import androidx.compose.runtime.withFrameMillis
 fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}, onCreditsClick: () -> Unit = {}) {
 
     val dinoFont = FontFamily(
-        Font(Res.font.dino_font)
+        Font(Res.font.dudu_font)
     )
 
     var menuElapsed by remember { mutableStateOf(0L) }
@@ -70,6 +68,12 @@ fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}, onCredit
             menuElapsed = withFrameMillis { it } - start
         }
     }
+
+    val rotLogo = squareWaveRotation(menuElapsed * 0.0015f, 2f)
+    val rotJouer = squareWaveRotation(menuElapsed * 0.002f + 1f, 2f)
+    val rotCredits = squareWaveRotation(menuElapsed * 0.0018f + 2f, 1.5f)
+    val rotBestiaire = squareWaveRotation(menuElapsed * 0.0022f + 3f, 2f)
+    val rotVolume = squareWaveRotation(menuElapsed * 0.0025f + 4f, 1.5f)
 
     BoxWithConstraints(
         modifier = Modifier
@@ -106,57 +110,28 @@ fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}, onCredit
 
         // Logo
         Image (
-            painter = painterResource(Res.drawable.logo),
+            painter = painterResource(Res.drawable.logo_medium),
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.Center)
                 .offset(x = dynamicLogoOffset, y = 0.dp)
-                .fillMaxWidth(0.33F)
+                .size(minOf(maxWidth, maxHeight) * 0.55f)
+                .rotate(rotLogo)
         )
 
-        MenuPanel(screenW, screenH) {
-            MenuButton(
-                onClick = onPlayClick,
-                text = "JOUER",
-                fontFamily = dinoFont,
-                fillColor = Color(0xFF474534),
-                outlineColor = Color.White,
-                fontSize = playFontSize,
-                strokeWidth = dynamicStrokeWidth,
-                modifier = Modifier
-                    .rotate(-4f)
-                    .padding(start = playPaddingStart, top = playPaddingTop)
-            )
-            MenuButton(
-                onClick = onCreditsClick,
-                text = "CREDITS",
-                fontFamily = dinoFont,
-                fillColor = Color.White,
-                outlineColor = Color(0xFF474534),
-                fontSize = creditsFontSize,
-                strokeWidth = dynamicStrokeWidth,
-                modifier = Modifier
-                    .rotate(-7f)
-                    .padding(start = creditsPaddingStart)
-            )
-            VolumeButton(
-                modifier = Modifier
-                    .size((screenH * 0.25f).dp)
-                    .padding(start = creditsPaddingStart)
-            )
-        }
+        MenuPanel(
+            screenW = screenW,
+            screenH = screenH,
+            dinoFont = dinoFont,
+            onPlayClick = onPlayClick,
+            onCreditsClick = onCreditsClick,
+            onBestiaryClick = onBestiaryClick,
+            rotJouer = rotJouer,
+            rotCredits = rotCredits,
+            rotBestiaire = rotBestiaire,
+            rotVolume = rotVolume
+        )
         
-        // Icône Bestiaire
-        Image(
-            painter = painterResource(Res.drawable.bestiaire),
-            contentDescription = "Bestiaire",
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 24.dp)
-                .size((minOf(maxWidth, maxHeight) * 0.16f))
-                .clickable { onBestiaryClick() }
-        )
-
         // Version
         Text(
             text = "v1.0.0",
@@ -175,28 +150,69 @@ fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}, onCredit
 fun BoxScope.MenuPanel(
     screenW: Float,
     screenH: Float,
-    content: @Composable ColumnScope.() -> Unit
+    dinoFont: FontFamily,
+    onPlayClick: () -> Unit,
+    onCreditsClick: () -> Unit,
+    onBestiaryClick: () -> Unit,
+    rotJouer: Float = -1.5f,
+    rotCredits: Float = -6f,
+    rotBestiaire: Float = -1f,
+    rotVolume: Float = 2f,
 ) {
-    val dynamicColumnWidth = (screenW * 0.36f).dp
-    val dynamicColumnSpacing = -(screenH * 0.02f).dp
+    val columnWidth = (screenW * 0.42f).dp
+    val joueurFontSize = (screenH * 0.18f).sp
+    val secondFontSize = (screenH * 0.10f).sp
+    val volumeSize = (screenH * 0.15f).dp
 
-    Image(
-        painter = painterResource(Res.drawable.menu_content_fond),
-        contentDescription = null,
-        alignment = Alignment.BottomEnd,
-        modifier = Modifier
-            .align(Alignment.BottomEnd)
-            .fillMaxHeight(0.75f)
-    )
     Column(
         modifier = Modifier
             .align(Alignment.BottomEnd)
-            .fillMaxHeight(0.75f)
-            .width(dynamicColumnWidth),
-        horizontalAlignment = Alignment.Start,
-        verticalArrangement = Arrangement.spacedBy(dynamicColumnSpacing),
-        content = content
-    )
+            .padding(end = (screenW * 0.12f).dp, bottom = (screenH * 0.2f).dp)
+            .fillMaxHeight(0.65f)
+            .width(columnWidth),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.SpaceEvenly
+    ) {
+        MenuButton(
+            onClick = onPlayClick,
+            text = "JOUER",
+            fontFamily = dinoFont,
+            fillColor = Color(0xFFF1934D),
+            outlineColor = Color.Transparent,
+            fontSize = joueurFontSize,
+            strokeWidth = 0f,
+            modifier = Modifier.rotate(rotJouer)
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            MenuButton(
+                onClick = onCreditsClick,
+                text = "Crédits",
+                fontFamily = dinoFont,
+                fillColor = Color.Black,
+                outlineColor = Color.Transparent,
+                fontSize = secondFontSize,
+                strokeWidth = 0f,
+                modifier = Modifier.rotate(rotCredits)
+            )
+            MenuButton(
+                onClick = onBestiaryClick,
+                text = "Bestiaire",
+                fontFamily = dinoFont,
+                fillColor = Color.Black,
+                outlineColor = Color.Transparent,
+                fontSize = secondFontSize,
+                strokeWidth = 0f,
+                modifier = Modifier.rotate(rotBestiaire)
+            )
+        }
+
+        VolumeButton(modifier = Modifier.size(volumeSize).rotate(rotVolume))
+    }
 }
 
 @Composable
@@ -205,7 +221,9 @@ fun VolumeButton(modifier: Modifier = Modifier) {
     Image(
         painter = painterResource(icon),
         contentDescription = if (Music.mute) "Son coupé" else "Son actif",
-        modifier = modifier.clickable { Music.mute = !Music.mute }
+        modifier = modifier
+            .rotate(if (Music.mute) 25f else 0f)
+            .clickable { Music.mute = !Music.mute }
     )
 }
 
@@ -227,6 +245,8 @@ fun OutlineText(
             fontSize = outineFontSize,
             color = outlineColor,
             fontFamily = fontFamily,
+            maxLines = 1,
+            softWrap = false,
             style = TextStyle(
                 drawStyle = Stroke(
                     width = strokeWidth,
@@ -234,12 +254,13 @@ fun OutlineText(
                 )
             )
         )
-        // Remplissage
         Text(
             text = text,
             fontSize = fontSize,
             color = fillColor,
-            fontFamily = fontFamily
+            fontFamily = fontFamily,
+            maxLines = 1,
+            softWrap = false,
         )
     }
 }
@@ -285,7 +306,7 @@ fun animateOffsetBackground(
         targetValue = targetValue,
         animationSpec = infiniteRepeatable(
             animation = tween(durationMillis = durationMillis, easing = easing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Restart
         ),
         label = "flottement_y"
     )
