@@ -18,19 +18,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
 import fr.iutlens.mmi.demo.menu_accueil
-import fr.iutlens.mmi.demo.screens.BestiaryScreen
-import fr.iutlens.mmi.demo.screens.CreditsScreen
 import fr.iutlens.mmi.demo.screens.GameOverScreen
 import fr.iutlens.mmi.demo.screens.GameScreen
-import fr.iutlens.mmi.demo.screens.MainMenu
+import fr.iutlens.mmi.demo.screens.MenuHost
 import org.jetbrains.compose.resources.painterResource
 
 enum class GameState {
     MENU,
     PLAYING,
-    GAME_OVER,
-    BESTIARY,
-    CREDITS
+    GAME_OVER
 }
 
 @Composable
@@ -66,20 +62,12 @@ fun App(modifier: Modifier = Modifier) {
                 label = "screen_transition"
             ) { state ->
                 when (state) {
-                    GameState.MENU -> MainMenu(
-                        onPlayClick = { currentState = GameState.PLAYING },
-                        onBestiaryClick = { currentState = GameState.BESTIARY },
-                        onCreditsClick = { currentState = GameState.CREDITS }
-                    )
-                    GameState.BESTIARY -> BestiaryScreen(
-                        onBack = { currentState = GameState.MENU }
+                    GameState.MENU -> MenuHost(
+                        onPlayClick = { currentState = GameState.PLAYING }
                     )
                     GameState.PLAYING -> GameScreen(
                         onExit = { currentState = GameState.MENU },
                         onGameOver = { score -> lastScore = score; currentState = GameState.GAME_OVER }
-                    )
-                    GameState.CREDITS -> CreditsScreen(
-                        onBack = { currentState = GameState.MENU }
                     )
                     GameState.GAME_OVER -> GameOverScreen(
                         score = lastScore,
