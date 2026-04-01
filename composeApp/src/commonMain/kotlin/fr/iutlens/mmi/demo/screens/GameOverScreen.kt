@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.sp
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.dino_font
 import fr.iutlens.mmi.demo.dudu_font
-import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.trou
 import fr.iutlens.mmi.demo.ui.ShowLife
 import org.jetbrains.compose.resources.Font
@@ -38,14 +37,6 @@ fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
         val playPaddingStart = (screenW * 0.06f).dp
         val playPaddingTop = (screenH * 0.08f).dp
         val quitPaddingStart = (screenW * 0.03f).dp
-
-        // Fond
-        Image(
-            painter = painterResource(Res.drawable.background),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
 
         Column(
             modifier = Modifier

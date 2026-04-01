@@ -327,22 +327,27 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             }
         }
 
-        // Combo près du joueur
-        val comboMatrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
-        val playerScreenPx = comboMatrix.map(Offset(gameData.player.x, gameData.player.y))
-        val comboXDp = density.run { (playerScreenPx.x + 55f).toDp() }
-        val comboYDp = density.run { (playerScreenPx.y - 30f).toDp() }
-        val comboFont = FontFamily(Font(Res.font.dudu_font))
-        Text(
-            text = "x${"%.2f".format(gameData.comboMultiplier)}",
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .offset(x = comboXDp, y = comboYDp)
-                .rotate(-12f),
-            color = Color(0xFFFF69B4),
-            fontSize = (minDim.value * 0.05f).sp,
-            fontFamily = comboFont
-        )
+        // Combo près du joueur (masqué si x1)
+        if (gameData.comboMultiplier > 1) {
+            val comboMatrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+            val playerScreenPx = comboMatrix.map(Offset(gameData.player.x, gameData.player.y))
+            val comboXDp = density.run { (playerScreenPx.x + 55f).toDp() }
+            val comboYDp = density.run { (playerScreenPx.y - 30f).toDp() }
+            val comboFont = FontFamily(Font(Res.font.dudu_font))
+            val comboFadeThresholdMs = BubblePark.COMBO_RESET_INTERVAL_MS / 2f
+            val comboScale = (gameData.comboTimeRemainingMs / comboFadeThresholdMs).coerceIn(0f, 1f)
+            Text(
+                text = "x${gameData.comboMultiplier}",
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .offset(x = comboXDp, y = comboYDp)
+                    .rotate(-12f)
+                    .scale(comboScale),
+                color = Color(0xFFFF69B4),
+                fontSize = (minDim.value * 0.09f).sp,
+                fontFamily = comboFont
+            )
+        }
 
         if (isPaused) {
             PauseScreen(
@@ -389,8 +394,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         damageScaleAnim.animateTo(lifeToScale(gameData.player.life), tween(500, easing = EaseInOut))
     }
 
-    LaunchedEffect(gameData.damageCount) {
-        if (gameData.damageCount == 0) return@LaunchedEffect
+    LaunchedEffect(gameData.comboMultiplier) {
+        if (gameData.comboMultiplier <= 1) return@LaunchedEffect
         repeat(3) {
             launch { shakeX.animateTo(if (it % 2 == 0) 8f else -8f, tween(40)) }
             launch { shakeY.animateTo(if (it % 2 == 0) 5f else -5f, tween(40)) }

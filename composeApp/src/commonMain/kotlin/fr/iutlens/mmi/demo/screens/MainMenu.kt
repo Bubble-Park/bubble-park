@@ -95,14 +95,6 @@ fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}, onCredit
         // Strokes
         val dynamicStrokeWidth = screenH * 0.03f
 
-        // Images de fond - Layer pour les animations
-        Image (
-            painter = painterResource(Res.drawable.menu_accueil),
-            contentDescription = "Fond du menu",
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .fillMaxSize()
-        )
 
         // Nuages arrière-plan (derrière logo et boutons)
         CloudsOverlay(

@@ -54,6 +54,7 @@ actual open class MusicPlayer actual constructor(
 actual open class SoundPool actual constructor() {
 
     val map = mutableMapOf<String, Audio>()
+    private val activeClones = mutableMapOf<String, Audio>()
 
     @OptIn(ExperimentalContracts::class, ExperimentalResourceApi::class)
     actual fun load(context: Any?, res: String) {
@@ -74,11 +75,18 @@ actual open class SoundPool actual constructor() {
         loop: Int,
         rate: Float
     ) {
-        (map[resource]?.cloneNode(true) as Audio)?.apply {
-            onended = {remove()}
+        activeClones[resource]?.pause()
+        activeClones.remove(resource)
+        (map[resource]?.cloneNode(true) as? Audio)?.apply {
+            activeClones[resource] = this
+            onended = { activeClones.remove(resource); remove() }
             playbackRate = rate.toDouble()
-            this.volume = (leftVolume+rightVolume)/2.0
+            this.volume = (leftVolume + rightVolume) / 2.0
             play()
         }
+    }
+
+    actual fun stop(resource: String) {
+        activeClones.remove(resource)?.pause()
     }
 }
