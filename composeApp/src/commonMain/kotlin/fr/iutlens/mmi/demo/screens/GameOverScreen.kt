@@ -88,7 +88,14 @@ fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
             Spacer(modifier = Modifier.weight(0.25f))
         }
 
-        MenuPanel(screenW, screenH) {
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .fillMaxHeight(0.75f)
+                .width((screenW * 0.36f).dp),
+            horizontalAlignment = Alignment.Start,
+            verticalArrangement = Arrangement.spacedBy(-(screenH * 0.02f).dp)
+        ) {
             MenuButton(
                 onClick = onReplay,
                 text = "JOUER",
