@@ -48,6 +48,8 @@ import kotlin.random.Random
 import kotlin.math.floor
 
 import kotlin.math.abs
+import fr.iutlens.mmi.demo.game.BossDifficultyConfig
+import fr.iutlens.mmi.demo.game.BossConfig
 
 class BubblePark : GameData() {
 
@@ -123,6 +125,10 @@ class BubblePark : GameData() {
     private var bonusTimerMs = 0L
     private var lastBonusIndex = -1
 
+    var isBossRound by mutableStateOf(false)
+    var bossGigano: Gigano? by mutableStateOf(null)
+    private var bossWaveTimerMs = 0L
+
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
     private val activeGenericDinos = mutableListOf<GenericDino>()
@@ -176,7 +182,15 @@ class BubblePark : GameData() {
             transform = GenericTransform(Constraint.Fill(tileArea))
         )
 
-        spawnInitialDinos()
+        isBossRound = false
+        bossGigano = null
+        bossWaveTimerMs = 0L
+
+        if (BossDifficultyConfig.isBossLevel(levelIndex)) {
+            startBossRound()
+        } else {
+            spawnInitialDinos()
+        }
 
         if (!isFirstLevel) {
             findSpawnPoint()?.let { (x, y) ->
@@ -189,24 +203,40 @@ class BubblePark : GameData() {
             handleCollisions()
 
             levelElapsedMs += 20
-            spawnTimerMs += 20
             if (SlowEffect.isActive) SlowEffect.timer--
             if (FastAmmoEffect.isActive) FastAmmoEffect.timer--
 
-            val localDiff = DifficultyManager.updateLocalDifficulty(
-                currentLevelDiff.difficulty, levelElapsedMs / 1000f
-            )
-            val (spawnDelayS, currentMaxDino) = DifficultyManager.getLiveValues(localDiff)
+            if (isBossRound) {
+                bossWaveTimerMs += 20
+                val bossConfig = BossDifficultyConfig.getConfig(levelIndex)
+                if (bossWaveTimerMs >= bossConfig.spawnIntervalMs) {
+                    bossWaveTimerMs = 0L
+                    spawnBossWave(bossConfig.spawnCount)
+                }
+                if (bossGigano?.isDead == true) {
+                    isBossRound = false
+                    bossGigano = null
+                    game.paused = true
+                    onLevelEnd?.invoke(true)
+                    return@animation
+                }
+            } else {
+                val localDiff = DifficultyManager.updateLocalDifficulty(
+                    currentLevelDiff.difficulty, levelElapsedMs / 1000f
+                )
+                val (spawnDelayS, currentMaxDino) = DifficultyManager.getLiveValues(localDiff)
 
-            if (chrono.isFinished()) {
-                game.paused = true
-                onLevelEnd?.invoke(true)
-                return@animation
-            }
+                if (chrono.isFinished()) {
+                    game.paused = true
+                    onLevelEnd?.invoke(true)
+                    return@animation
+                }
 
-            if (spawnTimerMs >= (spawnDelayS * 1000).toLong()) {
-                spawnTimerMs = 0L
-                trySpawnNextDino(currentMaxDino)
+                spawnTimerMs += 20
+                if (spawnTimerMs >= (spawnDelayS * 1000).toLong()) {
+                    spawnTimerMs = 0L
+                    trySpawnNextDino(currentMaxDino)
+                }
             }
 
             if (FastAmmoEffect.isActive) player.shoot(delayMs = FastAmmoEffect.shootDelayMs)
@@ -243,6 +273,54 @@ class BubblePark : GameData() {
 
             game.spriteList.update()
             game.invalidate()
+        }
+    }
+
+    private fun findGiganoSpawnPoint(): Pair<Float, Float>? {
+        val playerTileI = floor(player.x / tileArea.w).toInt()
+        val sizeX = tileArea.tileMap.geometry.sizeX
+        val sizeY = tileArea.tileMap.geometry.sizeY
+        val oppositeI = if (playerTileI < sizeX / 2) sizeX - 3 else 2
+        for (j in sizeY - 2 downTo 0) {
+            val current = tileArea.tileMap.get(oppositeI, j) ?: continue
+            val below = tileArea.tileMap.get(oppositeI, j + 1) ?: continue
+            if (current == 0 && (below in 1..7 || below == 14)) {  // 14 = '*' (sol)
+                return oppositeI * tileArea.w + tileArea.w / 2f to (j - 4) * tileArea.h + tileArea.h / 2f
+            }
+        }
+        return null
+    }
+
+    private fun startBossRound() {
+        isBossRound = true
+        bossWaveTimerMs = 0L
+        val bossConfig = BossDifficultyConfig.getConfig(levelIndex)
+        val sprites = game.spriteList as? MutableList<Sprite> ?: return
+        findGiganoSpawnPoint()?.let { (x, y) ->
+            val gigano = Gigano(
+                res = Res.drawable.gigano_sprite,
+                x = x, y = y,
+                mapArea = tileArea,
+                distanceMap = distanceMap,
+                graph = platformGraph,
+                speed = bossConfig.speed,
+                hitCount = bossConfig.hitCount
+            )
+            bossGigano = gigano
+            sprites.add(gigano)
+        }
+    }
+
+    private fun spawnBossWave(count: Int) {
+        val sprites = game.spriteList as? MutableList<Sprite> ?: return
+        repeat(count) {
+            findSpawnPoint()?.let { (x, y) ->
+                val dino = if (Random.nextBoolean())
+                    Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph)
+                else
+                    Raptor(Res.drawable.raptor_sprite, x, y, tileArea, distanceMap, platformGraph)
+                sprites.add(dino)
+            }
         }
     }
 
@@ -322,7 +400,7 @@ class BubblePark : GameData() {
                         dino.isCaptured = true
                         dino.currentHitCount = 0
                         onDinoCaptured()
-                    } else {
+                    } else if (!dino.isStunImmune) {
                         dino.stunTimer = WalkingDino.HIT_STUN_DURATION
                     }
                     bullet.explode()
@@ -366,7 +444,7 @@ class BubblePark : GameData() {
         val initialCount = ceil(currentLevelDiff.maxDino * INITIAL_SPAWN_RATIO).toInt()
 
         val chaseTotal         = (initialCount * spawnRatios.chase).roundToInt()
-        val giganoLevel        = levelIndex % 5 == 0
+        val giganoLevel        = false  // Gigano spawn uniquement via boss round
         val targetTrex         = if (giganoLevel) chaseTotal / 3 else chaseTotal / 2
         val targetRaptor       = if (giganoLevel) chaseTotal / 3 else chaseTotal - targetTrex
         val targetGigano       = if (giganoLevel) chaseTotal - targetTrex - targetRaptor else 0
@@ -463,7 +541,7 @@ class BubblePark : GameData() {
         if (activeTrex + activeRaptor + activeGigano + activeCompy + activeDodo + activeParasaur + activeGallimimus + activeTriceratops + activeStegosaurus >= maxDino) return
 
         val chaseTotal        = (maxDino * spawnRatios.chase).roundToInt()
-        val giganoLevel       = currentLevelDiff.level % 5 == 0
+        val giganoLevel       = false  // Gigano spawn uniquement via boss round
         val targetTrex        = if (giganoLevel) chaseTotal / 3 else chaseTotal / 2
         val targetRaptor      = if (giganoLevel) chaseTotal / 3 else chaseTotal - targetTrex
         val targetGigano      = if (giganoLevel) chaseTotal - targetTrex - targetRaptor else 0
@@ -508,6 +586,6 @@ class BubblePark : GameData() {
     }
 
     init {
-        loadLevel(0)
+        loadLevel(4)
     }
 }

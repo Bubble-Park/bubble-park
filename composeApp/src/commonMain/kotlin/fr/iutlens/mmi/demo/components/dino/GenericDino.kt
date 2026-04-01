@@ -34,6 +34,7 @@ abstract class GenericDino(
     override val scoreValue get() = type.scoreValue
 
     var currentHitCount = 0
+    open val isStunImmune: Boolean = false
 
     val effectiveHitCount: Int
         get() = when (val b = type.behavior) {
