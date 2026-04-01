@@ -48,6 +48,10 @@ import kotlin.random.Random
 import kotlin.math.floor
 
 import kotlin.math.abs
+import fr.iutlens.mmi.demo.game.BossDifficultyConfig
+import fr.iutlens.mmi.demo.game.BossConfig
+import fr.iutlens.mmi.demo.game.upgrade.Upgrade
+import fr.iutlens.mmi.demo.game.upgrade.UpgradeManager
 
 class BubblePark : GameData() {
 
@@ -61,10 +65,13 @@ class BubblePark : GameData() {
         const val COMBO_TRIGGER_COUNT = 2           // nb de captures avant que le multiplicateur s'active
         const val COMBO_RESET_INTERVAL_MS = 3000L   // délai sans capture avant reset du combo (ms)
 
-        // Bonus spawn interval
+        // Bonus spawn interval (manches normales)
         const val BONUS_INTERVAL_START_MS = 12000L  // délai au niveau 1
         const val BONUS_INTERVAL_MIN_MS   = 4000L   // délai minimum atteint au niveau 15
         const val BONUS_INTERVAL_MAX_LEVEL = 14     // index du niveau où l'on atteint le minimum (niveau 15)
+
+        // Bonus spawn interval (manches boss)
+        const val BOSS_BONUS_INTERVAL_MS = 3000L
     }
 
     data class ScorePopup(val id: Long, val worldX: Float, val worldY: Float, val points: Int)
@@ -105,6 +112,10 @@ class BubblePark : GameData() {
         scorePopups.add(ScorePopup(popupCounter++, x, y, earned))
     }
 
+    val upgradeManager = UpgradeManager()
+    var showUpgradeScreen by mutableStateOf(false)
+    var upgradeChoices by mutableStateOf<List<Upgrade>>(emptyList())
+
     val score = Score()
     var chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
     lateinit var player: Player
@@ -122,6 +133,11 @@ class BubblePark : GameData() {
 
     private var bonusTimerMs = 0L
     private var lastBonusIndex = -1
+
+    var isBossRound by mutableStateOf(false)
+    var bossGigano: Gigano? by mutableStateOf(null)
+    private var bossWaveTimerMs = 0L
+    private var bossBonusTimerMs = 0L
 
     private val activeBullets = mutableListOf<Bullet>()
     private val activeEnemies = mutableListOf<EnemySprite>()
@@ -153,7 +169,8 @@ class BubblePark : GameData() {
         tileArea = TiledArea(levelData.tileSetRes, tileMap, decorScales)
 
         val isFirstLevel = !::player.isInitialized
-        val savedLife = if (isFirstLevel) 3 else player.life
+        val maxLife = upgradeManager.getMaxLife()
+        val savedLife = if (isFirstLevel) maxLife else player.life.coerceIn(1, maxLife)
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
             x = levelData.startX * tileArea.w,
@@ -164,7 +181,8 @@ class BubblePark : GameData() {
             bulletRes = Res.drawable.bubble_sprite,
             elapsedProvider = { game.elapsed },
             onBulletCreated = { bullet -> (game.spriteList as? MutableList<Sprite>)?.add(bullet) },
-            initialLife = savedLife
+            initialLife = savedLife,
+            initialMaxLife = maxLife
         )
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
@@ -176,7 +194,16 @@ class BubblePark : GameData() {
             transform = GenericTransform(Constraint.Fill(tileArea))
         )
 
-        spawnInitialDinos()
+        isBossRound = false
+        bossGigano = null
+        bossWaveTimerMs = 0L
+        bossBonusTimerMs = 0L
+
+        if (BossDifficultyConfig.isBossLevel(levelIndex)) {
+            startBossRound()
+        } else {
+            spawnInitialDinos()
+        }
 
         if (!isFirstLevel) {
             findSpawnPoint()?.let { (x, y) ->
@@ -189,46 +216,65 @@ class BubblePark : GameData() {
             handleCollisions()
 
             levelElapsedMs += 20
-            spawnTimerMs += 20
             if (SlowEffect.isActive) SlowEffect.timer--
             if (FastAmmoEffect.isActive) FastAmmoEffect.timer--
 
-            val localDiff = DifficultyManager.updateLocalDifficulty(
-                currentLevelDiff.difficulty, levelElapsedMs / 1000f
-            )
-            val (spawnDelayS, currentMaxDino) = DifficultyManager.getLiveValues(localDiff)
+            if (isBossRound) {
+                bossWaveTimerMs += 20
+                bossBonusTimerMs += 20
+                val bossConfig = BossDifficultyConfig.getConfig(levelIndex)
+                if (bossWaveTimerMs >= bossConfig.spawnIntervalMs) {
+                    bossWaveTimerMs = 0L
+                    spawnBossWave(bossConfig.spawnCount)
+                }
+                if (bossBonusTimerMs >= BOSS_BONUS_INTERVAL_MS) {
+                    bossBonusTimerMs = 0L
+                    spawnRandomBonus()
+                }
+                if (bossGigano?.isDead == true) {
+                    isBossRound = false
+                    bossGigano = null
+                    game.paused = true
+                    val choices = upgradeManager.getRandomCandidates(3)
+                    if (choices.isNotEmpty()) {
+                        upgradeChoices = choices
+                        showUpgradeScreen = true
+                    } else {
+                        onLevelEnd?.invoke(true)
+                    }
+                    return@animation
+                }
+            } else {
+                val localDiff = DifficultyManager.updateLocalDifficulty(
+                    currentLevelDiff.difficulty, levelElapsedMs / 1000f
+                )
+                val (spawnDelayS, currentMaxDino) = DifficultyManager.getLiveValues(localDiff)
 
-            if (chrono.isFinished()) {
-                game.paused = true
-                onLevelEnd?.invoke(true)
-                return@animation
-            }
+                if (chrono.isFinished()) {
+                    game.paused = true
+                    onLevelEnd?.invoke(true)
+                    return@animation
+                }
 
-            if (spawnTimerMs >= (spawnDelayS * 1000).toLong()) {
-                spawnTimerMs = 0L
-                trySpawnNextDino(currentMaxDino)
+                spawnTimerMs += 20
+                if (spawnTimerMs >= (spawnDelayS * 1000).toLong()) {
+                    spawnTimerMs = 0L
+                    trySpawnNextDino(currentMaxDino)
+                }
             }
 
             if (FastAmmoEffect.isActive) player.shoot(delayMs = FastAmmoEffect.shootDelayMs)
 
-            bonusTimerMs += 20
-
-            val bonusInterval = run {
-                val t = (levelIndex.toFloat() / BONUS_INTERVAL_MAX_LEVEL).coerceIn(0f, 1f)
-                (BONUS_INTERVAL_START_MS - (BONUS_INTERVAL_START_MS - BONUS_INTERVAL_MIN_MS) * t).toLong()
-            }
-            if (bonusTimerMs >= bonusInterval) {
-                bonusTimerMs = 0L
-                val available = (0..2).filter { it != lastBonusIndex }
-                val pick = available[Random.nextInt(available.size)]
-                lastBonusIndex = pick
-                val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 10) * tileArea.w + 5 * tileArea.w
-                val bonus: Bonus = when (pick) {
-                    0 -> LifeBonus(bonusX, 0f, player)
-                    1 -> SlowBonus(bonusX, 0f)
-                    else -> FastAmmoBonus(bonusX, 0f)
+            if (!isBossRound) {
+                bonusTimerMs += 20
+                val bonusInterval = run {
+                    val t = (levelIndex.toFloat() / BONUS_INTERVAL_MAX_LEVEL).coerceIn(0f, 1f)
+                    (BONUS_INTERVAL_START_MS - (BONUS_INTERVAL_START_MS - BONUS_INTERVAL_MIN_MS) * t).toLong()
                 }
-                (game.spriteList as? MutableList<Sprite>)?.add(bonus)
+                if (bonusTimerMs >= bonusInterval) {
+                    bonusTimerMs = 0L
+                    spawnRandomBonus()
+                }
             }
 
             distanceMap.update()
@@ -243,6 +289,69 @@ class BubblePark : GameData() {
 
             game.spriteList.update()
             game.invalidate()
+        }
+    }
+
+    private fun findGiganoSpawnPoint(): Pair<Float, Float>? {
+        val playerTileI = floor(player.x / tileArea.w).toInt()
+        val sizeX = tileArea.tileMap.geometry.sizeX
+        val sizeY = tileArea.tileMap.geometry.sizeY
+        val oppositeI = if (playerTileI < sizeX / 2) sizeX - 3 else 2
+        for (j in sizeY - 2 downTo 0) {
+            val current = tileArea.tileMap.get(oppositeI, j) ?: continue
+            val below = tileArea.tileMap.get(oppositeI, j + 1) ?: continue
+            if (current == 0 && (below in 1..7 || below == 14)) {  // 14 = '*' (sol)
+                return oppositeI * tileArea.w + tileArea.w / 2f to (j - 4) * tileArea.h + tileArea.h / 2f
+            }
+        }
+        return null
+    }
+
+    private fun spawnRandomBonus() {
+        val available = (0..2).filter { it != lastBonusIndex }
+        val pick = available[Random.nextInt(available.size)]
+        lastBonusIndex = pick
+        val bonusX = Random.nextFloat() * (tileArea.tileMap.geometry.sizeX - 10) * tileArea.w + 5 * tileArea.w
+        val bonus: Bonus = when (pick) {
+            0 -> LifeBonus(bonusX, 0f, player)
+            1 -> SlowBonus(bonusX, 0f)
+            else -> FastAmmoBonus(bonusX, 0f)
+        }
+        (game.spriteList as? MutableList<Sprite>)?.add(bonus)
+    }
+
+    private fun startBossRound() {
+        isBossRound = true
+        bossWaveTimerMs = 0L
+        bossBonusTimerMs = 0L
+        val bossConfig = BossDifficultyConfig.getConfig(levelIndex)
+        val sprites = game.spriteList as? MutableList<Sprite> ?: return
+        spawnRandomBonus()
+        findGiganoSpawnPoint()?.let { (x, y) ->
+            val gigano = Gigano(
+                res = Res.drawable.gigano_sprite,
+                x = x, y = y,
+                mapArea = tileArea,
+                distanceMap = distanceMap,
+                graph = platformGraph,
+                speed = bossConfig.speed,
+                hitCount = bossConfig.hitCount
+            )
+            bossGigano = gigano
+            sprites.add(gigano)
+        }
+    }
+
+    private fun spawnBossWave(count: Int) {
+        val sprites = game.spriteList as? MutableList<Sprite> ?: return
+        repeat(count) {
+            findSpawnPoint()?.let { (x, y) ->
+                val dino = if (Random.nextBoolean())
+                    Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph)
+                else
+                    Raptor(Res.drawable.raptor_sprite, x, y, tileArea, distanceMap, platformGraph)
+                sprites.add(dino)
+            }
         }
     }
 
@@ -322,7 +431,7 @@ class BubblePark : GameData() {
                         dino.isCaptured = true
                         dino.currentHitCount = 0
                         onDinoCaptured()
-                    } else {
+                    } else if (!dino.isStunImmune) {
                         dino.stunTimer = WalkingDino.HIT_STUN_DURATION
                     }
                     bullet.explode()
@@ -366,7 +475,7 @@ class BubblePark : GameData() {
         val initialCount = ceil(currentLevelDiff.maxDino * INITIAL_SPAWN_RATIO).toInt()
 
         val chaseTotal         = (initialCount * spawnRatios.chase).roundToInt()
-        val giganoLevel        = levelIndex % 5 == 0
+        val giganoLevel        = false  // Gigano spawn uniquement via boss round
         val targetTrex         = if (giganoLevel) chaseTotal / 3 else chaseTotal / 2
         val targetRaptor       = if (giganoLevel) chaseTotal / 3 else chaseTotal - targetTrex
         val targetGigano       = if (giganoLevel) chaseTotal - targetTrex - targetRaptor else 0
@@ -463,7 +572,7 @@ class BubblePark : GameData() {
         if (activeTrex + activeRaptor + activeGigano + activeCompy + activeDodo + activeParasaur + activeGallimimus + activeTriceratops + activeStegosaurus >= maxDino) return
 
         val chaseTotal        = (maxDino * spawnRatios.chase).roundToInt()
-        val giganoLevel       = currentLevelDiff.level % 5 == 0
+        val giganoLevel       = false  // Gigano spawn uniquement via boss round
         val targetTrex        = if (giganoLevel) chaseTotal / 3 else chaseTotal / 2
         val targetRaptor      = if (giganoLevel) chaseTotal / 3 else chaseTotal - targetTrex
         val targetGigano      = if (giganoLevel) chaseTotal - targetTrex - targetRaptor else 0
@@ -505,6 +614,14 @@ class BubblePark : GameData() {
                 else -> sprites.add(Stegosaurus(Res.drawable.stego_sprite, x, y, tileArea, distanceMap, platformGraph))
             }
         }
+    }
+
+    fun selectUpgrade(upgrade: Upgrade) {
+        upgradeManager.acquire(upgrade, player)
+        showUpgradeScreen = false
+        upgradeChoices = emptyList()
+        game.paused = false
+        onLevelEnd?.invoke(true)
     }
 
     init {

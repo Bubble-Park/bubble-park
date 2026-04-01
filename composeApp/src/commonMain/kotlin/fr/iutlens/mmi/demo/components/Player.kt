@@ -25,13 +25,15 @@ class Player(
     val bulletRes: DrawableResource,
     val elapsedProvider: () -> Long,
     val onBulletCreated: (Bullet) -> Unit,
-    initialLife: Int = 3
+    initialLife: Int = 3,
+    initialMaxLife: Int = 3
 ) : PhysicsSprite(res, x, y, mapArea, gravity = 5.5f, jumpForce = -64f) {
 
     private var nextShotTime = 0L
 
     // Variables de vie
-    private var _life by mutableStateOf(initialLife.coerceIn(1, 3))
+    var maxLife: Int = initialMaxLife
+    private var _life by mutableStateOf(initialLife.coerceIn(1, maxLife))
     val life: Int
         get() = _life
     val isDead: Boolean
@@ -80,7 +82,7 @@ class Player(
      * Donne 1 vie au joueur si possible
      */
     fun heal() {
-        if (_life < 3) _life++
+        if (_life < maxLife) _life++
     }
 
     fun shoot(enableCollisions: Boolean = false, delayMs: Long = 300) {

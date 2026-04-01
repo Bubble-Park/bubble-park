@@ -1,6 +1,7 @@
 package fr.iutlens.mmi.demo.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -270,9 +271,9 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             verticalAlignment = Alignment.Top
         ) {
             Column {
-                ShowLife(gameData.player.life, heartSize = heartSize)
+                ShowLife(gameData.player.life, maxLife = gameData.player.maxLife, heartSize = heartSize)
                 ShowScore(gameData.score.get(), fontSize = uiFontSize)
-                ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
+                if (!gameData.isBossRound) ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 24.dp, end = 24.dp)) {
                 Image(
@@ -329,6 +330,41 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             }
         }
 
+        // Barre de vie du boss
+        val currentBossGigano = gameData.bossGigano
+        if (gameData.isBossRound && currentBossGigano != null) {
+            val maxHits = currentBossGigano.effectiveHitCount.toFloat()
+            val hitsReceived = currentBossGigano.currentHitCount.toFloat()
+            val hpFraction = (1f - hitsReceived / maxHits).coerceIn(0f, 1f)
+            val duduFont = FontFamily(Font(Res.font.dudu_font))
+            Column(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    text = "GIGANO",
+                    color = Color(0xFFCC2200),
+                    fontSize = (minDim.value * 0.05f).sp,
+                    fontFamily = duduFont
+                )
+                Box(
+                    modifier = Modifier
+                        .width((screenW * 0.45f).dp)
+                        .height(14.dp)
+                        .background(Color(0xFF333333), shape = RoundedCornerShape(7.dp))
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxHeight()
+                            .fillMaxWidth(hpFraction)
+                            .background(Color(0xFFCC2200), shape = RoundedCornerShape(7.dp))
+                    )
+                }
+            }
+        }
+
         // Combo près du joueur (masqué si x1)
         if (gameData.comboMultiplier > 1) {
             val comboMatrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
@@ -354,6 +390,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         if (isPaused) {
             PauseScreen(
                 life = gameData.player.life,
+                maxLife = gameData.player.maxLife,
                 score = gameData.score.get(),
                 damageScale = damageScaleAnim.value + damagePulse,
                 onResume = {
@@ -363,6 +400,11 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                     gameData.game.invalidate()
                 },
                 onQuit = onExit
+            )
+        } else if (gameData.showUpgradeScreen) {
+            UpgradeScreen(
+                choices = gameData.upgradeChoices,
+                onUpgradeSelected = { upgrade -> gameData.selectUpgrade(upgrade) }
             )
         } else {
             Controllers(
