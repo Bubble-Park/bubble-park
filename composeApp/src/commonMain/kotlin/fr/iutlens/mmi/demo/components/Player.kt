@@ -43,7 +43,8 @@ class Player(
 
     override val paintAlpha: Float
         get() = if (invincibilityFrames > 0 && invincibilityFrames % 8 < 4) 0.2f else 1f
-    private val INVINCIBILITY_DURATION = 120
+    var invincibilityMultiplier: Float = 1f
+    private val INVINCIBILITY_DURATION get() = (120 * invincibilityMultiplier).toInt()
 
     // Variables d'animation de mort
     private val DEATH_ANIM_DURATION = 60
@@ -108,6 +109,7 @@ class Player(
         nextShotTime = 0L
         baseShootDelayMs = 300L
         moveSpeedMultiplier = 1f
+        invincibilityMultiplier = 1f
         deathAnimTimer = 0
         deathRotation = 0f
         isDeathAnimationComplete = false
