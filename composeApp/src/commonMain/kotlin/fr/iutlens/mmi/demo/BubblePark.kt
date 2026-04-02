@@ -432,10 +432,12 @@ class BubblePark : GameData() {
                         dino.isCaptured = true
                         dino.currentHitCount = 0
                         onDinoCaptured()
-                    } else if (!dino.isStunImmune) {
-                        dino.stunTimer = WalkingDino.HIT_STUN_DURATION
+                        bullet.capturesMade++
+                        if (bullet.capturesMade >= bullet.maxCaptures) bullet.explode()
+                    } else {
+                        if (!dino.isStunImmune) dino.stunTimer = WalkingDino.HIT_STUN_DURATION
+                        bullet.explode()
                     }
-                    bullet.explode()
                     break
                 }
             }

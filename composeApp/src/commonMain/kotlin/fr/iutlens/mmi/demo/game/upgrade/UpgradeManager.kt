@@ -1,6 +1,7 @@
 package fr.iutlens.mmi.demo.game.upgrade
 
 import fr.iutlens.mmi.demo.components.Player
+import fr.iutlens.mmi.demo.game.upgrade.upgrades.CaptureUpgrade
 import fr.iutlens.mmi.demo.game.upgrade.upgrades.ExtraLifeUpgrade
 import fr.iutlens.mmi.demo.game.upgrade.upgrades.FireRateUpgrade
 import fr.iutlens.mmi.demo.game.upgrade.upgrades.InvincibilityUpgrade
@@ -13,7 +14,8 @@ class UpgradeManager {
         ExtraLifeUpgrade(),
         FireRateUpgrade(),
         MoveSpeedUpgrade(),
-        InvincibilityUpgrade()
+        InvincibilityUpgrade(),
+        CaptureUpgrade()
     )
 
     fun getMaxLife(): Int =

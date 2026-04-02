@@ -71,6 +71,7 @@ class Player(
     var baseShootDelayMs: Long = 600L
     val shootDelayMs: Long get() = if (FastAmmoEffect.isActive) 150L else baseShootDelayMs
     var moveSpeedMultiplier: Float = 1f
+    var bulletMaxCaptures: Int = 1
 
     /**
      * Prend des dégâts et déclenche l'invulnérabilité
@@ -98,7 +99,7 @@ class Player(
 
         val step = PI / 4
         val quantizedAngle = round(lastAngle / step) * step
-        val bullet = Bullet(x, y, quantizedAngle, mapArea, collides = enableCollisions, res = bulletRes)
+        val bullet = Bullet(x, y, quantizedAngle, mapArea, collides = enableCollisions, res = bulletRes, maxCaptures = bulletMaxCaptures)
         onBulletCreated(bullet)
         GameSound.playBubble()
     }
@@ -110,6 +111,7 @@ class Player(
         baseShootDelayMs = 300L
         moveSpeedMultiplier = 1f
         invincibilityMultiplier = 1f
+        bulletMaxCaptures = 1
         deathAnimTimer = 0
         deathRotation = 0f
         isDeathAnimationComplete = false
