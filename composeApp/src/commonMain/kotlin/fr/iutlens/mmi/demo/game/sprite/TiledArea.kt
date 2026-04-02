@@ -37,7 +37,7 @@ class TiledArea(var res : DrawableResource, val tileMap: TileMap, val scaledTile
     private var birthElapsed = -1L
 
     companion object {
-        const val TILE_STAGGER_MS = 45L
+        const val TILE_STAGGER_MS = 25L
         const val TILE_POP_DURATION_MS = 350L
     }
 

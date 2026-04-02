@@ -1,13 +1,6 @@
 package fr.iutlens.mmi.demo
 
-import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -23,6 +16,7 @@ import fr.iutlens.mmi.demo.menu_accueil
 import fr.iutlens.mmi.demo.screens.GameOverScreen
 import fr.iutlens.mmi.demo.screens.GameScreen
 import fr.iutlens.mmi.demo.screens.MenuHost
+import fr.iutlens.mmi.demo.ui.CloudTransitionOverlay
 import org.jetbrains.compose.resources.painterResource
 
 enum class GameState {
@@ -35,6 +29,19 @@ enum class GameState {
 fun App(modifier: Modifier = Modifier) {
     var currentState by remember { mutableStateOf(GameState.MENU) }
     var lastScore by remember { mutableStateOf(0) }
+    var transitionKey by remember { mutableStateOf(0) }
+    var showCloudOverlay by remember { mutableStateOf(false) }
+    val coverProgress = remember { Animatable(0f) }
+
+    LaunchedEffect(transitionKey) {
+        if (transitionKey == 0) return@LaunchedEffect
+        showCloudOverlay = true
+        coverProgress.snapTo(0f)
+        coverProgress.animateTo(0.5f, tween(1800))
+        currentState = GameState.PLAYING
+        coverProgress.animateTo(1f, tween(1600))
+        showCloudOverlay = false
+    }
 
     MaterialTheme {
         Box(modifier = modifier.fillMaxSize().background(Color.White)) {
@@ -46,37 +53,23 @@ fun App(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxSize()
             )
 
-            AnimatedContent(
-                targetState = currentState,
-                transitionSpec = {
-                    when {
-                        targetState == GameState.PLAYING ->
-                            slideInHorizontally(tween(450)) { it } togetherWith
-                            slideOutHorizontally(tween(450)) { -it }
-                        initialState == GameState.PLAYING ->
-                            slideInHorizontally(tween(450)) { -it } togetherWith
-                            slideOutHorizontally(tween(450)) { it }
-                        else ->
-                            fadeIn(tween(300)) togetherWith fadeOut(tween(300))
-                    }
-                },
-                modifier = Modifier.fillMaxSize(),
-                label = "screen_transition"
-            ) { state ->
-                when (state) {
-                    GameState.MENU -> MenuHost(
-                        onPlayClick = { currentState = GameState.PLAYING }
-                    )
-                    GameState.PLAYING -> GameScreen(
-                        onExit = { currentState = GameState.MENU },
-                        onGameOver = { score -> lastScore = score; currentState = GameState.GAME_OVER }
-                    )
-                    GameState.GAME_OVER -> GameOverScreen(
-                        score = lastScore,
-                        onReplay = { currentState = GameState.PLAYING },
-                        onQuit = { currentState = GameState.MENU }
-                    )
-                }
+            when (currentState) {
+                GameState.MENU -> MenuHost(
+                    onPlayClick = { transitionKey++ }
+                )
+                GameState.PLAYING -> GameScreen(
+                    onExit = { currentState = GameState.MENU },
+                    onGameOver = { score -> lastScore = score; currentState = GameState.GAME_OVER }
+                )
+                GameState.GAME_OVER -> GameOverScreen(
+                    score = lastScore,
+                    onReplay = { currentState = GameState.PLAYING },
+                    onQuit = { currentState = GameState.MENU }
+                )
+            }
+
+            if (showCloudOverlay) {
+                CloudTransitionOverlay(progress = coverProgress.value)
             }
         }
     }
