@@ -184,6 +184,8 @@ class BubblePark : GameData() {
             initialLife = savedLife,
             initialMaxLife = maxLife
         )
+        player.spawnDelay = tileArea.spawnEndMs()
+        upgradeManager.restoreStats(player)
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
         distanceMap = tileArea.distanceMap(player, platformGraph)
@@ -263,7 +265,7 @@ class BubblePark : GameData() {
                 }
             }
 
-            if (FastAmmoEffect.isActive) player.shoot(delayMs = FastAmmoEffect.shootDelayMs)
+            if (FastAmmoEffect.isActive) player.shoot()
 
             if (!isBossRound) {
                 bonusTimerMs += 20
@@ -337,6 +339,7 @@ class BubblePark : GameData() {
                 speed = bossConfig.speed,
                 hitCount = bossConfig.hitCount
             )
+            gigano.elapsedSpawnDelay = tileArea.spawnEndMs()
             bossGigano = gigano
             sprites.add(gigano)
         }
@@ -431,10 +434,12 @@ class BubblePark : GameData() {
                         dino.isCaptured = true
                         dino.currentHitCount = 0
                         onDinoCaptured()
-                    } else if (!dino.isStunImmune) {
-                        dino.stunTimer = WalkingDino.HIT_STUN_DURATION
+                        bullet.capturesMade++
+                        if (bullet.capturesMade >= bullet.maxCaptures) bullet.explode()
+                    } else {
+                        if (!dino.isStunImmune) dino.stunTimer = WalkingDino.HIT_STUN_DURATION
+                        bullet.explode()
                     }
-                    bullet.explode()
                     break
                 }
             }
@@ -499,6 +504,7 @@ class BubblePark : GameData() {
         var spawnedTriceratops = 0
         var spawnedStegosaurus = 0
         val sprites = game.spriteList as? MutableList<Sprite> ?: return
+        val dinoSpawnDelay = tileArea.spawnEndMs()
 
         repeat(initialCount) {
             val trexNeeded        = (targetTrex - spawnedTrex).coerceAtLeast(0)
@@ -516,41 +522,42 @@ class BubblePark : GameData() {
 
             findSpawnPoint(PLAYER_INIT_TILE_I, PLAYER_INIT_TILE_J)?.let { (x, y) ->
                 val roll = Random.nextInt(total)
+                fun <T : WalkingDino> T.withDelay() = also { it.elapsedSpawnDelay = dinoSpawnDelay }
                 when {
                     roll < trexNeeded -> {
-                        sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        sprites.add(Trex(Res.drawable.trex_sprite, x, y, tileArea, distanceMap, platformGraph).withDelay())
                         spawnedTrex++
                     }
                     roll < trexNeeded + raptorNeeded -> {
-                        sprites.add(Raptor(Res.drawable.raptor_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        sprites.add(Raptor(Res.drawable.raptor_sprite, x, y, tileArea, distanceMap, platformGraph).withDelay())
                         spawnedRaptor++
                     }
                     roll < trexNeeded + raptorNeeded + giganoNeeded -> {
-                        sprites.add(Gigano(Res.drawable.gigano_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        sprites.add(Gigano(Res.drawable.gigano_sprite, x, y, tileArea, distanceMap, platformGraph).withDelay())
                         spawnedGigano++
                     }
                     roll < trexNeeded + raptorNeeded + giganoNeeded + compyNeeded -> {
-                        sprites.add(Compy(Res.drawable.compy_sprite, x, y, tileArea, platformGraph))
+                        sprites.add(Compy(Res.drawable.compy_sprite, x, y, tileArea, platformGraph).withDelay())
                         spawnedCompy++
                     }
                     roll < trexNeeded + raptorNeeded + giganoNeeded + compyNeeded + dodoNeeded -> {
-                        sprites.add(Dodo(Res.drawable.dodo_sprite, x, y, tileArea, platformGraph))
+                        sprites.add(Dodo(Res.drawable.dodo_sprite, x, y, tileArea, platformGraph).withDelay())
                         spawnedDodo++
                     }
                     roll < trexNeeded + raptorNeeded + giganoNeeded + compyNeeded + dodoNeeded + parasaurNeeded -> {
-                        sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        sprites.add(Parasaur(Res.drawable.parasaur_sprite, x, y, tileArea, distanceMap, platformGraph).withDelay())
                         spawnedParasaur++
                     }
                     roll < trexNeeded + raptorNeeded + giganoNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded -> {
-                        sprites.add(Gallimimus(Res.drawable.galliminus_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        sprites.add(Gallimimus(Res.drawable.galliminus_sprite, x, y, tileArea, distanceMap, platformGraph).withDelay())
                         spawnedGallimimus++
                     }
                     roll < trexNeeded + raptorNeeded + giganoNeeded + compyNeeded + dodoNeeded + parasaurNeeded + gallimimusNeeded + triceNeeded -> {
-                        sprites.add(Triceratops(Res.drawable.trice_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        sprites.add(Triceratops(Res.drawable.trice_sprite, x, y, tileArea, distanceMap, platformGraph).withDelay())
                         spawnedTriceratops++
                     }
                     else -> {
-                        sprites.add(Stegosaurus(Res.drawable.stego_sprite, x, y, tileArea, distanceMap, platformGraph))
+                        sprites.add(Stegosaurus(Res.drawable.stego_sprite, x, y, tileArea, distanceMap, platformGraph).withDelay())
                         spawnedStegosaurus++
                     }
                 }
@@ -625,6 +632,6 @@ class BubblePark : GameData() {
     }
 
     init {
-        loadLevel(0)
+        loadLevel(4)
     }
 }

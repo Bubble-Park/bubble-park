@@ -6,14 +6,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
+import fr.iutlens.mmi.demo.game.sprite.spawnScale
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
+import fr.iutlens.mmi.demo.game.FastAmmoEffect
 import fr.iutlens.mmi.demo.utils.GameSound
 import kotlin.math.PI
 import kotlin.math.round
 import org.jetbrains.compose.resources.DrawableResource
+
+enum class ShootMode { SINGLE, HORIZONTAL, BOTH }
 
 class Player(
     res: DrawableResource,
@@ -42,7 +46,8 @@ class Player(
 
     override val paintAlpha: Float
         get() = if (invincibilityFrames > 0 && invincibilityFrames % 8 < 4) 0.2f else 1f
-    private val INVINCIBILITY_DURATION = 120
+    var invincibilityMultiplier: Float = 1f
+    private val INVINCIBILITY_DURATION get() = (120 * invincibilityMultiplier).toInt()
 
     // Variables d'animation de mort
     private val DEATH_ANIM_DURATION = 60
@@ -64,7 +69,16 @@ class Player(
     private val jumpFrame  = 2
     private val fallFrame  = 3
 
+    var spawnDelay: Long = 0L
+    private val SPAWN_POP_DURATION = 400f
+
     var lastAngle = 0.0
+
+    var baseShootDelayMs: Long = 600L
+    val shootDelayMs: Long get() = if (FastAmmoEffect.isActive) 150L else baseShootDelayMs
+    var moveSpeedMultiplier: Float = 1f
+    var bulletMaxCaptures: Int = 1
+    var shootMode: ShootMode = ShootMode.SINGLE
 
     /**
      * Prend des dégâts et déclenche l'invulnérabilité
@@ -85,15 +99,24 @@ class Player(
         if (_life < maxLife) _life++
     }
 
-    fun shoot(enableCollisions: Boolean = false, delayMs: Long = 300) {
+    fun shoot(enableCollisions: Boolean = false) {
         val now = elapsedProvider()
+        if (now < spawnDelay) return
         if (now < nextShotTime) return
-        nextShotTime = now + delayMs
+        nextShotTime = now + shootDelayMs
 
         val step = PI / 4
         val quantizedAngle = round(lastAngle / step) * step
-        val bullet = Bullet(x, y, quantizedAngle, mapArea, collides = enableCollisions, res = bulletRes)
-        onBulletCreated(bullet)
+
+        val angles = when (shootMode) {
+            ShootMode.SINGLE     -> listOf(quantizedAngle)
+            ShootMode.HORIZONTAL -> listOf(quantizedAngle, quantizedAngle + PI)
+            ShootMode.BOTH       -> listOf(quantizedAngle, quantizedAngle + PI, quantizedAngle + PI / 2, quantizedAngle - PI / 2)
+        }
+
+        for (angle in angles) {
+            onBulletCreated(Bullet(x, y, angle, mapArea, collides = enableCollisions, res = bulletRes, maxCaptures = bulletMaxCaptures))
+        }
         GameSound.playBubble()
     }
 
@@ -101,18 +124,28 @@ class Player(
         super.reset(x, y)
         invincibilityFrames = 0
         nextShotTime = 0L
+        baseShootDelayMs = 300L
+        moveSpeedMultiplier = 1f
+        invincibilityMultiplier = 1f
+        bulletMaxCaptures = 1
+        shootMode = ShootMode.SINGLE
         deathAnimTimer = 0
         deathRotation = 0f
         isDeathAnimationComplete = false
     }
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
+        val sinceSpawn = elapsed - spawnDelay
+        if (sinceSpawn < 0L) return
+        val popT = (sinceSpawn.toFloat() / SPAWN_POP_DURATION).coerceIn(0f, 1f)
+        val popScale = if (popT < 1f) spawnScale(1f - popT) else 1f
         val w2 = spriteSheet.spriteWidth / 2
         val h2 = spriteSheet.spriteHeight / 2
         val walkRotation = if (isOnGround) squareWaveRotation(phase = walkPhase, intensity = 12f) else 0f
         val effectiveRotation = if (isDead && deathAnimTimer > 0) deathRotation else walkRotation
         drawScope.withTransform({
             translate(x, y + 20f)
+            if (popScale != 1f) scale(popScale, popScale, pivot = Offset.Zero)
             rotate(effectiveRotation, pivot = Offset.Zero)
             if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
         }) {
@@ -160,11 +193,11 @@ class Player(
             jump()
         }
 
-        val speed = position.x * mapArea.w / 4
+        val speed = position.x * mapArea.w / 4 * moveSpeedMultiplier
         if (speed > 0) facingRight = true
         if (speed < 0) facingRight = false
 
-        moveX(speed, 60f)
+        moveX(speed, 60f * moveSpeedMultiplier)
         applyPhysics()
 
         updateAnimationState(speed)

@@ -1,6 +1,8 @@
 package fr.iutlens.mmi.demo.game.sprite
 
 import kotlin.math.PI
+import kotlin.math.exp
+import kotlin.math.sin
 
 /**
  * Calcule une rotation en square wave entre +intensity et -intensity.
@@ -24,7 +26,13 @@ fun hitScale(stunRatio: Float): Float = 1f + 0.25f * stunRatio
  * Scale d'apparition : 0f au début du spawn, 1f à la fin de la phase d'animation.
  * @param ratio 1f au 1er tick de l'animation, 0f au dernier
  */
-fun spawnScale(ratio: Float): Float = 1f - ratio
+fun spawnScale(ratio: Float): Float {
+    val t = 1f - ratio
+    if (t <= 0f) return 0f
+    if (t >= 1f) return 1f
+    val c4 = (2f * PI.toFloat() / 3f)
+    return exp(-6.93f * t) * sin((t * 10f - 0.75f) * c4) + 1f
+}
 
 /**
  * Rotation d'apparition : -10° au début, 0° à la fin de la phase d'animation.

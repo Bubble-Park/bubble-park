@@ -39,7 +39,7 @@ import org.jetbrains.compose.resources.Font
 import fr.iutlens.mmi.demo.dudu_font
 
 import androidx.compose.foundation.focusable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.LaunchedEffect import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -72,9 +72,11 @@ import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
@@ -155,6 +157,10 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     val shakeX = remember { Animatable(0f) }
     val shakeY = remember { Animatable(0f) }
+    val scalePause = remember { Animatable(0f) }
+    val scaleControllers = remember { Animatable(0f) }
+    val clickScalePause = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
 
     // Ecran de jeu
     BoxWithConstraints(
@@ -167,7 +173,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 // Boutons
                 if (event.key == Key.A) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
-                        gameData.player.shoot(delayMs = 750L)
+                        gameData.player.shoot()
                     }
 
                     gameData.game.actionButtonA = (event.type == KeyEventType.KeyDown)
@@ -275,13 +281,14 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 ShowScore(gameData.score.get(), fontSize = uiFontSize)
                 if (!gameData.isBossRound) ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
             }
-            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = 24.dp, end = 24.dp)) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = (minDim * 0.03f), end = (minDim * 0.03f))) {
                 Image(
                     painter = painterResource(Res.drawable.pause),
                     contentDescription = "Pause",
                     modifier = Modifier
-                        .size(56.dp)
-                        .padding(8.dp)
+                        .size(minDim * 0.13f)
+                        .padding(minDim * 0.01f)
+                        .scale(scalePause.value)
                         .clickable {
                             isPaused = true
                             gameData.game.paused = true
@@ -408,7 +415,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             )
         } else {
             Controllers(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier.fillMaxSize().scale(scaleControllers.value),
                 onJoystickChange = { pos -> gameData.game.joystickPosition = pos },
                 onActionA = { pressed ->
                     if (pressed && !gameData.game.actionButtonA) gameData.player.shoot()
@@ -436,6 +443,16 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     LaunchedEffect(gameData.player.life, gameData.levelIndex) {
         damageScaleAnim.animateTo(lifeToScale(gameData.player.life), tween(500, easing = EaseInOut))
+    }
+
+    LaunchedEffect(gameData.levelIndex) {
+        scalePause.snapTo(0f)
+        scaleControllers.snapTo(0f)
+        launch { scalePause.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
+        launch {
+            kotlinx.coroutines.delay(150L)
+            scaleControllers.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+        }
     }
 
     LaunchedEffect(gameData.comboMultiplier) {

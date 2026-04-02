@@ -10,7 +10,9 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.*
@@ -35,7 +37,7 @@ fun App(modifier: Modifier = Modifier) {
     var lastScore by remember { mutableStateOf(0) }
 
     MaterialTheme {
-        Box(modifier = modifier.fillMaxSize()) {
+        Box(modifier = modifier.fillMaxSize().background(Color.White)) {
 
             Image(
                 painter = painterResource(Res.drawable.menu_accueil),

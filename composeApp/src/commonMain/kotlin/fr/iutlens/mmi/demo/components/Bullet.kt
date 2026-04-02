@@ -19,7 +19,10 @@ class Bullet(
     val speed: Float = 45f,
     val collides: Boolean = false,
     res: DrawableResource,
+    val maxCaptures: Int = 1,
 ) : BasicSprite(res, x, y, ndx = 8) {
+
+    var capturesMade: Int = 0
 
     var vx = (speed * cos(angle)).toFloat()
     var vy = (speed * sin(angle)).toFloat()
