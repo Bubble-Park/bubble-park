@@ -69,6 +69,7 @@ class Player(
 
     var baseShootDelayMs: Long = 600L
     val shootDelayMs: Long get() = if (FastAmmoEffect.isActive) 150L else baseShootDelayMs
+    var moveSpeedMultiplier: Float = 1f
 
     /**
      * Prend des dégâts et déclenche l'invulnérabilité
@@ -106,6 +107,7 @@ class Player(
         invincibilityFrames = 0
         nextShotTime = 0L
         baseShootDelayMs = 300L
+        moveSpeedMultiplier = 1f
         deathAnimTimer = 0
         deathRotation = 0f
         isDeathAnimationComplete = false
@@ -165,11 +167,11 @@ class Player(
             jump()
         }
 
-        val speed = position.x * mapArea.w / 4
+        val speed = position.x * mapArea.w / 4 * moveSpeedMultiplier
         if (speed > 0) facingRight = true
         if (speed < 0) facingRight = false
 
-        moveX(speed, 60f)
+        moveX(speed, 60f * moveSpeedMultiplier)
         applyPhysics()
 
         updateAnimationState(speed)
