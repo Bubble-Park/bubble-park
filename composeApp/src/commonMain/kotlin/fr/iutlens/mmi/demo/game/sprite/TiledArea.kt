@@ -1,7 +1,9 @@
 package fr.iutlens.mmi.demo.game.sprite
 
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 import kotlin.random.Random
@@ -32,21 +34,50 @@ class TiledArea(var res : DrawableResource, val tileMap: TileMap, val scaledTile
      */
     val h  get() = sprite.spriteHeight-3
 
+    private var birthElapsed = -1L
+
+    companion object {
+        const val TILE_STAGGER_MS = 35L
+        const val TILE_POP_DURATION_MS = 350L
+    }
+
+    fun spawnEndMs(): Long = (tileMap.xMax + tileMap.yMax) * TILE_STAGGER_MS + TILE_POP_DURATION_MS
+
     override fun paint(drawScope: DrawScope, elapsed: Long) {
+        if (birthElapsed < 0L) birthElapsed = elapsed
+        val localElapsed = elapsed - birthElapsed
+
         tileMap.foreach { x, y, value ->
             val px = (x * w) / tileMap.tileSizeX
             val py = (y * h) / tileMap.tileSizeY
-            val scaleRange = scaledTiles[value]
-            if (scaleRange != null) {
-                val tileRng = Random(x.toLong() * 1000L + y.toLong())
-                val scale = scaleRange.start + tileRng.nextFloat() * (scaleRange.endInclusive - scaleRange.start)
-                val scaledW = (sprite.spriteWidth * scale).toInt()
-                val scaledH = (sprite.spriteHeight * scale).toInt()
-                val scaledX = px + sprite.spriteWidth / 2 - scaledW / 2
-                val scaledY = py + sprite.spriteHeight - scaledH
-                sprite.paint(drawScope, value, scaledX, scaledY, IntSize(scaledW, scaledH))
+            val delay = (x + y) * TILE_STAGGER_MS
+            val animT = ((localElapsed - delay).toFloat() / TILE_POP_DURATION_MS).coerceIn(0f, 1f)
+            if (animT <= 0f) return@foreach
+
+            val drawTile: DrawScope.() -> Unit = {
+                val scaleRange = scaledTiles[value]
+                if (scaleRange != null) {
+                    val tileRng = Random(x.toLong() * 1000L + y.toLong())
+                    val s = scaleRange.start + tileRng.nextFloat() * (scaleRange.endInclusive - scaleRange.start)
+                    val scaledW = (sprite.spriteWidth * s).toInt()
+                    val scaledH = (sprite.spriteHeight * s).toInt()
+                    val scaledX = px + sprite.spriteWidth / 2 - scaledW / 2
+                    val scaledY = py + sprite.spriteHeight - scaledH
+                    sprite.paint(this, value, scaledX, scaledY, IntSize(scaledW, scaledH))
+                } else {
+                    sprite.paint(this, value, px, py)
+                }
+            }
+
+            if (animT >= 1f) {
+                drawScope.drawTile()
             } else {
-                sprite.paint(drawScope, value, px, py)
+                val popScale = spawnScale(1f - animT)
+                val cx = px + sprite.spriteWidth / 2f
+                val cy = py + sprite.spriteHeight / 2f
+                drawScope.withTransform({ scale(popScale, popScale, pivot = Offset(cx, cy)) }) {
+                    drawTile()
+                }
             }
         }
     }
