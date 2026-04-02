@@ -117,10 +117,9 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     val gameData = remember { BubblePark() }
     var isPaused by remember { mutableStateOf(false) }
-    fun lifeToScale(life: Int) = when (life) {
-        3 -> 2f
-        2 -> 1.3f
-        else -> 1.1f
+    fun lifeToScale(life: Int): Float {
+        val ratio = life.toFloat() / gameData.player.maxLife.toFloat()
+        return 1.1f + 0.9f * (ratio * ratio * ratio)
     }
     val damageScaleAnim = remember { Animatable(lifeToScale(gameData.player.life)) }
     val damagePulse by rememberInfiniteTransition(label = "damagePulse").animateFloat(
