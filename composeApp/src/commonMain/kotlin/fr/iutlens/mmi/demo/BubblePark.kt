@@ -339,6 +339,7 @@ class BubblePark : GameData() {
                 speed = bossConfig.speed,
                 hitCount = bossConfig.hitCount
             )
+            gigano.elapsedSpawnDelay = tileArea.spawnEndMs()
             bossGigano = gigano
             sprites.add(gigano)
         }

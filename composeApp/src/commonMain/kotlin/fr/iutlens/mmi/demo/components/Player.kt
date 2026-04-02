@@ -101,6 +101,7 @@ class Player(
 
     fun shoot(enableCollisions: Boolean = false) {
         val now = elapsedProvider()
+        if (now < spawnDelay) return
         if (now < nextShotTime) return
         nextShotTime = now + shootDelayMs
 
