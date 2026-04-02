@@ -184,6 +184,7 @@ class BubblePark : GameData() {
             initialLife = savedLife,
             initialMaxLife = maxLife
         )
+        upgradeManager.restoreStats(player)
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
         distanceMap = tileArea.distanceMap(player, platformGraph)
@@ -263,7 +264,7 @@ class BubblePark : GameData() {
                 }
             }
 
-            if (FastAmmoEffect.isActive) player.shoot(delayMs = FastAmmoEffect.shootDelayMs)
+            if (FastAmmoEffect.isActive) player.shoot()
 
             if (!isBossRound) {
                 bonusTimerMs += 20
@@ -625,6 +626,6 @@ class BubblePark : GameData() {
     }
 
     init {
-        loadLevel(0)
+        loadLevel(4)
     }
 }

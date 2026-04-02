@@ -10,6 +10,7 @@ import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
+import fr.iutlens.mmi.demo.game.FastAmmoEffect
 import fr.iutlens.mmi.demo.utils.GameSound
 import kotlin.math.PI
 import kotlin.math.round
@@ -66,6 +67,9 @@ class Player(
 
     var lastAngle = 0.0
 
+    var baseShootDelayMs: Long = 600L
+    val shootDelayMs: Long get() = if (FastAmmoEffect.isActive) 150L else baseShootDelayMs
+
     /**
      * Prend des dégâts et déclenche l'invulnérabilité
      * @return true si le joueur est mort après le hit
@@ -85,10 +89,10 @@ class Player(
         if (_life < maxLife) _life++
     }
 
-    fun shoot(enableCollisions: Boolean = false, delayMs: Long = 300) {
+    fun shoot(enableCollisions: Boolean = false) {
         val now = elapsedProvider()
         if (now < nextShotTime) return
-        nextShotTime = now + delayMs
+        nextShotTime = now + shootDelayMs
 
         val step = PI / 4
         val quantizedAngle = round(lastAngle / step) * step
@@ -101,6 +105,7 @@ class Player(
         super.reset(x, y)
         invincibilityFrames = 0
         nextShotTime = 0L
+        baseShootDelayMs = 300L
         deathAnimTimer = 0
         deathRotation = 0f
         isDeathAnimationComplete = false
