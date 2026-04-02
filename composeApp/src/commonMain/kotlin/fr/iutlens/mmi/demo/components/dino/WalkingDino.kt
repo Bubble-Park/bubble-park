@@ -23,6 +23,8 @@ open class WalkingDino(
 
     var stunTimer = 0
     var spawnTimer = SPAWN_DURATION
+    var elapsedSpawnDelay: Long = 0L
+    var spawnDelayPassed = false
 
     var jumpCooldown = 0
     val radius = 40f
@@ -63,6 +65,8 @@ open class WalkingDino(
         captureTimer = 0
         stunTimer = 0
         spawnTimer = SPAWN_DURATION
+        elapsedSpawnDelay = 0L
+        spawnDelayPassed = false
         jumpCooldown = 0
         idleTimer = Random.nextInt(10, 100)
         dirX = 0f

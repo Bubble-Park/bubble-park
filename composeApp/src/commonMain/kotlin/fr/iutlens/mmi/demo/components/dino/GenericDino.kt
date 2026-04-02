@@ -58,6 +58,8 @@ abstract class GenericDino(
     }
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
+        if (elapsed < elapsedSpawnDelay) return
+        spawnDelayPassed = true
         val color = type.color
         if (color != null) {
             drawScope.drawCircle(color = color, radius = radius, center = Offset(x, y))
@@ -103,6 +105,7 @@ abstract class GenericDino(
     }
 
     override fun update() {
+        if (!spawnDelayPassed) return
         if (isDead) return
         if (isCaptured) {
             updateCaptured()

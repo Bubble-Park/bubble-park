@@ -21,6 +21,7 @@ fun Controllers(
         val minDim = minOf(maxWidth, maxHeight)
         val joystickSize = minDim * 0.50f
         val bottomPadding = maxHeight * 0.08f
+        val buttonsBottomPadding = maxHeight * 0.04f
         val sidePadding = maxWidth * 0.04f
 
         Joystick(
@@ -34,7 +35,7 @@ fun Controllers(
         Buttons(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = sidePadding, bottom = bottomPadding),
+                .padding(end = sidePadding, bottom=buttonsBottomPadding),
             onActionA = onActionA,
             onActionB = onActionB
         )

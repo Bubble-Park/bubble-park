@@ -53,6 +53,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.IntOffset
 import fr.iutlens.mmi.demo.menu_volcan
@@ -72,6 +73,11 @@ fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}, onCredit
         while (true) {
             menuElapsed = withFrameMillis { it } - start
         }
+    }
+
+    val scaleLogo = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        scaleLogo.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
     }
 
     val rotLogo = squareWaveRotation(menuElapsed * 0.0015f, 2f)
@@ -122,6 +128,7 @@ fun MainMenu(onPlayClick: () -> Unit, onBestiaryClick: () -> Unit = {}, onCredit
                 .offset(x = dynamicLogoOffset, y = 0.dp)
                 .size(minOf(maxWidth, maxHeight) * 0.55f)
                 .rotate(rotLogo)
+                .scale(scaleLogo.value)
         )
 
         MenuPanel(
@@ -236,13 +243,22 @@ fun BoxScope.MenuPanel(
 
 @Composable
 fun VolumeButton(modifier: Modifier = Modifier) {
+    val clickScale = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
     val icon = if (Music.mute) Res.drawable.volume_cut else Res.drawable.volume_full
     Image(
         painter = painterResource(icon),
         contentDescription = if (Music.mute) "Son coupé" else "Son actif",
         modifier = modifier
             .rotate(if (Music.mute) 25f else 0f)
-            .clickable { Music.mute = !Music.mute }
+            .scale(clickScale.value)
+            .clickable {
+                scope.launch {
+                    clickScale.animateTo(1.3f, tween(80))
+                    clickScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+                }
+                Music.mute = !Music.mute
+            }
     )
 }
 
@@ -295,10 +311,19 @@ fun MenuButton(
     fontSize: TextUnit = 48.sp,
     strokeWidth: Float = 4f
 ) {
+    val clickScale = remember { Animatable(1f) }
+    val scope = rememberCoroutineScope()
     Button(
-        onClick = onClick,
+        onClick = {
+            scope.launch {
+                clickScale.animateTo(1.3f, tween(80))
+                clickScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+            }
+            onClick()
+        },
         colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-        elevation = ButtonDefaults.elevation(0.dp)
+        elevation = ButtonDefaults.elevation(0.dp),
+        modifier = Modifier.scale(clickScale.value)
     ) {
         OutlineText(
             text = text,

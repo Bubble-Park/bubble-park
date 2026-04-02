@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.withTransform
+import fr.iutlens.mmi.demo.game.sprite.spawnScale
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
@@ -67,6 +68,9 @@ class Player(
     private val runFrame   = 1
     private val jumpFrame  = 2
     private val fallFrame  = 3
+
+    var spawnDelay: Long = 0L
+    private val SPAWN_POP_DURATION = 400f
 
     var lastAngle = 0.0
 
@@ -130,12 +134,17 @@ class Player(
     }
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
+        val sinceSpawn = elapsed - spawnDelay
+        if (sinceSpawn < 0L) return
+        val popT = (sinceSpawn.toFloat() / SPAWN_POP_DURATION).coerceIn(0f, 1f)
+        val popScale = if (popT < 1f) spawnScale(1f - popT) else 1f
         val w2 = spriteSheet.spriteWidth / 2
         val h2 = spriteSheet.spriteHeight / 2
         val walkRotation = if (isOnGround) squareWaveRotation(phase = walkPhase, intensity = 12f) else 0f
         val effectiveRotation = if (isDead && deathAnimTimer > 0) deathRotation else walkRotation
         drawScope.withTransform({
             translate(x, y + 20f)
+            if (popScale != 1f) scale(popScale, popScale, pivot = Offset.Zero)
             rotate(effectiveRotation, pivot = Offset.Zero)
             if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
         }) {
