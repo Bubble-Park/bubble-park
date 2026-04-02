@@ -16,6 +16,8 @@ import kotlin.math.PI
 import kotlin.math.round
 import org.jetbrains.compose.resources.DrawableResource
 
+enum class ShootMode { SINGLE, HORIZONTAL, BOTH }
+
 class Player(
     res: DrawableResource,
     x: Float,
@@ -72,6 +74,7 @@ class Player(
     val shootDelayMs: Long get() = if (FastAmmoEffect.isActive) 150L else baseShootDelayMs
     var moveSpeedMultiplier: Float = 1f
     var bulletMaxCaptures: Int = 1
+    var shootMode: ShootMode = ShootMode.SINGLE
 
     /**
      * Prend des dégâts et déclenche l'invulnérabilité
@@ -99,8 +102,16 @@ class Player(
 
         val step = PI / 4
         val quantizedAngle = round(lastAngle / step) * step
-        val bullet = Bullet(x, y, quantizedAngle, mapArea, collides = enableCollisions, res = bulletRes, maxCaptures = bulletMaxCaptures)
-        onBulletCreated(bullet)
+
+        val angles = when (shootMode) {
+            ShootMode.SINGLE     -> listOf(quantizedAngle)
+            ShootMode.HORIZONTAL -> listOf(quantizedAngle, quantizedAngle + PI)
+            ShootMode.BOTH       -> listOf(quantizedAngle, quantizedAngle + PI, quantizedAngle + PI / 2, quantizedAngle - PI / 2)
+        }
+
+        for (angle in angles) {
+            onBulletCreated(Bullet(x, y, angle, mapArea, collides = enableCollisions, res = bulletRes, maxCaptures = bulletMaxCaptures))
+        }
         GameSound.playBubble()
     }
 
@@ -112,6 +123,7 @@ class Player(
         moveSpeedMultiplier = 1f
         invincibilityMultiplier = 1f
         bulletMaxCaptures = 1
+        shootMode = ShootMode.SINGLE
         deathAnimTimer = 0
         deathRotation = 0f
         isDeathAnimationComplete = false
