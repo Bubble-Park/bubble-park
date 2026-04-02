@@ -2,12 +2,16 @@ package fr.iutlens.mmi.demo.game.upgrade
 
 import fr.iutlens.mmi.demo.components.Player
 import fr.iutlens.mmi.demo.game.upgrade.upgrades.ExtraLifeUpgrade
+import fr.iutlens.mmi.demo.game.upgrade.upgrades.FireRateUpgrade
+import fr.iutlens.mmi.demo.game.upgrade.upgrades.MoveSpeedUpgrade
 import kotlin.random.Random
 
 class UpgradeManager {
 
     val catalogue: List<Upgrade> = listOf(
-        ExtraLifeUpgrade()
+        ExtraLifeUpgrade(),
+        FireRateUpgrade(),
+        MoveSpeedUpgrade()
     )
 
     fun getMaxLife(): Int =
@@ -24,6 +28,8 @@ class UpgradeManager {
         upgrade.acquiredCount++
         upgrade.apply(player)
     }
+
+    fun restoreStats(player: Player) = catalogue.forEach { it.restoreStats(player) }
 
     fun reset() = catalogue.forEach { it.reset() }
 }
