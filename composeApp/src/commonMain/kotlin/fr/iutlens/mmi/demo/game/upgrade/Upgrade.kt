@@ -13,6 +13,8 @@ abstract class Upgrade {
     var acquiredCount: Int = 0
     val isMaxed: Boolean get() = acquiredCount >= maxCount
 
+    open fun isAvailable(catalogue: List<Upgrade>): Boolean = true
+
     abstract fun apply(player: Player)
 
     /**
