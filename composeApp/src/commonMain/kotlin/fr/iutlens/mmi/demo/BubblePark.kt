@@ -185,6 +185,7 @@ class BubblePark : GameData() {
             initialMaxLife = maxLife
         )
         player.spawnDelay = tileArea.spawnEndMs()
+        upgradeManager.restoreStats(player)
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
         distanceMap = tileArea.distanceMap(player, platformGraph)
@@ -264,7 +265,7 @@ class BubblePark : GameData() {
                 }
             }
 
-            if (FastAmmoEffect.isActive) player.shoot(delayMs = FastAmmoEffect.shootDelayMs)
+            if (FastAmmoEffect.isActive) player.shoot()
 
             if (!isBossRound) {
                 bonusTimerMs += 20
@@ -433,10 +434,12 @@ class BubblePark : GameData() {
                         dino.isCaptured = true
                         dino.currentHitCount = 0
                         onDinoCaptured()
-                    } else if (!dino.isStunImmune) {
-                        dino.stunTimer = WalkingDino.HIT_STUN_DURATION
+                        bullet.capturesMade++
+                        if (bullet.capturesMade >= bullet.maxCaptures) bullet.explode()
+                    } else {
+                        if (!dino.isStunImmune) dino.stunTimer = WalkingDino.HIT_STUN_DURATION
+                        bullet.explode()
                     }
-                    bullet.explode()
                     break
                 }
             }

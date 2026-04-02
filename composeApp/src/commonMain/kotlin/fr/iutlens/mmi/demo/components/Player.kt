@@ -11,10 +11,13 @@ import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.game.sprite.PhysicsSprite
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
+import fr.iutlens.mmi.demo.game.FastAmmoEffect
 import fr.iutlens.mmi.demo.utils.GameSound
 import kotlin.math.PI
 import kotlin.math.round
 import org.jetbrains.compose.resources.DrawableResource
+
+enum class ShootMode { SINGLE, HORIZONTAL, BOTH }
 
 class Player(
     res: DrawableResource,
@@ -43,7 +46,8 @@ class Player(
 
     override val paintAlpha: Float
         get() = if (invincibilityFrames > 0 && invincibilityFrames % 8 < 4) 0.2f else 1f
-    private val INVINCIBILITY_DURATION = 120
+    var invincibilityMultiplier: Float = 1f
+    private val INVINCIBILITY_DURATION get() = (120 * invincibilityMultiplier).toInt()
 
     // Variables d'animation de mort
     private val DEATH_ANIM_DURATION = 60
@@ -70,6 +74,12 @@ class Player(
 
     var lastAngle = 0.0
 
+    var baseShootDelayMs: Long = 600L
+    val shootDelayMs: Long get() = if (FastAmmoEffect.isActive) 150L else baseShootDelayMs
+    var moveSpeedMultiplier: Float = 1f
+    var bulletMaxCaptures: Int = 1
+    var shootMode: ShootMode = ShootMode.SINGLE
+
     /**
      * Prend des dégâts et déclenche l'invulnérabilité
      * @return true si le joueur est mort après le hit
@@ -89,16 +99,24 @@ class Player(
         if (_life < maxLife) _life++
     }
 
-    fun shoot(enableCollisions: Boolean = false, delayMs: Long = 300) {
+    fun shoot(enableCollisions: Boolean = false) {
         val now = elapsedProvider()
         if (now < spawnDelay) return
         if (now < nextShotTime) return
-        nextShotTime = now + delayMs
+        nextShotTime = now + shootDelayMs
 
         val step = PI / 4
         val quantizedAngle = round(lastAngle / step) * step
-        val bullet = Bullet(x, y, quantizedAngle, mapArea, collides = enableCollisions, res = bulletRes)
-        onBulletCreated(bullet)
+
+        val angles = when (shootMode) {
+            ShootMode.SINGLE     -> listOf(quantizedAngle)
+            ShootMode.HORIZONTAL -> listOf(quantizedAngle, quantizedAngle + PI)
+            ShootMode.BOTH       -> listOf(quantizedAngle, quantizedAngle + PI, quantizedAngle + PI / 2, quantizedAngle - PI / 2)
+        }
+
+        for (angle in angles) {
+            onBulletCreated(Bullet(x, y, angle, mapArea, collides = enableCollisions, res = bulletRes, maxCaptures = bulletMaxCaptures))
+        }
         GameSound.playBubble()
     }
 
@@ -106,6 +124,11 @@ class Player(
         super.reset(x, y)
         invincibilityFrames = 0
         nextShotTime = 0L
+        baseShootDelayMs = 300L
+        moveSpeedMultiplier = 1f
+        invincibilityMultiplier = 1f
+        bulletMaxCaptures = 1
+        shootMode = ShootMode.SINGLE
         deathAnimTimer = 0
         deathRotation = 0f
         isDeathAnimationComplete = false
@@ -170,11 +193,11 @@ class Player(
             jump()
         }
 
-        val speed = position.x * mapArea.w / 4
+        val speed = position.x * mapArea.w / 4 * moveSpeedMultiplier
         if (speed > 0) facingRight = true
         if (speed < 0) facingRight = false
 
-        moveX(speed, 60f)
+        moveX(speed, 60f * moveSpeedMultiplier)
         applyPhysics()
 
         updateAnimationState(speed)

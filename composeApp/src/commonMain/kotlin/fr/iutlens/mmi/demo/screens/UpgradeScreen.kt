@@ -132,25 +132,37 @@ private fun UpgradeCard(
             ),
         contentAlignment = Alignment.Center
     ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(
-                text = upgrade.name,
-                fontFamily = dinoFont,
-                color = Color(0xFF474534),
-                fontSize = (screenH * 0.10f).sp,
-                textAlign = TextAlign.Center
+        val image = upgrade.imageRes
+        if (image != null) {
+            Image(
+                painter = painterResource(image),
+                contentDescription = upgrade.name,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(0.75f)
             )
-            Spacer(modifier = Modifier.height((screenH * 0.025f).dp))
-            Text(
-                text = upgrade.description,
-                fontFamily = duduFont,
-                color = Color(0xFF474534).copy(alpha = 0.75f),
-                fontSize = (screenH * 0.055f).sp,
-                textAlign = TextAlign.Center
-            )
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = upgrade.name,
+                    fontFamily = dinoFont,
+                    color = Color(0xFF474534),
+                    fontSize = (screenH * 0.10f).sp,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height((screenH * 0.025f).dp))
+                Text(
+                    text = upgrade.description,
+                    fontFamily = duduFont,
+                    color = Color(0xFF474534).copy(alpha = 0.75f),
+                    fontSize = (screenH * 0.055f).sp,
+                    textAlign = TextAlign.Center
+                )
+            }
         }
     }
 }

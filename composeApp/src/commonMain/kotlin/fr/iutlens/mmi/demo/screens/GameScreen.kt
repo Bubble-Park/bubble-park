@@ -173,7 +173,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 // Boutons
                 if (event.key == Key.A) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
-                        gameData.player.shoot(delayMs = 750L)
+                        gameData.player.shoot()
                     }
 
                     gameData.game.actionButtonA = (event.type == KeyEventType.KeyDown)
