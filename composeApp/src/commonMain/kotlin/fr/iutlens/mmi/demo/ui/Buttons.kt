@@ -2,6 +2,8 @@ package fr.iutlens.mmi.demo.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,6 +22,7 @@ fun Buttons(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+
         Button(
             modifier = Modifier.size(110.dp),
             image = Res.drawable.button_B,
@@ -28,7 +31,7 @@ fun Buttons(
         )
 
         Button(
-            modifier = Modifier.size(110.dp),
+            modifier = Modifier.size(110.dp).offset(y = (-35).dp),
             image = Res.drawable.button_A,
             onPress = { onActionA(true) },
             onRelease = { onActionA(false) }

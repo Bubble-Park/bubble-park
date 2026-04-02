@@ -1,7 +1,11 @@
 package fr.iutlens.mmi.demo.screens
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +24,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.withFrameMillis
+import androidx.compose.ui.draw.scale
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -93,7 +99,7 @@ fun BestiaryScreen(onBack: () -> Unit) {
     SpriteSheet.load(Res.drawable.dodo_sprite, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.gigano_sprite, 2, 2, filterQuality = FilterQuality.High)
 
-    BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+    BoxWithConstraints(modifier = Modifier.fillMaxSize().background(Color.White)) {
         val minDim = minOf(maxWidth, maxHeight)
         val portraitSize = minDim * 0.45f
         val gridSpacing = minDim * 0.04f
@@ -120,7 +126,7 @@ fun BestiaryScreen(onBack: () -> Unit) {
                             val idx = row * 4 + col
                             if (idx < page.size) {
                                 val globalIdx = dinoSprites.indexOf(page[idx])
-                                DinoHead(res = page[idx], sizeDp = portraitSize, elapsed = elapsed, phaseOffset = globalIdx * 1.3f)
+                                DinoHead(res = page[idx], sizeDp = portraitSize, elapsed = elapsed, phaseOffset = globalIdx * 1.3f, popDelay = idx * 60L)
                             }
                         }
                     }
@@ -174,9 +180,14 @@ fun BestiaryScreen(onBack: () -> Unit) {
 }
 
 @Composable
-private fun DinoHead(res: DrawableResource, sizeDp: Dp, elapsed: Long, phaseOffset: Float) {
+private fun DinoHead(res: DrawableResource, sizeDp: Dp, elapsed: Long, phaseOffset: Float, popDelay: Long = 0L) {
+    val popScale = remember(res) { Animatable(0f) }
+    LaunchedEffect(res) {
+        delay(popDelay)
+        popScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+    }
     val rotation = squareWaveRotation(elapsed * 0.004f + phaseOffset, 7f)
-    Canvas(modifier = Modifier.size(sizeDp).rotate(rotation)) {
+    Canvas(modifier = Modifier.size(sizeDp).scale(popScale.value).rotate(rotation)) {
         val sheet = SpriteSheet[res]
         val px = size.width.toInt()
         val scale = minOf(px.toFloat() / sheet.spriteWidth, px.toFloat() / sheet.spriteHeight)
