@@ -316,7 +316,7 @@ fun MenuButton(
     Button(
         onClick = {
             scope.launch {
-                clickScale.animateTo(1.3f, tween(80))
+                clickScale.animateTo(1.15f, tween(80))
                 clickScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
             }
             onClick()

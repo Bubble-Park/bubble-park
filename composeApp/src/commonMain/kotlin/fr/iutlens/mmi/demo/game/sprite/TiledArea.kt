@@ -35,6 +35,7 @@ class TiledArea(var res : DrawableResource, val tileMap: TileMap, val scaledTile
     val h  get() = sprite.spriteHeight-3
 
     private var birthElapsed = -1L
+    var popDelay: Long = 0L
 
     companion object {
         const val TILE_STAGGER_MS = 25L
@@ -45,13 +46,14 @@ class TiledArea(var res : DrawableResource, val tileMap: TileMap, val scaledTile
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         if (birthElapsed < 0L) birthElapsed = elapsed
-        val localElapsed = elapsed - birthElapsed
+        val localElapsed = elapsed - birthElapsed - popDelay
 
         tileMap.foreach { x, y, value ->
             val px = (x * w) / tileMap.tileSizeX
             val py = (y * h) / tileMap.tileSizeY
             val delay = (x + y) * TILE_STAGGER_MS
-            val animT = ((localElapsed - delay).toFloat() / TILE_POP_DURATION_MS).coerceIn(0f, 1f)
+            val animT = if (y >= tileMap.yMax - 1) 1f
+                        else ((localElapsed - delay).toFloat() / TILE_POP_DURATION_MS).coerceIn(0f, 1f)
             if (animT <= 0f) return@foreach
 
             val drawTile: DrawScope.() -> Unit = {
