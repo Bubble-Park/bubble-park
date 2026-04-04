@@ -16,7 +16,9 @@ import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.parasaur_sprite
 import fr.iutlens.mmi.demo.galliminus_sprite
-import fr.iutlens.mmi.demo.level_background
+import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.bord_droit
+import fr.iutlens.mmi.demo.bord_gauche
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.slow_debuff
 import fr.iutlens.mmi.demo.slow_bonus
@@ -81,6 +83,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.util.lerp
 import fr.iutlens.mmi.demo.compy_sprite
 import fr.iutlens.mmi.demo.dodo_sprite
@@ -160,6 +163,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     val scalePause = remember { Animatable(0f) }
     val scaleControllers = remember { Animatable(0f) }
     val clickScalePause = remember { Animatable(1f) }
+    val borderSlide = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
 
     // Ecran de jeu
@@ -199,7 +203,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     ) {
 
         Image(
-            painter = painterResource(Res.drawable.level_background),
+            painter = painterResource(Res.drawable.background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -269,6 +273,26 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
             modifier = Modifier.fillMaxSize().alpha(0.2f).scale(damageScaleAnim.value + damagePulse)
+        )
+
+        Image(
+            painter = painterResource(Res.drawable.bord_gauche),
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight,
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.CenterStart)
+                .graphicsLayer { translationX = -size.width * borderSlide.value }
+        )
+
+        Image(
+            painter = painterResource(Res.drawable.bord_droit),
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight,
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.CenterEnd)
+                .graphicsLayer { translationX = size.width * borderSlide.value }
         )
 
         Row(
@@ -448,10 +472,15 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     LaunchedEffect(gameData.levelIndex) {
         scalePause.snapTo(0f)
         scaleControllers.snapTo(0f)
+        borderSlide.snapTo(1f)
         launch { scalePause.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
         launch {
             kotlinx.coroutines.delay(150L)
             scaleControllers.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+        }
+        launch {
+            if (gameData.levelIndex == 0) kotlinx.coroutines.delay(2800L)
+            borderSlide.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
         }
     }
 
