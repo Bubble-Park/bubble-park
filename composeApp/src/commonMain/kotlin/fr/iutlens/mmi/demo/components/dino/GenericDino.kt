@@ -67,7 +67,7 @@ abstract class GenericDino(
             val w2 = spriteSheet.spriteWidth / 2
             val h2 = spriteSheet.spriteHeight / 2
             val (rotation, scaleF) = when {
-                isCaptured -> squareWaveRotation(phase = captureTimer * 0.08f, intensity = 5f) to 1f
+                isCaptured -> squareWaveRotation(phase = captureTimer * 0.5f, intensity = 20f) to 1f
                 spawnTimer > SPAWN_ANIM_DURATION -> {
                     val ratio = (spawnTimer - SPAWN_ANIM_DURATION).toFloat() / SPAWN_ANIM_DURATION
                     spawnRotation(ratio) to spawnScale(ratio)
