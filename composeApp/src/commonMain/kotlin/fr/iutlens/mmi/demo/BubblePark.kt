@@ -166,7 +166,9 @@ class BubblePark : GameData() {
             .map { levelData.mapCode.indexOf(it) }
             .filter { it >= 0 }
             .associateWith { 2f..3f }
-        tileArea = TiledArea(levelData.tileSetRes, tileMap, decorScales)
+        tileArea = TiledArea(levelData.tileSetRes, tileMap, decorScales).also {
+            if (index == 0) it.popDelay = 3050L
+        }
 
         val isFirstLevel = !::player.isInitialized
         val maxLife = upgradeManager.getMaxLife()
@@ -184,7 +186,7 @@ class BubblePark : GameData() {
             initialLife = savedLife,
             initialMaxLife = maxLife
         )
-        player.spawnDelay = tileArea.spawnEndMs()
+        player.spawnDelay = 0L
         upgradeManager.restoreStats(player)
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)

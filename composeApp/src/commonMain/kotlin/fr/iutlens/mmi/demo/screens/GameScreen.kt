@@ -162,6 +162,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     val shakeY = remember { Animatable(0f) }
     val scalePause = remember { Animatable(0f) }
     val scaleControllers = remember { Animatable(0f) }
+    val scaleTree = remember { Animatable(0f) }
     val clickScalePause = remember { Animatable(1f) }
     val borderSlide = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
@@ -232,6 +233,26 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 .size(240.dp)
         )
 
+        Image(
+            painter = painterResource(Res.drawable.bord_gauche),
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight,
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.CenterStart)
+                .graphicsLayer { translationX = -size.width * borderSlide.value }
+        )
+
+        Image(
+            painter = painterResource(Res.drawable.bord_droit),
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight,
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.CenterEnd)
+                .graphicsLayer { translationX = size.width * borderSlide.value }
+        )
+
         // Arbre décoratif (derrière la grille)
         val treeXRatio = remember(gameData.levelIndex) { Random.nextFloat() }
         val treeSizeDp = minDim * 0.80f
@@ -243,6 +264,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             modifier = Modifier
                 .offset(x = treeX.dp, y = treeY.dp)
                 .size(treeSizeDp)
+                .scale(scaleTree.value)
         )
 
         // Rendu du jeu
@@ -273,26 +295,6 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
             modifier = Modifier.fillMaxSize().alpha(0.2f).scale(damageScaleAnim.value + damagePulse)
-        )
-
-        Image(
-            painter = painterResource(Res.drawable.bord_gauche),
-            contentDescription = null,
-            contentScale = ContentScale.FillHeight,
-            modifier = Modifier
-                .fillMaxHeight()
-                .align(Alignment.CenterStart)
-                .graphicsLayer { translationX = -size.width * borderSlide.value }
-        )
-
-        Image(
-            painter = painterResource(Res.drawable.bord_droit),
-            contentDescription = null,
-            contentScale = ContentScale.FillHeight,
-            modifier = Modifier
-                .fillMaxHeight()
-                .align(Alignment.CenterEnd)
-                .graphicsLayer { translationX = size.width * borderSlide.value }
         )
 
         Row(
@@ -472,15 +474,24 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     LaunchedEffect(gameData.levelIndex) {
         scalePause.snapTo(0f)
         scaleControllers.snapTo(0f)
+        scaleTree.snapTo(0f)
         borderSlide.snapTo(1f)
-        launch { scalePause.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
+        val cloudDelay = if (gameData.levelIndex == 0) 2800L else 0L
         launch {
-            kotlinx.coroutines.delay(150L)
-            scaleControllers.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+            kotlinx.coroutines.delay(cloudDelay)
+            borderSlide.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessHigh))
         }
         launch {
-            if (gameData.levelIndex == 0) kotlinx.coroutines.delay(2800L)
-            borderSlide.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+            kotlinx.coroutines.delay(cloudDelay + 150L)
+            scaleTree.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+        }
+        launch {
+            kotlinx.coroutines.delay(cloudDelay + 200L)
+            scalePause.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+        }
+        launch {
+            kotlinx.coroutines.delay(cloudDelay + 300L)
+            scaleControllers.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
         }
     }
 
