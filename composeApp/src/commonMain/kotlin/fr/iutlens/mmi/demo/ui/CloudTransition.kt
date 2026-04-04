@@ -19,24 +19,28 @@ private data class PassingCloud(
     val speedFactor: Float,
     val delayFraction: Float,
     val rotation: Float,
-    val imageIndex: Int
+    val imageIndex: Int,
+    val restY: Float = 0.5f,
+    val uncoverDelay: Float = 0f
 )
 
 private val CLOUDS = listOf(
-    PassingCloud(-0.22f, 2.1f, 1.00f, 0.00f,  4f, 1),
-    PassingCloud(-0.04f, 2.0f, 1.20f, 0.10f,  7f, 0),
-    PassingCloud( 0.14f, 2.0f, 0.82f, 0.20f, -4f, 1),
-    PassingCloud( 0.24f, 2.1f, 0.80f, 0.08f, -5f, 1),
-    PassingCloud( 0.54f, 2.0f, 1.30f, 0.18f, 11f, 0),
-    PassingCloud( 0.84f, 2.1f, 0.75f, 0.05f, -8f, 1),
-    PassingCloud( 1.08f, 2.0f, 1.10f, 0.28f, -3f, 0),
-    PassingCloud( 0.10f, 2.1f, 0.85f, 0.38f, -6f, 1),
-    PassingCloud( 0.42f, 2.0f, 1.25f, 0.48f, 10f, 0),
-    PassingCloud( 0.74f, 2.1f, 0.90f, 0.58f,  8f, 1),
+    PassingCloud(-0.22f, 1.4f, 1.00f, 0.00f,  4f, 1, 0.45f, 0.00f),
+    PassingCloud(-0.04f, 2.5f, 1.20f, 0.10f,  7f, 0, 0.70f, 0.20f),
+    PassingCloud( 0.14f, 1.7f, 0.82f, 0.20f, -4f, 1, 0.50f, 0.05f),
+    PassingCloud( 0.24f, 3.0f, 0.80f, 0.08f, -5f, 1, 0.65f, 0.30f),
+    PassingCloud( 0.54f, 1.5f, 1.30f, 0.18f, 11f, 0, 0.55f, 0.10f),
+    PassingCloud( 0.84f, 2.2f, 0.75f, 0.05f, -8f, 1, 0.40f, 0.25f),
+    PassingCloud( 1.08f, 1.9f, 1.10f, 0.28f, -3f, 0, 0.75f, 0.40f),
+    PassingCloud( 0.10f, 2.8f, 0.85f, 0.38f, -6f, 1, 0.60f, 0.15f),
+    PassingCloud( 0.42f, 1.6f, 1.25f, 0.48f, 10f, 0, 0.48f, 0.35f),
+    PassingCloud( 0.74f, 2.3f, 0.90f, 0.58f,  8f, 1, 0.68f, 0.08f),
 )
 
 private fun easeInOut(t: Float): Float =
     if (t < 0.5f) 2f * t * t else 1f - (-2f * t + 2f).pow(2) / 2f
+
+private fun easeInSlow(t: Float): Float = t.pow(3f)
 
 @Composable
 fun CloudTransitionOverlay(progress: Float) {
@@ -48,11 +52,24 @@ fun CloudTransitionOverlay(progress: Float) {
         val sh = size.height
         val baseSize = sh * 1.2f
 
-for (cloud in CLOUDS) {
-            val raw = ((progress - cloud.delayFraction) / (1f - cloud.delayFraction + 0.001f)).coerceIn(0f, 1f)
-            val eased = easeInOut(raw.pow(1f / cloud.speedFactor))
+        for (cloud in CLOUDS) {
             val cloudSize = baseSize * cloud.sizeScale
-            val cy = (sh + cloudSize * 0.5f) + (-cloudSize * 1.2f - (sh + cloudSize * 0.5f)) * eased
+            val startY = sh + cloudSize * 0.5f
+            val coverY = sh * cloud.restY
+            val endY = -cloudSize * 1.2f
+
+            val cy = if (progress <= 0.5f) {
+                val coverP = (progress / 0.5f).coerceIn(0f, 1f)
+                val raw = ((coverP - cloud.delayFraction) / (1f - cloud.delayFraction + 0.001f)).coerceIn(0f, 1f)
+                val eased = easeInOut(raw.pow(1f / cloud.speedFactor))
+                startY + (coverY - startY) * eased
+            } else {
+                val uncoverP = ((progress - 0.5f) / 0.5f).coerceIn(0f, 1f)
+                val raw = ((uncoverP - cloud.uncoverDelay) / (1f - cloud.uncoverDelay + 0.001f)).coerceIn(0f, 1f)
+                val eased = easeInSlow(raw)
+                coverY + (endY - coverY) * eased
+            }
+
             val cx = sw * cloud.normX
             val painter = if (cloud.imageIndex == 0) painter1 else painter2
 

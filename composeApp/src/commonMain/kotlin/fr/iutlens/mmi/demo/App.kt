@@ -39,7 +39,7 @@ fun App(modifier: Modifier = Modifier) {
         coverProgress.snapTo(0f)
         coverProgress.animateTo(0.5f, tween(1800))
         currentState = GameState.PLAYING
-        coverProgress.animateTo(1f, tween(1600))
+        coverProgress.animateTo(1f, tween(2800))
         showCloudOverlay = false
     }
 
