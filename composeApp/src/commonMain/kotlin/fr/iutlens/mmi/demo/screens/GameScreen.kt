@@ -160,6 +160,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     val shakeX = remember { Animatable(0f) }
     val shakeY = remember { Animatable(0f) }
+    val bonusScale = remember { Animatable(1f) }
     val scalePause = remember { Animatable(0f) }
     val scaleControllers = remember { Animatable(0f) }
     val scaleTree = remember { Animatable(0f) }
@@ -171,6 +172,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
+            .scale(bonusScale.value)
             .offset { IntOffset(shakeX.value.roundToInt(), shakeY.value.roundToInt()) }
             .focusRequester(focusRequester)
             .focusable()
@@ -452,6 +454,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         }
     }
 
+
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
@@ -476,7 +479,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         scaleControllers.snapTo(0f)
         scaleTree.snapTo(0f)
         borderSlide.snapTo(1f)
-        val cloudDelay = if (gameData.levelIndex == 0) 2800L else 0L
+        val cloudDelay = if (gameData.levelIndex == 0) 2300L else 0L
         launch {
             kotlinx.coroutines.delay(cloudDelay)
             borderSlide.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessHigh))
@@ -493,6 +496,12 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             kotlinx.coroutines.delay(cloudDelay + 300L)
             scaleControllers.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
         }
+    }
+
+    LaunchedEffect(gameData.bonusCollectedCount) {
+        if (gameData.bonusCollectedCount == 0) return@LaunchedEffect
+        bonusScale.animateTo(1.06f, tween(100, easing = EaseInOut))
+        bonusScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
     }
 
     LaunchedEffect(gameData.comboMultiplier) {
