@@ -372,9 +372,8 @@ class BubblePark : GameData() {
                 sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
                 sprite is GenericDino && !sprite.isDead -> activeGenericDinos.add(sprite)
                 sprite is Bonus && !sprite.collected -> {
-                    if (sprite.boundingBox.overlaps(player.boundingBox)) {
-                        sprite.onCollect()
-                        sprite.collected = true
+                    if (!sprite.collected && !sprite.isCollecting && sprite.boundingBox.overlaps(player.boundingBox)) {
+                        sprite.startCollect()
                         bonusCollectedCount++
                         GameSound.playBonus()
                     }
