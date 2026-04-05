@@ -78,6 +78,7 @@ class BubblePark : GameData() {
     val scorePopups = mutableStateListOf<ScorePopup>()
     private var popupCounter = 0L
 
+    var bonusCollectedCount by mutableStateOf(0)
     var comboMultiplier by mutableStateOf(1)
     var comboTimeRemainingMs by mutableStateOf(0L)
     private var captureCount = 0
@@ -167,7 +168,7 @@ class BubblePark : GameData() {
             .filter { it >= 0 }
             .associateWith { 2f..3f }
         tileArea = TiledArea(levelData.tileSetRes, tileMap, decorScales).also {
-            if (index == 0) it.popDelay = 3050L
+            if (index == 0) it.popDelay = 2550L
         }
 
         val isFirstLevel = !::player.isInitialized
@@ -374,6 +375,7 @@ class BubblePark : GameData() {
                     if (sprite.boundingBox.overlaps(player.boundingBox)) {
                         sprite.onCollect()
                         sprite.collected = true
+                        bonusCollectedCount++
                         GameSound.playBonus()
                     }
                 }
@@ -506,7 +508,7 @@ class BubblePark : GameData() {
         var spawnedTriceratops = 0
         var spawnedStegosaurus = 0
         val sprites = game.spriteList as? MutableList<Sprite> ?: return
-        val dinoSpawnDelay = tileArea.spawnEndMs()
+        val dinoSpawnDelay = tileArea.spawnEndMs() + tileArea.popDelay
 
         repeat(initialCount) {
             val trexNeeded        = (targetTrex - spawnedTrex).coerceAtLeast(0)
@@ -634,6 +636,6 @@ class BubblePark : GameData() {
     }
 
     init {
-        loadLevel(0)
+        loadLevel(4)
     }
 }
