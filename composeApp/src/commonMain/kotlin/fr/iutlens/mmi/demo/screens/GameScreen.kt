@@ -69,6 +69,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
+import fr.iutlens.mmi.demo.niveau1_fond
 import fr.iutlens.mmi.demo.trex_sprite
 import fr.iutlens.mmi.demo.raptor_sprite
 import fr.iutlens.mmi.demo.soleil
