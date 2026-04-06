@@ -25,14 +25,14 @@ import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.damage_border
 import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.head_bubblechtein
+import fr.iutlens.mmi.demo.game.upgrade.Upgrade
 import fr.iutlens.mmi.demo.ui.ShowLife
 import org.jetbrains.compose.resources.Font
 import androidx.compose.ui.text.font.FontFamily
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-
-fun PauseScreen(life: Int, maxLife: Int = 3, score: Int, damageScale: Float, onResume: () -> Unit, onQuit: () -> Unit) {
+fun PauseScreen(life: Int, maxLife: Int = 3, score: Int, damageScale: Float, acquiredUpgrades: List<Upgrade> = emptyList(), onResume: () -> Unit, onQuit: () -> Unit) {
     val duduFont = FontFamily(Font(Res.font.dudu_font))
 
     var elapsed by remember { mutableStateOf(0L) }
@@ -92,6 +92,7 @@ fun PauseScreen(life: Int, maxLife: Int = 3, score: Int, damageScale: Float, onR
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(0.25f)
+                    .offset(y = -(screenH * 0.12f).dp)
                     .padding(horizontal = (screenW * 0.04f).dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
@@ -101,6 +102,39 @@ fun PauseScreen(life: Int, maxLife: Int = 3, score: Int, damageScale: Float, onR
             }
 
             Spacer(modifier = Modifier.weight(0.25f))
+        }
+
+        if (acquiredUpgrades.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = (screenW * 0.02f).dp)
+                    .offset(y = (screenH * 0.12f).dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                acquiredUpgrades.forEachIndexed { i, upgrade ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "x${upgrade.acquiredCount}",
+                            fontFamily = duduFont,
+                            color = Color(0xFF474534),
+                            fontSize = (screenH * 0.11f).sp,
+                            modifier = Modifier.offset(y = (screenH * 0.04f).dp)
+                        )
+                        UpgradeCard(
+                            upgrade = upgrade,
+                            index = 0,
+                            dinoFont = duduFont,
+                            duduFont = duduFont,
+                            screenW = screenW,
+                            screenH = screenH,
+                            onClick = {},
+                            modifier = Modifier.size((screenH * 0.40f).dp)
+                        )
+                    }
+                }
+            }
         }
 
         VolumeButton(

@@ -427,6 +427,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 maxLife = gameData.player.maxLife,
                 score = gameData.score.get(),
                 damageScale = damageScaleAnim.value + damagePulse,
+                acquiredUpgrades = gameData.upgradeManager.catalogue.filter { it.acquiredCount > 0 },
                 onResume = {
                     isPaused = false
                     gameData.game.paused = false
