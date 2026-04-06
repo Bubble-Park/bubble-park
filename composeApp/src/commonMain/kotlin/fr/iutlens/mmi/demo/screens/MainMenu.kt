@@ -16,8 +16,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -313,17 +312,19 @@ fun MenuButton(
 ) {
     val clickScale = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
-    Button(
-        onClick = {
-            scope.launch {
-                clickScale.animateTo(1.15f, tween(80))
-                clickScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+    Box(
+        modifier = Modifier
+            .scale(clickScale.value)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                scope.launch {
+                    clickScale.animateTo(1.15f, tween(80))
+                    clickScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+                }
+                onClick()
             }
-            onClick()
-        },
-        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-        elevation = ButtonDefaults.elevation(0.dp),
-        modifier = Modifier.scale(clickScale.value)
     ) {
         OutlineText(
             text = text,
