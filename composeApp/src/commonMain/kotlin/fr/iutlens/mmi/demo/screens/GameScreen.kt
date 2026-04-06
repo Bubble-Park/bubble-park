@@ -95,7 +95,21 @@ import kotlin.math.sin
 import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.IntOffset
 
+import fr.iutlens.mmi.demo.game.BossDifficultyConfig
+import fr.iutlens.mmi.demo.game.DifficultyManager
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+
+fun dinosForLevel(levelNumber: Int): List<DrawableResource> {
+    val ratios = DifficultyManager.getSpawnRatios(levelNumber)
+    val dinos = mutableListOf<DrawableResource>()
+    if (ratios.wander > 0.04f) { dinos += Res.drawable.compy_sprite; dinos += Res.drawable.dodo_sprite }
+    if (ratios.flee > 0.04f) { dinos += Res.drawable.parasaur_sprite; dinos += Res.drawable.galliminus_sprite }
+    if (ratios.defensive > 0.04f) { dinos += Res.drawable.trice_sprite; dinos += Res.drawable.stego_sprite }
+    if (ratios.chase > 0.08f) { dinos += Res.drawable.trex_sprite; dinos += Res.drawable.raptor_sprite }
+    if (BossDifficultyConfig.isBossLevel(levelNumber - 1)) dinos += Res.drawable.gigano_sprite
+    return dinos
+}
 
 @Composable
 fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
@@ -166,6 +180,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     val clickScalePause = remember { Animatable(1f) }
     val borderSlide = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
+    var showLevelPanel by remember { mutableStateOf(true) }
+    var pendingNextLevel by remember { mutableStateOf(false) }
 
     // Ecran de jeu
     BoxWithConstraints(
@@ -452,6 +468,23 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 onActionB = { pressed -> gameData.game.actionButtonB = pressed }
             )
         }
+
+        if (showLevelPanel) {
+            val levelNumber = if (pendingNextLevel) gameData.levelIndex + 2 else gameData.levelIndex + 1
+            LevelPanel(
+                levelNumber = levelNumber,
+                life = gameData.player.life,
+                maxLife = gameData.player.maxLife,
+                dinoSprites = dinosForLevel(levelNumber),
+                onDone = {
+                    showLevelPanel = false
+                    if (pendingNextLevel) {
+                        pendingNextLevel = false
+                        gameData.loadNextLevel()
+                    }
+                }
+            )
+        }
     }
 
 
@@ -465,8 +498,10 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     LaunchedEffect(Unit) {
         gameData.onLevelEnd = { hasNextLevel ->
-            if (hasNextLevel) gameData.loadNextLevel()
-            else onExit()
+            if (hasNextLevel) {
+                pendingNextLevel = true
+                showLevelPanel = true
+            } else onExit()
         }
     }
 
