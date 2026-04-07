@@ -73,7 +73,7 @@ fun App(modifier: Modifier = Modifier) {
             if (showCloudOverlay) {
                 CloudTransitionOverlay(progress = coverProgress.value)
             }
-        }
+            }
     }
 }
 
