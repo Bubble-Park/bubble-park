@@ -69,7 +69,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
-import fr.iutlens.mmi.demo.niveau1_fond
 import fr.iutlens.mmi.demo.trex_sprite
 import fr.iutlens.mmi.demo.raptor_sprite
 import fr.iutlens.mmi.demo.soleil
@@ -117,7 +116,6 @@ fun dinosForLevel(levelNumber: Int): List<DrawableResource> {
 
 @Composable
 fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit) {
-    SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 4, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
