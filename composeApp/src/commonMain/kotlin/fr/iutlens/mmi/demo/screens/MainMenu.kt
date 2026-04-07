@@ -38,14 +38,9 @@ import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.logo_medium
 import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.menu_accueil
-import fr.iutlens.mmi.demo.menu_content_fond
-import fr.iutlens.mmi.demo.menu_nuages
-import fr.iutlens.mmi.demo.menu_premier_plan_up
-import fr.iutlens.mmi.demo.menu_second_plan
 import fr.iutlens.mmi.demo.utils.Music
 import fr.iutlens.mmi.demo.volume_cut
 import fr.iutlens.mmi.demo.volume_full
-import fr.iutlens.mmi.demo.bestiaire
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,7 +50,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.IntOffset
-import fr.iutlens.mmi.demo.menu_volcan
 import fr.iutlens.mmi.demo.ui.CloudsOverlay
 import androidx.compose.runtime.withFrameMillis
 
