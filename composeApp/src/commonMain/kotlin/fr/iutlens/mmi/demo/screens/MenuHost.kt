@@ -16,7 +16,7 @@ private enum class MenuSubScreen { MAIN, CREDITS, BESTIARY }
 fun MenuHost(onPlayClick: () -> Unit) {
     var subScreen by remember { mutableStateOf(MenuSubScreen.MAIN) }
 
-    Music("files/main_theme.mp3")
+    Music("main_theme.mp3")
 
     AnimatedContent(
         targetState = subScreen,
