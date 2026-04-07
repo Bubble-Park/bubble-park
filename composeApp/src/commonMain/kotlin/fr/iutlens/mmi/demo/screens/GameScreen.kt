@@ -236,7 +236,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
         val debuffFontSize = (minDim.value * 0.09f).sp
         val elapsed = gameData.game.elapsed
         val sunProgress = (1f - gameData.chrono.value / DifficultyConfig.TOTAL_LEVEL_TIME).coerceIn(0f, 1f)
-        val sunX = lerp(-240f, screenW + 240f, sunProgress)
+        val sunSizeDp = minDim * 0.30f
+        val sunX = lerp(-sunSizeDp.value, screenW + sunSizeDp.value, sunProgress)
         val sunY = screenH * 0.3f - sin(sunProgress * PI).toFloat() * screenH * 0.6f
         val sunPhase = elapsed * PI.toFloat() / 500f
         val sunRotation = squareWaveRotation(sunPhase, 5f)
@@ -247,7 +248,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             modifier = Modifier
                 .offset(x = sunX.dp, y = sunY.dp)
                 .rotate(sunRotation)
-                .size(240.dp)
+                .size(sunSizeDp)
         )
 
         Image(
@@ -303,6 +304,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                 popup = popup,
                 screenXDp = screenXDp,
                 screenYDp = screenYDp,
+                minDim = minDim.value,
                 onDone = { gameData.scorePopups.remove(popup) }
             )
         }
@@ -342,8 +344,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                 if (SlowEffect.isActive) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(end = 8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(minDim * 0.01f),
+                        modifier = Modifier.padding(end = minDim * 0.015f)
                     ) {
                         Image(
                             painter = painterResource(Res.drawable.slow_bonus),
@@ -361,8 +363,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                 if (FastAmmoEffect.isActive) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(end = 8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(minDim * 0.01f),
+                        modifier = Modifier.padding(end = minDim * 0.015f)
                     ) {
                         Image(
                             painter = painterResource(Res.drawable.fastammo_bonus),
@@ -390,7 +392,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             Column(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 12.dp),
+                    .padding(top = minDim * 0.015f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -402,14 +404,14 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                 Box(
                     modifier = Modifier
                         .width((screenW * 0.45f).dp)
-                        .height(14.dp)
-                        .background(Color(0xFF333333), shape = RoundedCornerShape(7.dp))
+                        .height(minDim * 0.018f)
+                        .background(Color(0xFF333333), shape = RoundedCornerShape(percent = 50))
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
                             .fillMaxWidth(hpFraction)
-                            .background(Color(0xFFCC2200), shape = RoundedCornerShape(7.dp))
+                            .background(Color(0xFFCC2200), shape = RoundedCornerShape(percent = 50))
                     )
                 }
             }
@@ -427,8 +429,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
         if (gameData.comboMultiplier > 1) {
             val comboMatrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
             val playerScreenPx = comboMatrix.map(Offset(gameData.player.x, gameData.player.y))
-            val comboXDp = density.run { (playerScreenPx.x + 55f).toDp() }
-            val comboYDp = density.run { (playerScreenPx.y - 30f).toDp() }
+            val comboXDp = density.run { playerScreenPx.x.toDp() } + minDim * 0.034f
+            val comboYDp = density.run { playerScreenPx.y.toDp() } - minDim * 0.019f
             val comboFont = FontFamily(Font(Res.font.dudu_font))
             val comboFadeThresholdMs = BubblePark.COMBO_RESET_INTERVAL_MS / 2f
             val comboScale = (gameData.comboTimeRemainingMs / comboFadeThresholdMs).coerceIn(0f, 1f)
