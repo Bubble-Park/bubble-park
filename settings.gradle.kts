@@ -1,4 +1,4 @@
-rootProject.name = "KMPTest"
+rootProject.name = "BubblePark"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
