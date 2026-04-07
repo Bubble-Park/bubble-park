@@ -285,11 +285,11 @@ class BubblePark : GameData() {
             distanceMap.update()
 
             val mapHeight = tileArea.tileMap.geometry.sizeY * tileArea.h
-            (game.spriteList as? MutableList<Sprite>)?.apply {
-                removeAll { (it as? Bullet)?.isStopped == true }
-                removeAll { (it as? EnemySprite)?.isDead == true }
-                removeAll { (it as? GenericDino)?.isDead == true }
-                removeAll { it is Bonus && (it.collected || it.y > mapHeight) }
+            (game.spriteList as? MutableList<Sprite>)?.removeAll { sprite ->
+                (sprite is Bullet     && sprite.isStopped)
+                || (sprite is EnemySprite && sprite.isDead)
+                || (sprite is GenericDino && sprite.isDead)
+                || (sprite is Bonus    && (sprite.collected || sprite.y > mapHeight))
             }
 
             game.spriteList.update()
@@ -409,7 +409,8 @@ class BubblePark : GameData() {
             if (!dino.isCaptured) continue
             if (player.boundingBox.overlaps(dino.boundingBox)) {
                 dino.isDead = true
-                collectCapturedDino(dino.scoreValue, dino.x, dino.y)
+                val baseScore = if (dino.capturedByDiagonal) (dino.scoreValue * 1.2f).toInt() else dino.scoreValue
+                collectCapturedDino(baseScore, dino.x, dino.y)
                 GameSound.playPointCombo(comboMultiplier)
                 break
             }
@@ -421,8 +422,9 @@ class BubblePark : GameData() {
                 if (enemy.isDead) continue
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
-                    score.add(enemy.scoreValue)
-                    scorePopups.add(ScorePopup(popupCounter++, enemy.x, enemy.y, enemy.scoreValue))
+                    val points = if (bullet.isDiagonal) (enemy.scoreValue * 1.2f).toInt() else enemy.scoreValue
+                    score.add(points)
+                    scorePopups.add(ScorePopup(popupCounter++, enemy.x, enemy.y, points))
                     bullet.explode()
                     break
                 }
@@ -435,6 +437,7 @@ class BubblePark : GameData() {
                     dino.onHitByBullet()
                     if (dino.currentHitCount >= dino.effectiveHitCount) {
                         dino.isCaptured = true
+                        dino.capturedByDiagonal = bullet.isDiagonal
                         dino.currentHitCount = 0
                         onDinoCaptured()
                         bullet.capturesMade++

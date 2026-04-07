@@ -40,8 +40,18 @@ class Gigano(
 
     override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE
 
+    private var _bboxCX = Float.NaN
+    private var _bboxCY = Float.NaN
+    private var _bbox = Rect.Zero
+
     override val boundingBox: Rect
-        get() = Rect(x - HIT_HALF_X, y - HIT_HALF_Y, x + HIT_HALF_X, y + HIT_HALF_Y)
+        get() {
+            if (x != _bboxCX || y != _bboxCY) {
+                _bboxCX = x; _bboxCY = y
+                _bbox = Rect(x - HIT_HALF_X, y - HIT_HALF_Y, x + HIT_HALF_X, y + HIT_HALF_Y)
+            }
+            return _bbox
+        }
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.withTransform({

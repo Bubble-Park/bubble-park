@@ -34,6 +34,7 @@ abstract class GenericDino(
     override val scoreValue get() = type.scoreValue
 
     var currentHitCount = 0
+    var capturedByDiagonal: Boolean = false
     open val isStunImmune: Boolean = false
 
     val effectiveHitCount: Int
@@ -50,6 +51,8 @@ abstract class GenericDino(
 
     companion object {
         const val PATH_REFRESH_INTERVAL = 25
+        /** Singleton réutilisé à chaque frame pour éviter une allocation par dino par rendu. */
+        val slowColorFilter = ColorFilter.tint(Color(0x880000FF.toInt()), BlendMode.SrcAtop)
     }
 
     override fun reset(x: Float, y: Float) {
@@ -84,7 +87,7 @@ abstract class GenericDino(
                 if (rotation != 0f) rotate(rotation, pivot = Offset.Zero)
                 if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
             }) {
-                val colorFilter = if (SlowEffect.isActive) ColorFilter.tint(Color(0x880000FF.toInt()), BlendMode.SrcAtop) else null
+                val colorFilter = if (SlowEffect.isActive) slowColorFilter else null
                 spriteSheet.paint(this, frameNdx, -w2, -h2, alpha = paintAlpha, colorFilter = colorFilter)
             }
         }

@@ -35,14 +35,17 @@ fun main() {
     }
     window.addEventListener("keydown", handleKeyDown)
     ComposeViewport(document.body!!) {
+        // Note : Key.Q et Key.Z sont intentionnellement absents ici.
+        // Sur wasmJS, Compose utilise les codes physiques (KeyboardEvent.code), ce qui déplace
+        // ces touches d'un cran sur AZERTY. Le listener JS natif au-dessus gère "q" et "z"
+        // par caractère (layout-correct), et GameScreen gère tir/saut via SHOOT_KEY/JUMP_KEY.
         App(Modifier.focusable(true).onKeyEvent { event ->
-            //println(event)
             if(event.type == KeyEventType.KeyDown){
                 val direction =
                     when (event.key) {
                         Key.DirectionRight, Key.D -> Offset(1f,0f)
-                        Key.DirectionLeft, Key.Q -> Offset(-1f,0f)
-                        Key.DirectionUp, Key.Z -> Offset(0f,-1f)
+                        Key.DirectionLeft -> Offset(-1f,0f)
+                        Key.DirectionUp -> Offset(0f,-1f)
                         Key.DirectionDown, Key.S -> Offset(0f,1f)
                         else-> null
                     }

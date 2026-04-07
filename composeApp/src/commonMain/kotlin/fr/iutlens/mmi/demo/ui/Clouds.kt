@@ -37,8 +37,10 @@ val cloudLayers = listOf(
 
 @Composable
 fun BoxScope.CloudsOverlay(elapsed: Long, screenW: Float, screenH: Float, minDim: Dp, foreground: Boolean = false) {
+    // Chargés une seule fois au niveau du composable, pas à chaque itération de forEach
+    val painterNuage1 = painterResource(Res.drawable.nuage1)
+    val painterNuage2 = painterResource(Res.drawable.nuage2)
     cloudLayers.filter { it.foreground == foreground }.forEach { cloud ->
-        val cloudRes = if (cloud.resIndex == 0) Res.drawable.nuage1 else Res.drawable.nuage2
         val cloudSizeDp = minDim * cloud.sizeRatio
         val cloudW = cloudSizeDp.value
         val total = screenW + cloudW * 2f
@@ -50,8 +52,9 @@ fun BoxScope.CloudsOverlay(elapsed: Long, screenW: Float, screenH: Float, minDim
         val cloudX = (rawX / step).toLong() * step
         val cloudY = screenH * cloud.yRatio
         val rotation = squareWaveRotation(elapsed * 0.001f + cloud.phaseRatio * 10f, cloud.rotationAmp)
+        val painter = if (cloud.resIndex == 0) painterNuage1 else painterNuage2
         Image(
-            painter = painterResource(cloudRes),
+            painter = painter,
             contentDescription = null,
             modifier = Modifier
                 .align(Alignment.TopStart)

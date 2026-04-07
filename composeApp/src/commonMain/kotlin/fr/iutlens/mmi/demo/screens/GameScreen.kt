@@ -56,6 +56,8 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.pause
 import fr.iutlens.mmi.demo.JoystickPosition
+import fr.iutlens.mmi.demo.SHOOT_KEY
+import fr.iutlens.mmi.demo.JUMP_KEY
 import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.ui.ShowChrono
 import fr.iutlens.mmi.demo.ui.LevelIndicator
@@ -133,10 +135,9 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
 
     val gameData = remember { BubblePark() }
     var isPaused by remember { mutableStateOf(false) }
-    fun lifeToScale(life: Int) = when (life) {
-        3 -> 2f
-        2 -> 1.3f
-        else -> 1.1f
+    fun lifeToScale(life: Int): Float {
+        val ratio = life.toFloat() / gameData.player.maxLife.toFloat()
+        return 1.1f + 0.9f * (ratio * ratio * ratio)
     }
     val damageScaleAnim = remember { Animatable(lifeToScale(gameData.player.life)) }
     val damagePulse by rememberInfiniteTransition(label = "damagePulse").animateFloat(
@@ -193,7 +194,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             .focusable()
             .onKeyEvent { event ->
                 // Boutons
-                if (event.key == Key.A) {
+                if (event.key == SHOOT_KEY) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
                         gameData.player.shoot()
                     }
@@ -202,7 +203,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                     return@onKeyEvent true
                 }
 
-                if (event.key == Key.Z) {
+                if (event.key == JUMP_KEY) {
                     gameData.game.actionButtonB = (event.type == KeyEventType.KeyDown)
                     return@onKeyEvent true
                 }
@@ -290,22 +291,10 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             gameData = gameData
         )
 
-        // Score popups
         val density = LocalDensity.current
         val canvasWidthPx = with(density) { maxWidth.toPx() }
         val canvasHeightPx = with(density) { maxHeight.toPx() }
-        val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
-        gameData.scorePopups.toList().forEach { popup ->
-            val screenPosPx = matrix.map(Offset(popup.worldX, popup.worldY))
-            val screenXDp = density.run { screenPosPx.x.toDp().value }
-            val screenYDp = density.run { screenPosPx.y.toDp().value }
-            ScorePopupText(
-                popup = popup,
-                screenXDp = screenXDp,
-                screenYDp = screenYDp,
-                onDone = { gameData.scorePopups.remove(popup) }
-            )
-        }
+        ScorePopupsLayer(gameData = gameData, canvasWidthPx = canvasWidthPx, canvasHeightPx = canvasHeightPx)
 
         Image(
             painter = painterResource(Res.drawable.damage_border),
@@ -500,6 +489,13 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
         focusRequester.requestFocus()
     }
 
+    // Re-prend le focus après fermeture de l'upgrade screen (le click sur une carte le vole)
+    LaunchedEffect(gameData.showUpgradeScreen) {
+        if (!gameData.showUpgradeScreen) {
+            focusRequester.requestFocus()
+        }
+    }
+
     LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
         if (gameData.player.isDeathAnimationComplete) onGameOver(gameData.score.get(), gameData.levelIndex)
     }
@@ -556,5 +552,27 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
         }
         launch { shakeX.animateTo(0f, tween(40)) }
         launch { shakeY.animateTo(0f, tween(40)) }
+    }
+}
+
+/**
+ * Rendu des score popups isolé dans son propre composable.
+ * Seul ce composable recompose quand scorePopups change,
+ * pas l'intégralité de GameScreen.
+ */
+@Composable
+private fun ScorePopupsLayer(gameData: BubblePark, canvasWidthPx: Float, canvasHeightPx: Float) {
+    val density = LocalDensity.current
+    val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+    gameData.scorePopups.forEach { popup ->
+        val screenPosPx = matrix.map(Offset(popup.worldX, popup.worldY))
+        val screenXDp = density.run { screenPosPx.x.toDp().value }
+        val screenYDp = density.run { screenPosPx.y.toDp().value }
+        ScorePopupText(
+            popup = popup,
+            screenXDp = screenXDp,
+            screenYDp = screenYDp,
+            onDone = { gameData.scorePopups.remove(popup) }
+        )
     }
 }

@@ -114,23 +114,23 @@ class Game(val background : Sprite,
             }
         }
 
-        // gestion des évènements
         Canvas(modifier = m) {
-            // Dessin proprement dit. On précise la transformation à appliquer avant
             this@Canvas.withTransform({ transform(transform.getMatrix(size)) }) {
                 background.paint(this, elapsed)
                 spriteList.paint(this, elapsed)
             }
         }
-        // Gestion du rafraîssement automatique si update et animationDelay sont défnis
-        update?.let{myUpdate->
-            animationDelayMs?.let {delay ->
-                LaunchedEffect(elapsed){
-                    //Calcul du temps avant d'afficher la prochaine image, et pause si nécessaire)
-                    val current = (timeSource.markNow()-start).inWholeMilliseconds
-                    val next = elapsed+ delay
-                    if (next>current) delay(next-current)
-                    if (!paused) myUpdate()
+        update?.let { myUpdate ->
+            animationDelayMs?.let { delayMs ->
+                LaunchedEffect(myUpdate, delayMs) {
+                    while (true) {
+                        val current = (timeSource.markNow() - start).inWholeMilliseconds
+                        val next = elapsed + delayMs
+                        // Si elapsed est périmé (pause, return@animation sans invalidate),
+                        // on dort quand même delayMs pour éviter un busy-loop à 100% CPU.
+                        if (next > current) delay(next - current) else delay(delayMs.toLong())
+                        if (!paused) myUpdate()
+                    }
                 }
             }
         }
