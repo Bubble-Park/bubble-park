@@ -135,22 +135,18 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
-            packageName = myPackage
+            packageName = myBaseName
             packageVersion = myVersionName
 
-            val osName = System.getProperty("os.name").lowercase()
-            if (osName.contains("mac")) {
-                macOS {
-                    iconFile.set(project.file("favicon.icns"))
-                }
-            } else if (osName.contains("win")) {
-                windows {
-                    iconFile.set(project.file("favicon.ico"))
-                }
-            } else {
-                linux {
-                    iconFile.set(project.file("favicon.png"))
-                }
+            macOS {
+                iconFile.set(project.file("favicon.icns"))
+                bundleID = "fr.iutlens.mmi.bubblepark"
+            }
+            windows {
+                iconFile.set(project.file("favicon.ico"))
+            }
+            linux {
+                iconFile.set(project.file("favicon.png"))
             }
         }
     }
