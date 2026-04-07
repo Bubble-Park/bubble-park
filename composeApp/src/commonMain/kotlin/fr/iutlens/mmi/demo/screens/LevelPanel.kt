@@ -21,7 +21,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.withFrameMillis
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -34,6 +38,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.iutlens.mmi.demo.game.DifficultyConfig
+import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
+import fr.iutlens.mmi.demo.game.upgrade.Upgrade
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.head_bubblechtein
@@ -53,11 +59,18 @@ fun LevelPanel(
     life: Int,
     maxLife: Int,
     dinoSprites: List<DrawableResource>,
+    acquiredUpgrades: List<Upgrade> = emptyList(),
     onDone: () -> Unit
 ) {
     val duduFont = FontFamily(Font(Res.font.dudu_font))
     val scale = remember { Animatable(0f) }
     val rotation = remember { Animatable(-14f) }
+    var elapsed by remember { mutableStateOf(0L) }
+
+    LaunchedEffect(Unit) {
+        val start = withFrameMillis { it }
+        while (true) { elapsed = withFrameMillis { it } - start }
+    }
 
     LaunchedEffect(Unit) {
         launch {
@@ -78,6 +91,7 @@ fun LevelPanel(
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val minDim = minOf(maxWidth, maxHeight)
+        val screenW = maxWidth.value
         val screenH = maxHeight.value
         val panneauWidth = minDim * 1.1f
         val headSize = minDim * 0.22f
@@ -121,6 +135,40 @@ fun LevelPanel(
                 val rotations = listOf(-7f, 5f, -10f, 8f, -4f, 11f, -6f, 9f, -12f)
                 dinoSprites.forEachIndexed { i, sprite ->
                     DinoHead(spriteRes = sprite, size = dinoHeadSize, rotation = rotations.getOrElse(i) { 0f }, popDelay = i * 80L)
+                }
+            }
+        }
+
+        if (acquiredUpgrades.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = (screenW * 0.02f).dp)
+                    .offset(y = (screenH * 0.12f).dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                acquiredUpgrades.forEachIndexed { i, upgrade ->
+                    val rotCount = squareWaveRotation(elapsed * 0.006f + i * 1.5f, 8f)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "x${upgrade.acquiredCount}",
+                            fontFamily = duduFont,
+                            color = Color(0xFF474534),
+                            fontSize = (screenH * 0.11f).sp,
+                            modifier = Modifier.offset(y = (screenH * 0.04f).dp)
+                        )
+                        UpgradeCard(
+                            upgrade = upgrade,
+                            index = 0,
+                            dinoFont = duduFont,
+                            duduFont = duduFont,
+                            screenW = screenW,
+                            screenH = screenH,
+                            onClick = {},
+                            modifier = Modifier.size((screenH * 0.40f).dp)
+                        )
+                    }
                 }
             }
         }
