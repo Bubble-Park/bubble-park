@@ -26,12 +26,13 @@ import fr.iutlens.mmi.demo.damage_border
 import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.trou
+import fr.iutlens.mmi.demo.ui.LevelIndicator
 import fr.iutlens.mmi.demo.ui.ShowLife
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
+fun GameOverScreen(score: Int, levelIndex: Int = 0, onReplay: () -> Unit, onQuit: () -> Unit) {
     val duduFont = FontFamily(Font(Res.font.dudu_font))
 
     var elapsed by remember { mutableStateOf(0L) }
@@ -101,6 +102,12 @@ fun GameOverScreen(score: Int, onReplay: () -> Unit, onQuit: () -> Unit) {
 
             Spacer(modifier = Modifier.weight(0.25f))
         }
+
+        LevelIndicator(
+            levelIndex = levelIndex,
+            minDim = minOf(maxWidth, maxHeight),
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = (screenH * 0.04f).dp)
+        )
 
         VolumeButton(
             modifier = Modifier

@@ -29,6 +29,7 @@ enum class GameState {
 fun App(modifier: Modifier = Modifier) {
     var currentState by remember { mutableStateOf(GameState.MENU) }
     var lastScore by remember { mutableStateOf(0) }
+    var lastLevel by remember { mutableStateOf(0) }
     var transitionKey by remember { mutableStateOf(0) }
     var showCloudOverlay by remember { mutableStateOf(false) }
     val coverProgress = remember { Animatable(0f) }
@@ -59,10 +60,11 @@ fun App(modifier: Modifier = Modifier) {
                 )
                 GameState.PLAYING -> GameScreen(
                     onExit = { currentState = GameState.MENU },
-                    onGameOver = { score -> lastScore = score; currentState = GameState.GAME_OVER }
+                    onGameOver = { score, level -> lastScore = score; lastLevel = level; currentState = GameState.GAME_OVER }
                 )
                 GameState.GAME_OVER -> GameOverScreen(
                     score = lastScore,
+                    levelIndex = lastLevel,
                     onReplay = { currentState = GameState.PLAYING },
                     onQuit = { currentState = GameState.MENU }
                 )
