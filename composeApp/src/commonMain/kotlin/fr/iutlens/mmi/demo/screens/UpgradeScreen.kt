@@ -56,7 +56,7 @@ fun UpgradeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height((screenH * 0.1f).dp))
+            Spacer(modifier = Modifier.height((screenH * 0.04f).dp))
 
             Text(
                 text = "Choisissez une amélioration",
@@ -89,7 +89,7 @@ fun UpgradeScreen(
 }
 
 @Composable
-private fun UpgradeCard(
+internal fun UpgradeCard(
     upgrade: Upgrade,
     index: Int,
     dinoFont: FontFamily,

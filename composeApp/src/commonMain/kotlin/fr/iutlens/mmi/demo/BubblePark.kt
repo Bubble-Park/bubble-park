@@ -78,6 +78,7 @@ class BubblePark : GameData() {
     val scorePopups = mutableStateListOf<ScorePopup>()
     private var popupCounter = 0L
 
+    var bonusCollectedCount by mutableStateOf(0)
     var comboMultiplier by mutableStateOf(1)
     var comboTimeRemainingMs by mutableStateOf(0L)
     private var captureCount = 0
@@ -166,7 +167,9 @@ class BubblePark : GameData() {
             .map { levelData.mapCode.indexOf(it) }
             .filter { it >= 0 }
             .associateWith { 2f..3f }
-        tileArea = TiledArea(levelData.tileSetRes, tileMap, decorScales)
+        tileArea = TiledArea(levelData.tileSetRes, tileMap, decorScales).also {
+            if (index == 0) it.popDelay = 2550L
+        }
 
         val isFirstLevel = !::player.isInitialized
         val maxLife = upgradeManager.getMaxLife()
@@ -184,7 +187,7 @@ class BubblePark : GameData() {
             initialLife = savedLife,
             initialMaxLife = maxLife
         )
-        player.spawnDelay = tileArea.spawnEndMs()
+        player.spawnDelay = 0L
         upgradeManager.restoreStats(player)
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
@@ -369,9 +372,9 @@ class BubblePark : GameData() {
                 sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
                 sprite is GenericDino && !sprite.isDead -> activeGenericDinos.add(sprite)
                 sprite is Bonus && !sprite.collected -> {
-                    if (sprite.boundingBox.overlaps(player.boundingBox)) {
-                        sprite.onCollect()
-                        sprite.collected = true
+                    if (!sprite.collected && !sprite.isCollecting && sprite.boundingBox.overlaps(player.boundingBox)) {
+                        sprite.startCollect()
+                        bonusCollectedCount++
                         GameSound.playBonus()
                     }
                 }
@@ -504,7 +507,7 @@ class BubblePark : GameData() {
         var spawnedTriceratops = 0
         var spawnedStegosaurus = 0
         val sprites = game.spriteList as? MutableList<Sprite> ?: return
-        val dinoSpawnDelay = tileArea.spawnEndMs()
+        val dinoSpawnDelay = tileArea.spawnEndMs() + tileArea.popDelay
 
         repeat(initialCount) {
             val trexNeeded        = (targetTrex - spawnedTrex).coerceAtLeast(0)

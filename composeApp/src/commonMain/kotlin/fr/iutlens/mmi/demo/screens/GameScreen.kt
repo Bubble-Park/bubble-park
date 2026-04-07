@@ -16,7 +16,9 @@ import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.parasaur_sprite
 import fr.iutlens.mmi.demo.galliminus_sprite
-import fr.iutlens.mmi.demo.level_background
+import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.bord_droit
+import fr.iutlens.mmi.demo.bord_gauche
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.slow_debuff
 import fr.iutlens.mmi.demo.slow_bonus
@@ -81,6 +83,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.util.lerp
 import fr.iutlens.mmi.demo.compy_sprite
 import fr.iutlens.mmi.demo.dodo_sprite
@@ -92,7 +95,21 @@ import kotlin.math.sin
 import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.IntOffset
 
+import fr.iutlens.mmi.demo.game.BossDifficultyConfig
+import fr.iutlens.mmi.demo.game.DifficultyManager
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
+
+fun dinosForLevel(levelNumber: Int): List<DrawableResource> {
+    val ratios = DifficultyManager.getSpawnRatios(levelNumber)
+    val dinos = mutableListOf<DrawableResource>()
+    if (ratios.wander > 0.04f) { dinos += Res.drawable.compy_sprite; dinos += Res.drawable.dodo_sprite }
+    if (ratios.flee > 0.04f) { dinos += Res.drawable.parasaur_sprite; dinos += Res.drawable.galliminus_sprite }
+    if (ratios.defensive > 0.04f) { dinos += Res.drawable.trice_sprite; dinos += Res.drawable.stego_sprite }
+    if (ratios.chase > 0.08f) { dinos += Res.drawable.trex_sprite; dinos += Res.drawable.raptor_sprite }
+    if (BossDifficultyConfig.isBossLevel(levelNumber - 1)) dinos += Res.drawable.gigano_sprite
+    return dinos
+}
 
 @Composable
 fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
@@ -157,15 +174,21 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     val shakeX = remember { Animatable(0f) }
     val shakeY = remember { Animatable(0f) }
+    val bonusScale = remember { Animatable(1f) }
     val scalePause = remember { Animatable(0f) }
     val scaleControllers = remember { Animatable(0f) }
+    val scaleTree = remember { Animatable(0f) }
     val clickScalePause = remember { Animatable(1f) }
+    val borderSlide = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
+    var showLevelPanel by remember { mutableStateOf(true) }
+    var pendingNextLevel by remember { mutableStateOf(false) }
 
     // Ecran de jeu
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
+            .scale(bonusScale.value)
             .offset { IntOffset(shakeX.value.roundToInt(), shakeY.value.roundToInt()) }
             .focusRequester(focusRequester)
             .focusable()
@@ -199,7 +222,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     ) {
 
         Image(
-            painter = painterResource(Res.drawable.level_background),
+            painter = painterResource(Res.drawable.background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -228,6 +251,26 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 .size(240.dp)
         )
 
+        Image(
+            painter = painterResource(Res.drawable.bord_gauche),
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight,
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.CenterStart)
+                .graphicsLayer { translationX = -size.width * borderSlide.value }
+        )
+
+        Image(
+            painter = painterResource(Res.drawable.bord_droit),
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight,
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.CenterEnd)
+                .graphicsLayer { translationX = size.width * borderSlide.value }
+        )
+
         // Arbre décoratif (derrière la grille)
         val treeXRatio = remember(gameData.levelIndex) { Random.nextFloat() }
         val treeSizeDp = minDim * 0.80f
@@ -239,6 +282,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             modifier = Modifier
                 .offset(x = treeX.dp, y = treeY.dp)
                 .size(treeSizeDp)
+                .scale(scaleTree.value)
         )
 
         // Rendu du jeu
@@ -400,6 +444,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 maxLife = gameData.player.maxLife,
                 score = gameData.score.get(),
                 damageScale = damageScaleAnim.value + damagePulse,
+                acquiredUpgrades = gameData.upgradeManager.catalogue.filter { it.acquiredCount > 0 },
                 onResume = {
                     isPaused = false
                     gameData.game.paused = false
@@ -424,7 +469,25 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 onActionB = { pressed -> gameData.game.actionButtonB = pressed }
             )
         }
+
+        if (showLevelPanel) {
+            val levelNumber = if (pendingNextLevel) gameData.levelIndex + 2 else gameData.levelIndex + 1
+            LevelPanel(
+                levelNumber = levelNumber,
+                life = gameData.player.life,
+                maxLife = gameData.player.maxLife,
+                dinoSprites = dinosForLevel(levelNumber),
+                onDone = {
+                    showLevelPanel = false
+                    if (pendingNextLevel) {
+                        pendingNextLevel = false
+                        gameData.loadNextLevel()
+                    }
+                }
+            )
+        }
     }
+
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
@@ -436,8 +499,10 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     LaunchedEffect(Unit) {
         gameData.onLevelEnd = { hasNextLevel ->
-            if (hasNextLevel) gameData.loadNextLevel()
-            else onExit()
+            if (hasNextLevel) {
+                pendingNextLevel = true
+                showLevelPanel = true
+            } else onExit()
         }
     }
 
@@ -448,11 +513,31 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     LaunchedEffect(gameData.levelIndex) {
         scalePause.snapTo(0f)
         scaleControllers.snapTo(0f)
-        launch { scalePause.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
+        scaleTree.snapTo(0f)
+        borderSlide.snapTo(1f)
+        val cloudDelay = if (gameData.levelIndex == 0) 2300L else 0L
         launch {
-            kotlinx.coroutines.delay(150L)
-            scaleControllers.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+            kotlinx.coroutines.delay(cloudDelay)
+            borderSlide.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessHigh))
         }
+        launch {
+            kotlinx.coroutines.delay(cloudDelay + 150L)
+            scaleTree.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+        }
+        launch {
+            kotlinx.coroutines.delay(cloudDelay + 200L)
+            scalePause.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+        }
+        launch {
+            kotlinx.coroutines.delay(cloudDelay + 300L)
+            scaleControllers.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+        }
+    }
+
+    LaunchedEffect(gameData.bonusCollectedCount) {
+        if (gameData.bonusCollectedCount == 0) return@LaunchedEffect
+        bonusScale.animateTo(1.06f, tween(100, easing = EaseInOut))
+        bonusScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
     }
 
     LaunchedEffect(gameData.comboMultiplier) {
