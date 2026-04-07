@@ -138,35 +138,31 @@ class DistanceMap(
     }
 
     /**
-     * recalcule la table des distances sur le graphe inversé
-     * @param force force la recalculations
+     * recalcule la table des distances sur le graphe inversé (BFS).
+     * Utilise ArrayDeque pour des opérations FIFO O(1) sans allocation de listes intermédiaires.
+     * @param force force le recalcul même si la cible n'a pas bougé
      */
     fun update(force: Boolean = false) {
         val start = getTargetIJ()
 
-        if (!force && start == lastTargetPos) {
-            return
-        }
+        if (!force && start == lastTargetPos) return
         lastTargetPos = start
 
         distance.clear()
+        distance[start] = 0
 
-        var current = mutableListOf(start)
-        var d = 0
-        distance[start] = d
+        val queue = ArrayDeque<Pair<Int, Int>>()
+        queue.addLast(start)
 
-        while (current.isNotEmpty()) {
-            d++
-            val next = mutableListOf<Pair<Int, Int>>()
-            for (pos in current) {
-                reverseNeighbor(pos) { n ->
-                    if (n !in distance) {
-                        distance[n] = d
-                        next.add(n)
-                    }
+        while (queue.isNotEmpty()) {
+            val pos = queue.removeFirst()
+            val d = distance[pos]!! + 1
+            reverseNeighbor(pos) { n ->
+                if (n !in distance) {
+                    distance[n] = d
+                    queue.addLast(n)
                 }
             }
-            current = next
         }
     }
 
