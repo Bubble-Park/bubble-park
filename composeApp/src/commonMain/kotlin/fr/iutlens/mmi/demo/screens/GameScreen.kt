@@ -58,6 +58,7 @@ import fr.iutlens.mmi.demo.pause
 import fr.iutlens.mmi.demo.JoystickPosition
 import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.ui.ShowChrono
+import fr.iutlens.mmi.demo.ui.LevelIndicator
 import fr.iutlens.mmi.demo.ui.ShowLife
 import fr.iutlens.mmi.demo.ui.ShowScore
 import fr.iutlens.mmi.demo.ui.ScorePopupText
@@ -112,7 +113,7 @@ fun dinosForLevel(levelNumber: Int): List<DrawableResource> {
 }
 
 @Composable
-fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
+fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit) {
     SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 4, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
@@ -314,6 +315,12 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             modifier = Modifier.fillMaxSize().alpha(0.2f).scale(damageScaleAnim.value + damagePulse)
         )
 
+        LevelIndicator(
+            levelIndex = gameData.levelIndex,
+            minDim = minDim,
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = (minDim * 0.02f))
+        )
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -442,6 +449,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 life = gameData.player.life,
                 maxLife = gameData.player.maxLife,
                 score = gameData.score.get(),
+                levelIndex = gameData.levelIndex,
                 damageScale = damageScaleAnim.value + damagePulse,
                 acquiredUpgrades = gameData.upgradeManager.catalogue.filter { it.acquiredCount > 0 },
                 onResume = {
@@ -493,7 +501,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     }
 
     LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
-        if (gameData.player.isDeathAnimationComplete) onGameOver(gameData.score.get())
+        if (gameData.player.isDeathAnimationComplete) onGameOver(gameData.score.get(), gameData.levelIndex)
     }
 
     LaunchedEffect(Unit) {

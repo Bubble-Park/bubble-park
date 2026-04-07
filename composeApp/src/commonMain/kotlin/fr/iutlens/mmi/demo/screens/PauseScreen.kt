@@ -26,13 +26,14 @@ import fr.iutlens.mmi.demo.damage_border
 import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.head_bubblechtein
 import fr.iutlens.mmi.demo.game.upgrade.Upgrade
+import fr.iutlens.mmi.demo.ui.LevelIndicator
 import fr.iutlens.mmi.demo.ui.ShowLife
 import org.jetbrains.compose.resources.Font
 import androidx.compose.ui.text.font.FontFamily
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun PauseScreen(life: Int, maxLife: Int = 3, score: Int, damageScale: Float, acquiredUpgrades: List<Upgrade> = emptyList(), onResume: () -> Unit, onQuit: () -> Unit) {
+fun PauseScreen(life: Int, maxLife: Int = 3, score: Int, levelIndex: Int = 0, damageScale: Float, acquiredUpgrades: List<Upgrade> = emptyList(), onResume: () -> Unit, onQuit: () -> Unit) {
     val duduFont = FontFamily(Font(Res.font.dudu_font))
 
     var elapsed by remember { mutableStateOf(0L) }
@@ -136,6 +137,12 @@ fun PauseScreen(life: Int, maxLife: Int = 3, score: Int, damageScale: Float, acq
                 }
             }
         }
+
+        LevelIndicator(
+            levelIndex = levelIndex,
+            minDim = minOf(maxWidth, maxHeight),
+            modifier = Modifier.align(Alignment.TopCenter).padding(top = (screenH * 0.04f).dp)
+        )
 
         VolumeButton(
             modifier = Modifier
