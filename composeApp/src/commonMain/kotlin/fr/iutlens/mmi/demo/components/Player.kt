@@ -74,7 +74,7 @@ class Player(
     var lastAngle = 0.0
 
     var baseShootDelayMs: Long = 600L
-    val shootDelayMs: Long get() = if (FastAmmoEffect.isActive) 150L else baseShootDelayMs
+    val shootDelayMs: Long get() = if (FastAmmoEffect.isActive) 350L else baseShootDelayMs
     var moveSpeedMultiplier: Float = 1f
     var bulletMaxCaptures: Int = 1
     var shootMode: ShootMode = ShootMode.SINGLE

@@ -36,7 +36,7 @@ class Gallimimus(
     }
 
     override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE
-    override val boundingBox: Rect get() = Rect(x - HIT_RADIUS, y - HIT_RADIUS, x + HIT_RADIUS, y + HIT_RADIUS)
+    override val hitRadius: Float get() = HIT_RADIUS
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.withTransform({ translate(0f, VISUAL_Y_OFFSET) }) {

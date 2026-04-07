@@ -57,8 +57,18 @@ class Bullet(
         frameTimer = FRAME_DELAY + 3
     }
 
+    private var _bboxCX = Float.NaN
+    private var _bboxCY = Float.NaN
+    private var _bbox = Rect.Zero
+
     override val boundingBox: Rect
-        get() = Rect(x - radius, y - radius, x + radius, y + radius)
+        get() {
+            if (x != _bboxCX || y != _bboxCY) {
+                _bboxCX = x; _bboxCY = y
+                _bbox = Rect(x - radius, y - radius, x + radius, y + radius)
+            }
+            return _bbox
+        }
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.withTransform({ translate(x, y) }) {
