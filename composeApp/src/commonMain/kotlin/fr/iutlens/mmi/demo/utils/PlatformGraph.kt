@@ -47,6 +47,8 @@ class PlatformGraph(
     private var sizeY = tileMap.geometry.sizeY
 
     private val standable = mutableSetOf<Pair<Int, Int>>()
+    /** Liste parallèle à standable — accès O(1) pour randomStandable(). */
+    private val standableList = mutableListOf<Pair<Int, Int>>()
     private val forward = mutableMapOf<Pair<Int, Int>, List<Edge>>()
     private val reverse = mutableMapOf<Pair<Int, Int>, List<Edge>>()
 
@@ -57,6 +59,7 @@ class PlatformGraph(
         sizeX = tileMap.geometry.sizeX
         sizeY = tileMap.geometry.sizeY
         standable.clear()
+        standableList.clear()
         forward.clear()
         reverse.clear()
         precompute()
@@ -64,7 +67,8 @@ class PlatformGraph(
 
     fun isStandable(i: Int, j: Int): Boolean = (i to j) in standable
 
-    fun randomStandable(): Pair<Int, Int>? = standable.randomOrNull()
+    /** O(1) grâce à standableList (vs O(N) avec Set.randomOrNull()). */
+    fun randomStandable(): Pair<Int, Int>? = standableList.randomOrNull()
 
     fun nearestStandable(i: Int, j: Int): Pair<Int, Int>? =
         standable.minByOrNull { abs(it.first - i) + abs(it.second - j) }
@@ -82,7 +86,7 @@ class PlatformGraph(
         { pos, visit -> forwardEdges(pos).forEach { visit(it.target) } }
 
     /**
-     * Dijkstra
+     * Dijkstra O((V+E) log V) avec MinHeap (commonMain, pas de java.util.PriorityQueue).
      * @param start : position de départ.
      * @param avoidTile : tile à pénaliser.
      * @param avoidCost : surcoût appliqué à avoidTile.
@@ -95,31 +99,33 @@ class PlatformGraph(
     ): Pair<Map<Pair<Int, Int>, Float>, Map<Pair<Int, Int>, Pair<Int, Int>>> {
         val dist = mutableMapOf<Pair<Int, Int>, Float>()
         val parent = mutableMapOf<Pair<Int, Int>, Pair<Int, Int>>()
-        val visited = mutableSetOf<Pair<Int, Int>>()
+        val heap = MinHeap<DijkstraEntry>(compareBy { it.cost })
 
         dist[start] = 0f
+        heap.add(DijkstraEntry(start.first, start.second, 0f))
 
-        while (true) {
-            val current = dist.entries
-                .filter { it.key !in visited }
-                .minByOrNull { it.value }
-                ?.key ?: break
-
-            visited.add(current)
+        while (!heap.isEmpty) {
+            val entry = heap.poll()
+            val current = entry.i to entry.j
+            // entrée obsolète (une meilleure a été insérée depuis)
+            if (entry.cost > (dist[current] ?: Float.MAX_VALUE)) continue
 
             for (edge in forwardEdges(current)) {
-                if (edge.target in visited) continue
                 val extraCost = if (edge.target == avoidTile) avoidCost else 0f
-                val newDist = dist[current]!! + edge.cost + extraCost
+                val newDist = entry.cost + edge.cost + extraCost
                 if (newDist < (dist[edge.target] ?: Float.MAX_VALUE)) {
                     dist[edge.target] = newDist
                     parent[edge.target] = current
+                    heap.add(DijkstraEntry(edge.target.first, edge.target.second, newDist))
                 }
             }
         }
 
         return dist to parent
     }
+
+    /** Évite d'allouer Pair<Float, Pair<Int,Int>> dans le heap (2 objets → 1). */
+    private class DijkstraEntry(val i: Int, val j: Int, val cost: Float)
 
     /**
      * Reconstruit le chemin de from à to via la map parents issue de dijkstra.
@@ -224,7 +230,9 @@ class PlatformGraph(
         for (i in 0 until sizeX) {
             for (j in 0 until sizeY - 1) {
                 if (isTileAir(i, j) && isTileSolid(i, j + 1)) {
-                    standable.add(i to j)
+                    val tile = i to j
+                    standable.add(tile)
+                    standableList.add(tile)
                 }
             }
         }
