@@ -31,7 +31,7 @@ kotlin {
 
 
         defaultConfig {
-            applicationId = myPackage
+            applicationId = myAndroidId
             minSdk = 24
             targetSdk = 36
             versionCode = myVersionCode
