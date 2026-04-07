@@ -137,6 +137,21 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
             packageName = myPackage
             packageVersion = myVersionName
+
+            val osName = System.getProperty("os.name").lowercase()
+            if (osName.contains("mac")) {
+                macOS {
+                    iconFile.set(project.file("favicon.icns"))
+                }
+            } else if (osName.contains("win")) {
+                windows {
+                    iconFile.set(project.file("favicon.ico"))
+                }
+            } else {
+                linux {
+                    iconFile.set(project.file("favicon.png"))
+                }
+            }
         }
     }
 }
@@ -146,4 +161,3 @@ compose.resources {
     packageOfResClass = myPackage
     generateResClass = always
 }
-
