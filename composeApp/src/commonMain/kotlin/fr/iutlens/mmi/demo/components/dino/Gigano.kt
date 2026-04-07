@@ -2,9 +2,7 @@ package fr.iutlens.mmi.demo.components.dino
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
@@ -33,7 +31,6 @@ class Gigano(
         const val VISUAL_SCALE = 2f
         const val HIT_HALF_X = 350f
         const val HIT_HALF_Y = 200f
-        const val SHOW_HITBOX = true  // TODO: retirer quand le réglage est satisfaisant
     }
 
     override val isStunImmune: Boolean = true
@@ -50,15 +47,6 @@ class Gigano(
             translate(-x, -y)
         }) {
             super.paint(this, elapsed)
-        }
-        if (SHOW_HITBOX) {
-            val box = boundingBox
-            drawScope.drawRect(
-                color = Color(0xFFFF0000),
-                topLeft = Offset(box.left, box.top),
-                size = androidx.compose.ui.geometry.Size(box.width, box.height),
-                style = Stroke(width = 4f)
-            )
         }
     }
 }

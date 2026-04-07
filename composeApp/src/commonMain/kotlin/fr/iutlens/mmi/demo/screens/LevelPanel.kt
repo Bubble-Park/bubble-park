@@ -139,40 +139,6 @@ fun LevelPanel(
             }
         }
 
-        if (acquiredUpgrades.isNotEmpty()) {
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = (screenW * 0.02f).dp)
-                    .offset(y = (screenH * 0.12f).dp),
-                horizontalArrangement = Arrangement.Start,
-                verticalAlignment = Alignment.Bottom
-            ) {
-                acquiredUpgrades.forEachIndexed { i, upgrade ->
-                    val rotCount = squareWaveRotation(elapsed * 0.006f + i * 1.5f, 8f)
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text(
-                            text = "x${upgrade.acquiredCount}",
-                            fontFamily = duduFont,
-                            color = Color(0xFF474534),
-                            fontSize = (screenH * 0.11f).sp,
-                            modifier = Modifier.offset(y = (screenH * 0.04f).dp)
-                        )
-                        UpgradeCard(
-                            upgrade = upgrade,
-                            index = 0,
-                            dinoFont = duduFont,
-                            duduFont = duduFont,
-                            screenW = screenW,
-                            screenH = screenH,
-                            onClick = {},
-                            modifier = Modifier.size((screenH * 0.40f).dp)
-                        )
-                    }
-                }
-            }
-        }
-
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
@@ -198,8 +164,43 @@ fun LevelPanel(
                     .padding(top = panneauWidth * 0.22f)
             )
         }
+
+        if (acquiredUpgrades.isNotEmpty()) {
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = (screenW * 0.02f).dp)
+                    .offset(y = (screenH * 0.12f).dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                acquiredUpgrades.forEachIndexed { i, upgrade ->
+                    val rotCount = squareWaveRotation(elapsed * 0.006f + i * 1.5f, 8f)
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Text(
+                            text = "x${upgrade.acquiredCount}",
+                            fontFamily = duduFont,
+                            color = Color(0xFFFF7EEA),
+                            fontSize = (screenH * 0.11f).sp,
+                            modifier = Modifier.offset(y = (screenH * 0.04f).dp)
+                        )
+                        UpgradeCard(
+                            upgrade = upgrade,
+                            index = 0,
+                            dinoFont = duduFont,
+                            duduFont = duduFont,
+                            screenW = screenW,
+                            screenH = screenH,
+                            onClick = {},
+                            modifier = Modifier.size((screenH * 0.40f).dp)
+                        )
+                    }
+                }
+            }
+        }
     }
 }
+
 
 @Composable
 fun DinoHead(spriteRes: DrawableResource, size: Dp, rotation: Float = 0f, popDelay: Long = 0L, modifier: Modifier = Modifier) {

@@ -314,12 +314,6 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             modifier = Modifier.fillMaxSize().alpha(0.2f).scale(damageScaleAnim.value + damagePulse)
         )
 
-        LevelIndicator(
-            levelIndex = gameData.levelIndex,
-            minDim = minDim,
-            modifier = Modifier.align(Alignment.TopCenter).padding(top = (minDim * 0.02f))
-        )
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -421,6 +415,14 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             }
         }
 
+        if (!gameData.isBossRound) {
+            LevelIndicator(
+                levelIndex = gameData.levelIndex,
+                minDim = minDim,
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = (minDim * 0.02f))
+            )
+        }
+
         // Combo près du joueur (masqué si x1)
         if (gameData.comboMultiplier > 1) {
             val comboMatrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
@@ -474,6 +476,11 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                 },
                 onActionB = { pressed -> gameData.game.actionButtonB = pressed }
             )
+        }
+
+        val chronoInt = gameData.chrono.value.toInt()
+        if (!gameData.isBossRound && chronoInt in 0..3) {
+            CountdownNumber(number = chronoInt, minDim = minDim)
         }
 
         if (showLevelPanel) {
@@ -556,5 +563,28 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
         }
         launch { shakeX.animateTo(0f, tween(40)) }
         launch { shakeY.animateTo(0f, tween(40)) }
+    }
+}
+
+@Composable
+private fun CountdownNumber(number: Int, minDim: androidx.compose.ui.unit.Dp) {
+    val scale = remember(number) { Animatable(0f) }
+    LaunchedEffect(number) {
+        scale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+        kotlinx.coroutines.delay(500L)
+        scale.animateTo(0f, tween(200))
+    }
+    val duduFont = androidx.compose.ui.text.font.FontFamily(Font(Res.font.dudu_font))
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "$number",
+            fontFamily = duduFont,
+            color = Color(0xFFFF7EEA),
+            fontSize = (minDim.value * 0.40f).sp,
+            modifier = Modifier.scale(scale.value)
+        )
     }
 }

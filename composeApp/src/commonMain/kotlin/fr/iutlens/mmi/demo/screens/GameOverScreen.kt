@@ -3,6 +3,8 @@ package fr.iutlens.mmi.demo.screens
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,6 +36,11 @@ import org.jetbrains.compose.resources.painterResource
 @Composable
 fun GameOverScreen(score: Int, levelIndex: Int = 0, onReplay: () -> Unit, onQuit: () -> Unit) {
     val duduFont = FontFamily(Font(Res.font.dudu_font))
+    val displayedScore = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        displayedScore.animateTo(score.toFloat(), tween(durationMillis = 1200))
+    }
 
     var elapsed by remember { mutableStateOf(0L) }
     LaunchedEffect(Unit) {
@@ -97,7 +104,7 @@ fun GameOverScreen(score: Int, levelIndex: Int = 0, onReplay: () -> Unit, onQuit
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(text = "Score", fontFamily = duduFont, color = Color(0xFF474534), fontSize = scoreFontSize)
-                Text(text = "$score", fontFamily = duduFont, color = Color(0xFF474534), fontSize = scoreFontSize)
+                Text(text = "${displayedScore.value.toInt()}", fontFamily = duduFont, color = Color(0xFF474534), fontSize = scoreFontSize)
             }
 
             Spacer(modifier = Modifier.weight(0.25f))
