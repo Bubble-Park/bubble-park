@@ -117,6 +117,7 @@ fun dinosForLevel(levelNumber: Int): List<DrawableResource> {
 
 @Composable
 fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit) {
+    SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 4, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
