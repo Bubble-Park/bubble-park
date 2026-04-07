@@ -56,6 +56,8 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.pause
 import fr.iutlens.mmi.demo.JoystickPosition
+import fr.iutlens.mmi.demo.SHOOT_KEY
+import fr.iutlens.mmi.demo.JUMP_KEY
 import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.ui.ShowChrono
 import fr.iutlens.mmi.demo.ui.LevelIndicator
@@ -192,7 +194,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             .focusable()
             .onKeyEvent { event ->
                 // Boutons
-                if (event.key == Key.A) {
+                if (event.key == SHOOT_KEY) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
                         gameData.player.shoot()
                     }
@@ -201,7 +203,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                     return@onKeyEvent true
                 }
 
-                if (event.key == Key.Z) {
+                if (event.key == JUMP_KEY) {
                     gameData.game.actionButtonB = (event.type == KeyEventType.KeyDown)
                     return@onKeyEvent true
                 }

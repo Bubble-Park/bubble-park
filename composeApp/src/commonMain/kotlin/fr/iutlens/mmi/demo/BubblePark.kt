@@ -284,11 +284,11 @@ class BubblePark : GameData() {
             distanceMap.update()
 
             val mapHeight = tileArea.tileMap.geometry.sizeY * tileArea.h
-            (game.spriteList as? MutableList<Sprite>)?.apply {
-                removeAll { (it as? Bullet)?.isStopped == true }
-                removeAll { (it as? EnemySprite)?.isDead == true }
-                removeAll { (it as? GenericDino)?.isDead == true }
-                removeAll { it is Bonus && (it.collected || it.y > mapHeight) }
+            (game.spriteList as? MutableList<Sprite>)?.removeAll { sprite ->
+                (sprite is Bullet     && sprite.isStopped)
+                || (sprite is EnemySprite && sprite.isDead)
+                || (sprite is GenericDino && sprite.isDead)
+                || (sprite is Bonus    && (sprite.collected || sprite.y > mapHeight))
             }
 
             game.spriteList.update()
