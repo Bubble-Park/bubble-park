@@ -409,7 +409,8 @@ class BubblePark : GameData() {
             if (!dino.isCaptured) continue
             if (player.boundingBox.overlaps(dino.boundingBox)) {
                 dino.isDead = true
-                collectCapturedDino(dino.scoreValue, dino.x, dino.y)
+                val baseScore = if (dino.capturedByDiagonal) (dino.scoreValue * 1.2f).toInt() else dino.scoreValue
+                collectCapturedDino(baseScore, dino.x, dino.y)
                 GameSound.playPointCombo(comboMultiplier)
                 break
             }
@@ -421,8 +422,9 @@ class BubblePark : GameData() {
                 if (enemy.isDead) continue
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
-                    score.add(enemy.scoreValue)
-                    scorePopups.add(ScorePopup(popupCounter++, enemy.x, enemy.y, enemy.scoreValue))
+                    val points = if (bullet.isDiagonal) (enemy.scoreValue * 1.2f).toInt() else enemy.scoreValue
+                    score.add(points)
+                    scorePopups.add(ScorePopup(popupCounter++, enemy.x, enemy.y, points))
                     bullet.explode()
                     break
                 }
@@ -435,6 +437,7 @@ class BubblePark : GameData() {
                     dino.onHitByBullet()
                     if (dino.currentHitCount >= dino.effectiveHitCount) {
                         dino.isCaptured = true
+                        dino.capturedByDiagonal = bullet.isDiagonal
                         dino.currentHitCount = 0
                         onDinoCaptured()
                         bullet.capturesMade++
@@ -635,6 +638,6 @@ class BubblePark : GameData() {
     }
 
     init {
-        loadLevel(0)
+        loadLevel(4)
     }
 }
