@@ -212,24 +212,14 @@ fun GameOverScreen(
                 .padding(top = (screenH * 0.09f).dp, start = (screenW * 0.1f).dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().weight(0.5f),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(modifier = Modifier.padding(end = (screenW * 0.02f).dp)) {
-                    ShowLife(0, heartSize = (screenH * 0.12f).dp)
-                }
-            }
-
-            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.25f)
-                    .padding(horizontal = (screenW * 0.04f).dp),
+                    .weight(0.75f)
+                    .padding(horizontal = (screenW * 0.02f).dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Score", fontFamily = duduFont, color = Color(0xFF474534), fontSize = scoreFontSize)
+                ShowLife(0, heartSize = (screenH * 0.12f).dp)
                 Text(text = "${displayedScore.value.toInt()}", fontFamily = duduFont, color = Color(0xFF474534), fontSize = scoreFontSize)
             }
 
