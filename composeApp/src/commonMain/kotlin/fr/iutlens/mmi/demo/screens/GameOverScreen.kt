@@ -65,40 +65,30 @@ fun GameOverScreen(
     val rotVolume = squareWaveRotation(elapsed * 0.0025f + 4f, 1.5f)
 
     var fallY by remember { mutableStateOf(-200f) }
-    var fallVy by remember { mutableStateOf(0f) }
+    var fallVy by remember { mutableStateOf(5f) }
     var fallRotation by remember { mutableStateOf(deathState.rotation) }
     val fallDir = if (deathState.facingRight) 1f else -1f
-    var fallCount by remember { mutableStateOf(0) }
+    val gravity = 5.5f
+    val vyMax = 280f
+
+    var canvasHeight by remember { mutableStateOf(1000f) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            withFrameMillis { }
+            fallVy = (fallVy + gravity).coerceAtMost(vyMax)
+            fallY += fallVy / 2f
+            fallRotation -= 3f * fallDir
+            if (fallY > canvasHeight + 200f) {
+                fallY = -200f
+                fallVy = 5f
+            }
+        }
+    }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val screenW = maxWidth.value
         val screenH = maxHeight.value
-        val density = androidx.compose.ui.platform.LocalDensity.current
-        val canvasWidthPx = with(density) { maxWidth.toPx() }
-        val canvasHeightPx = with(density) { maxHeight.toPx() }
-
-        val scale = if (deathState.gameWorldWidth > 0f) canvasWidthPx / deathState.gameWorldWidth else 1f
-        val screenX = deathState.x * scale
-
-        val physGravity = 0.25f
-        val physVyMax = 8f
-
-        LaunchedEffect(Unit) {
-            while (true) {
-                withFrameMillis { }
-                if (fallCount < 3) {
-                    if (fallY > canvasHeightPx + 200f) {
-                        fallY = -200f
-                        fallVy = 0f
-                        fallCount++
-                    } else {
-                        fallVy = (fallVy + physGravity).coerceAtMost(physVyMax)
-                        fallY += fallVy
-                        fallRotation -= 3f * fallDir
-                    }
-                }
-            }
-        }
 
         val contentWidthFraction = 0.64f
         val scoreFontSize = (screenH * 0.13f).sp
@@ -110,7 +100,18 @@ fun GameOverScreen(
             modifier = Modifier.fillMaxSize()
         )
 
+        Image(
+            painter = painterResource(Res.drawable.damage_border),
+            contentDescription = null,
+            contentScale = ContentScale.FillBounds,
+            modifier = Modifier.fillMaxSize().alpha(1f).scale(1f)
+        )
+
         Canvas(modifier = Modifier.fillMaxSize()) {
+            canvasHeight = size.height
+            val scale = if (deathState.gameWorldWidth > 0f) size.width / deathState.gameWorldWidth else 1f
+            val screenX = deathState.x * scale
+
             if (SpriteSheet.isLoaded(Res.drawable.bubblechtein_sprites)) {
                 val sheet = SpriteSheet[Res.drawable.bubblechtein_sprites]
                 val sw = (sheet.spriteWidth * scale).toInt()
@@ -124,13 +125,6 @@ fun GameOverScreen(
                 }
             }
         }
-
-        Image(
-            painter = painterResource(Res.drawable.damage_border),
-            contentDescription = null,
-            contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize().alpha(1f).scale(1f)
-        )
 
         Column(
             modifier = Modifier
