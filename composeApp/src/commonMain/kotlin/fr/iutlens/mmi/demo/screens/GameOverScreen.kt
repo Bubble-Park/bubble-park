@@ -39,6 +39,8 @@ import fr.iutlens.mmi.demo.utils.SpriteSheet
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 
+private enum class FallPhase { FALLING, LANDED, STANDING_UP, STANDING, WALKING }
+
 @Composable
 fun GameOverScreen(
     score: Int,
@@ -64,24 +66,94 @@ fun GameOverScreen(
     val rotQuitter = squareWaveRotation(elapsed * 0.0018f + 2f, 1.5f)
     val rotVolume = squareWaveRotation(elapsed * 0.0025f + 4f, 1.5f)
 
+    var fallX by remember { mutableStateOf(-1f) }
     var fallY by remember { mutableStateOf(-200f) }
     var fallVy by remember { mutableStateOf(5f) }
     var fallRotation by remember { mutableStateOf(deathState.rotation) }
-    val fallDir = if (deathState.facingRight) 1f else -1f
-    val gravity = 5.5f
-    val vyMax = 280f
+    var spriteNdx by remember { mutableStateOf(3) }
+    var walkFacingRight by remember { mutableStateOf(false) }
 
     var canvasHeight by remember { mutableStateOf(1000f) }
+    var canvasWidth by remember { mutableStateOf(1000f) }
+    var currentScale by remember { mutableStateOf(1f) }
+    var scaledSpriteH by remember { mutableStateOf(100f) }
+    var scaledSpriteW by remember { mutableStateOf(100f) }
+
+    var phase by remember { mutableStateOf(FallPhase.FALLING) }
+    var phaseMs by remember { mutableStateOf(0L) }
+
+    val gravity = 5.5f
+    val vyMax = 280f
+    val standRotation = if (deathState.facingRight) 90f else -90f
+    val walkSpeed = 200f
 
     LaunchedEffect(Unit) {
+        var lastMs = withFrameMillis { it }
         while (true) {
-            withFrameMillis { }
-            fallVy = (fallVy + gravity).coerceAtMost(vyMax)
-            fallY += fallVy / 2f
-            fallRotation -= 3f * fallDir
-            if (fallY > canvasHeight + 200f) {
-                fallY = -200f
-                fallVy = 5f
+            val nowMs = withFrameMillis { it }
+            val dt = (nowMs - lastMs).coerceAtMost(100L)
+            lastMs = nowMs
+
+            if (fallX < 0f) continue
+
+            when (phase) {
+                FallPhase.FALLING -> {
+                    fallVy = (fallVy + gravity).coerceAtMost(vyMax)
+                    fallY += fallVy / 2f
+                    fallRotation -= 3f * if (deathState.facingRight) 1f else -1f
+                    spriteNdx = 3
+                    val floorY = canvasHeight - scaledSpriteH / 2f
+                    if (fallY >= floorY) {
+                        fallY = floorY
+                        fallVy = 0f
+                        fallRotation = standRotation
+                        spriteNdx = 3
+                        phase = FallPhase.LANDED
+                        phaseMs = 0L
+                    }
+                }
+                FallPhase.LANDED -> {
+                    phaseMs += dt
+                    if (phaseMs >= 1000L) {
+                        phase = FallPhase.STANDING_UP
+                        phaseMs = 0L
+                    }
+                }
+                FallPhase.STANDING_UP -> {
+                    phaseMs += dt
+                    val progress = (phaseMs / 400f).coerceAtMost(1f)
+                    fallRotation = standRotation * (1f - progress)
+                    spriteNdx = 0
+                    if (phaseMs >= 400L) {
+                        fallRotation = 0f
+                        phase = FallPhase.STANDING
+                        phaseMs = 0L
+                    }
+                }
+                FallPhase.STANDING -> {
+                    phaseMs += dt
+                    spriteNdx = 0
+                    if (phaseMs >= 1000L) {
+                        walkFacingRight = false
+                        phase = FallPhase.WALKING
+                        phaseMs = 0L
+                    }
+                }
+                FallPhase.WALKING -> {
+                    phaseMs += dt
+                    fallX -= walkSpeed * dt / 1000f
+                    spriteNdx = if ((phaseMs / 200L) % 2L == 0L) 0 else 1
+                    if (fallX < -scaledSpriteW) {
+                        fallX = deathState.x * currentScale
+                        fallY = -200f
+                        fallVy = 5f
+                        fallRotation = deathState.rotation
+                        walkFacingRight = deathState.facingRight
+                        spriteNdx = 3
+                        phase = FallPhase.FALLING
+                        phaseMs = 0L
+                    }
+                }
             }
         }
     }
@@ -109,19 +181,24 @@ fun GameOverScreen(
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             canvasHeight = size.height
+            canvasWidth = size.width
             val scale = if (deathState.gameWorldWidth > 0f) size.width / deathState.gameWorldWidth else 1f
-            val screenX = deathState.x * scale
+            currentScale = scale
+            if (fallX < 0f) fallX = deathState.x * scale
 
             if (SpriteSheet.isLoaded(Res.drawable.bubblechtein_sprites)) {
                 val sheet = SpriteSheet[Res.drawable.bubblechtein_sprites]
                 val sw = (sheet.spriteWidth * scale).toInt()
                 val sh = (sheet.spriteHeight * scale).toInt()
+                scaledSpriteH = sh.toFloat()
+                scaledSpriteW = sw.toFloat()
+                val facingRight = if (phase == FallPhase.WALKING) walkFacingRight else deathState.facingRight
                 withTransform({
-                    translate(screenX, fallY)
+                    translate(fallX, fallY)
                     rotate(fallRotation, pivot = Offset.Zero)
-                    if (!deathState.facingRight) scale(-1f, 1f, pivot = Offset.Zero)
+                    if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
                 }) {
-                    sheet.paint(this, 3, -sw / 2, -sh / 2, size = IntSize(sw, sh))
+                    sheet.paint(this, spriteNdx, -sw / 2, -sh / 2, size = IntSize(sw, sh))
                 }
             }
         }
