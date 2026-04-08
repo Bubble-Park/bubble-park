@@ -195,7 +195,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit,
             .focusable()
             .onKeyEvent { event ->
                 if (showLevelPanel) return@onKeyEvent false
-                // Boutons
+                if (isGameOver) return@onKeyEvent false
                 if (event.key == SHOOT_KEY) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
                         gameData.player.shoot()
@@ -439,7 +439,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit,
             )
         }
 
-        if (isPaused) {
+        if (isPaused && !isGameOver) {
             PauseScreen(
                 life = gameData.player.life,
                 maxLife = gameData.player.maxLife,
