@@ -29,6 +29,7 @@ fun App(modifier: Modifier = Modifier) {
     var currentState by remember { mutableStateOf(GameState.MENU) }
     var lastScore by remember { mutableStateOf(0) }
     var lastLevel by remember { mutableStateOf(0) }
+    var gameKey by remember { mutableStateOf(0) }
 
     var transitionKey by remember { mutableStateOf(0) }
     var showCloudOverlay by remember { mutableStateOf(false) }
@@ -54,18 +55,29 @@ fun App(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxSize()
             )
 
-            when (currentState) {
-                GameState.MENU -> MenuHost(
+            if (currentState == GameState.MENU) {
+                MenuHost(
                     onPlayClick = { transitionKey++ }
                 )
-                GameState.PLAYING -> GameScreen(
-                    onExit = { currentState = GameState.MENU },
-                    onGameOver = { score, level -> lastScore = score; lastLevel = level; currentState = GameState.GAME_OVER }
-                )
-                GameState.GAME_OVER -> GameOverScreen(
+            }
+            if (currentState != GameState.MENU) {
+                key(gameKey) {
+                    GameScreen(
+                        onExit = { currentState = GameState.MENU },
+                        onGameOver = { score, level ->
+                            lastScore = score
+                            lastLevel = level
+                            currentState = GameState.GAME_OVER
+                        },
+                        isGameOver = currentState == GameState.GAME_OVER
+                    )
+                }
+            }
+            if (currentState == GameState.GAME_OVER) {
+                GameOverScreen(
                     score = lastScore,
                     levelIndex = lastLevel,
-                    onReplay = { currentState = GameState.PLAYING },
+                    onReplay = { gameKey++; currentState = GameState.PLAYING },
                     onQuit = { currentState = GameState.MENU }
                 )
             }
