@@ -51,13 +51,13 @@ class Player(
     // Variables d'animation de mort
     private val DEATH_ANIM_DURATION = 60
     private var deathAnimTimer = 0
-    private var deathRotation = 0f
+    var deathRotation = 0f
 
     var isDeathAnimationComplete by mutableStateOf(false)
         private set
 
     // Variables d'animation
-    private var facingRight = true
+    var facingRight = true
     private var walkPhase = 0f
 
     private val WALK_SOUND_INTERVAL_FRAMES = 130

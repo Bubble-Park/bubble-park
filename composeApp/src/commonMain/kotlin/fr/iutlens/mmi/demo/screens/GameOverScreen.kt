@@ -1,7 +1,7 @@
 package fr.iutlens.mmi.demo.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.animation.core.Animatable
@@ -18,22 +18,35 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.withTransform
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import fr.iutlens.mmi.demo.PlayerDeathState
 import fr.iutlens.mmi.demo.Res
+import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.damage_border
 import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
 import fr.iutlens.mmi.demo.ui.LevelIndicator
 import fr.iutlens.mmi.demo.ui.ShowLife
+import fr.iutlens.mmi.demo.utils.SpriteSheet
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 
 @Composable
-fun GameOverScreen(score: Int, levelIndex: Int = 0, onReplay: () -> Unit, onQuit: () -> Unit) {
+fun GameOverScreen(
+    score: Int,
+    levelIndex: Int = 0,
+    deathState: PlayerDeathState = PlayerDeathState(0f, 1f, 0f, true),
+    onReplay: () -> Unit,
+    onQuit: () -> Unit
+) {
     val duduFont = FontFamily(Font(Res.font.dudu_font))
     val displayedScore = remember { Animatable(0f) }
 
@@ -51,6 +64,28 @@ fun GameOverScreen(score: Int, levelIndex: Int = 0, onReplay: () -> Unit, onQuit
     val rotQuitter = squareWaveRotation(elapsed * 0.0018f + 2f, 1.5f)
     val rotVolume = squareWaveRotation(elapsed * 0.0025f + 4f, 1.5f)
 
+    var fallY by remember { mutableStateOf(-200f) }
+    var fallVy by remember { mutableStateOf(5f) }
+    var fallRotation by remember { mutableStateOf(deathState.rotation) }
+    val fallDir = if (deathState.facingRight) 1f else -1f
+    val gravity = 5.5f
+    val vyMax = 280f
+
+    var canvasHeight by remember { mutableStateOf(1000f) }
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            withFrameMillis { }
+            fallVy = (fallVy + gravity).coerceAtMost(vyMax)
+            fallY += fallVy / 2f
+            fallRotation -= 3f * fallDir
+            if (fallY > canvasHeight + 200f) {
+                fallY = -200f
+                fallVy = 5f
+            }
+        }
+    }
+
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val screenW = maxWidth.value
         val screenH = maxHeight.value
@@ -58,7 +93,31 @@ fun GameOverScreen(score: Int, levelIndex: Int = 0, onReplay: () -> Unit, onQuit
         val contentWidthFraction = 0.64f
         val scoreFontSize = (screenH * 0.13f).sp
 
-        Box(modifier = Modifier.fillMaxSize().background(Color(0x99000000)))
+        Image(
+            painter = painterResource(Res.drawable.background),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier.fillMaxSize()
+        )
+
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            canvasHeight = size.height
+            val scale = if (deathState.gameWorldWidth > 0f) size.width / deathState.gameWorldWidth else 1f
+            val screenX = deathState.x * scale
+
+            if (SpriteSheet.isLoaded(Res.drawable.bubblechtein_sprites)) {
+                val sheet = SpriteSheet[Res.drawable.bubblechtein_sprites]
+                val sw = (sheet.spriteWidth * scale).toInt()
+                val sh = (sheet.spriteHeight * scale).toInt()
+                withTransform({
+                    translate(screenX, fallY)
+                    rotate(fallRotation, pivot = Offset.Zero)
+                    if (!deathState.facingRight) scale(-1f, 1f, pivot = Offset.Zero)
+                }) {
+                    sheet.paint(this, 3, -sw / 2, -sh / 2, size = IntSize(sw, sh))
+                }
+            }
+        }
 
         Image(
             painter = painterResource(Res.drawable.damage_border),

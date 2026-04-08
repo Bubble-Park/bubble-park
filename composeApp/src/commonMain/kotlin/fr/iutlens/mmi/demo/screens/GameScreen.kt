@@ -115,7 +115,7 @@ fun dinosForLevel(levelNumber: Int): List<DrawableResource> {
 }
 
 @Composable
-fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit, isGameOver: Boolean = false) {
+fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int, deathState: fr.iutlens.mmi.demo.PlayerDeathState) -> Unit) {
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 4, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
@@ -195,7 +195,6 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit,
             .focusable()
             .onKeyEvent { event ->
                 if (showLevelPanel) return@onKeyEvent false
-                if (isGameOver) return@onKeyEvent false
                 if (event.key == SHOOT_KEY) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
                         gameData.player.shoot()
@@ -317,8 +316,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit,
                 if (!gameData.isBossRound) ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = (minDim * 0.03f), end = (minDim * 0.03f))) {
-                if (!isGameOver) {
-                    Image(
+                Image(
                         painter = painterResource(Res.drawable.pause),
                         contentDescription = "Pause",
                         modifier = Modifier
@@ -331,7 +329,6 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit,
                                 gameData.chrono.pause()
                             }
                     )
-                }
                 val duduFont = FontFamily(Font(Res.font.dudu_font))
                 if (SlowEffect.isActive) {
                     Row(
@@ -439,7 +436,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit,
             )
         }
 
-        if (isPaused && !isGameOver) {
+        if (isPaused) {
             PauseScreen(
                 life = gameData.player.life,
                 maxLife = gameData.player.maxLife,
@@ -463,17 +460,15 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit,
                 onUpgradeSelected = { upgrade -> gameData.selectUpgrade(upgrade) }
             )
         } else if (!showLevelPanel) {
-            if (!isGameOver) {
-                Controllers(
-                    modifier = Modifier.fillMaxSize().scale(scaleControllers.value),
-                    onJoystickChange = { pos -> gameData.game.joystickPosition = pos },
-                    onActionA = { pressed ->
-                        if (pressed && !gameData.game.actionButtonA) gameData.player.shoot()
-                        gameData.game.actionButtonA = pressed
-                    },
-                    onActionB = { pressed -> gameData.game.actionButtonB = pressed }
-                )
-            }
+            Controllers(
+                modifier = Modifier.fillMaxSize().scale(scaleControllers.value),
+                onJoystickChange = { pos -> gameData.game.joystickPosition = pos },
+                onActionA = { pressed ->
+                    if (pressed && !gameData.game.actionButtonA) gameData.player.shoot()
+                    gameData.game.actionButtonA = pressed
+                },
+                onActionB = { pressed -> gameData.game.actionButtonB = pressed }
+            )
         }
 
         val chronoInt = gameData.chrono.value.toInt()
@@ -515,7 +510,16 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit,
     }
 
     LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
-        if (gameData.player.isDeathAnimationComplete) onGameOver(gameData.score.get(), gameData.levelIndex)
+        if (gameData.player.isDeathAnimationComplete) onGameOver(
+            gameData.score.get(),
+            gameData.levelIndex,
+            fr.iutlens.mmi.demo.PlayerDeathState(
+                x = gameData.player.x,
+                gameWorldWidth = gameData.gameWorldWidth,
+                rotation = gameData.player.deathRotation,
+                facingRight = gameData.player.facingRight
+            )
+        )
     }
 
     LaunchedEffect(Unit) {

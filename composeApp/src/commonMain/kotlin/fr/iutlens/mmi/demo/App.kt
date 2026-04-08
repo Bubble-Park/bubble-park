@@ -24,12 +24,19 @@ enum class GameState {
     GAME_OVER
 }
 
+data class PlayerDeathState(
+    val x: Float,
+    val gameWorldWidth: Float,
+    val rotation: Float,
+    val facingRight: Boolean
+)
+
 @Composable
 fun App(modifier: Modifier = Modifier) {
     var currentState by remember { mutableStateOf(GameState.MENU) }
     var lastScore by remember { mutableStateOf(0) }
     var lastLevel by remember { mutableStateOf(0) }
-    var gameKey by remember { mutableStateOf(0) }
+    var lastDeathState by remember { mutableStateOf(PlayerDeathState(0f, 1f, 0f, true)) }
 
     var transitionKey by remember { mutableStateOf(0) }
     var showCloudOverlay by remember { mutableStateOf(false) }
@@ -55,29 +62,24 @@ fun App(modifier: Modifier = Modifier) {
                 modifier = Modifier.fillMaxSize()
             )
 
-            if (currentState == GameState.MENU) {
-                MenuHost(
+            when (currentState) {
+                GameState.MENU -> MenuHost(
                     onPlayClick = { transitionKey++ }
                 )
-            }
-            if (currentState != GameState.MENU) {
-                key(gameKey) {
-                    GameScreen(
-                        onExit = { currentState = GameState.MENU },
-                        onGameOver = { score, level ->
-                            lastScore = score
-                            lastLevel = level
-                            currentState = GameState.GAME_OVER
-                        },
-                        isGameOver = currentState == GameState.GAME_OVER
-                    )
-                }
-            }
-            if (currentState == GameState.GAME_OVER) {
-                GameOverScreen(
+                GameState.PLAYING -> GameScreen(
+                    onExit = { currentState = GameState.MENU },
+                    onGameOver = { score, level, deathState ->
+                        lastScore = score
+                        lastLevel = level
+                        lastDeathState = deathState
+                        currentState = GameState.GAME_OVER
+                    }
+                )
+                GameState.GAME_OVER -> GameOverScreen(
                     score = lastScore,
                     levelIndex = lastLevel,
-                    onReplay = { gameKey++; currentState = GameState.PLAYING },
+                    deathState = lastDeathState,
+                    onReplay = { currentState = GameState.PLAYING },
                     onQuit = { currentState = GameState.MENU }
                 )
             }
