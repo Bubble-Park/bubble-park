@@ -115,7 +115,7 @@ fun dinosForLevel(levelNumber: Int): List<DrawableResource> {
 }
 
 @Composable
-fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit) {
+fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit, isGameOver: Boolean = false) {
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 4, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
@@ -317,19 +317,21 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                 if (!gameData.isBossRound) ShowChrono(gameData.chrono.value, fontSize = uiFontSize)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = (minDim * 0.03f), end = (minDim * 0.03f))) {
-                Image(
-                    painter = painterResource(Res.drawable.pause),
-                    contentDescription = "Pause",
-                    modifier = Modifier
-                        .size(minDim * 0.13f)
-                        .padding(minDim * 0.01f)
-                        .scale(scalePause.value)
-                        .clickable {
-                            isPaused = true
-                            gameData.game.paused = true
-                            gameData.chrono.pause()
-                        }
-                )
+                if (!isGameOver) {
+                    Image(
+                        painter = painterResource(Res.drawable.pause),
+                        contentDescription = "Pause",
+                        modifier = Modifier
+                            .size(minDim * 0.13f)
+                            .padding(minDim * 0.01f)
+                            .scale(scalePause.value)
+                            .clickable {
+                                isPaused = true
+                                gameData.game.paused = true
+                                gameData.chrono.pause()
+                            }
+                    )
+                }
                 val duduFont = FontFamily(Font(Res.font.dudu_font))
                 if (SlowEffect.isActive) {
                     Row(
@@ -461,15 +463,17 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                 onUpgradeSelected = { upgrade -> gameData.selectUpgrade(upgrade) }
             )
         } else if (!showLevelPanel) {
-            Controllers(
-                modifier = Modifier.fillMaxSize().scale(scaleControllers.value),
-                onJoystickChange = { pos -> gameData.game.joystickPosition = pos },
-                onActionA = { pressed ->
-                    if (pressed && !gameData.game.actionButtonA) gameData.player.shoot()
-                    gameData.game.actionButtonA = pressed
-                },
-                onActionB = { pressed -> gameData.game.actionButtonB = pressed }
-            )
+            if (!isGameOver) {
+                Controllers(
+                    modifier = Modifier.fillMaxSize().scale(scaleControllers.value),
+                    onJoystickChange = { pos -> gameData.game.joystickPosition = pos },
+                    onActionA = { pressed ->
+                        if (pressed && !gameData.game.actionButtonA) gameData.player.shoot()
+                        gameData.game.actionButtonA = pressed
+                    },
+                    onActionB = { pressed -> gameData.game.actionButtonB = pressed }
+                )
+            }
         }
 
         val chronoInt = gameData.chrono.value.toInt()
