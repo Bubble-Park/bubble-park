@@ -31,7 +31,7 @@ class Gallimimus(
 ) {
     companion object {
         const val VISUAL_SCALE = 1.2f
-        const val HIT_RADIUS = 65f
+        const val HIT_RADIUS = 75f
         const val VISUAL_Y_OFFSET = 0f
     }
 
@@ -48,5 +48,6 @@ class Gallimimus(
                 super.paint(this, elapsed)
             }
         }
+        drawHitboxIfEnabled(drawScope)
     }
 }

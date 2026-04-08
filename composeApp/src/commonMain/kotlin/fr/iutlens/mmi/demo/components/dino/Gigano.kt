@@ -58,5 +58,6 @@ class Gigano(
         }) {
             super.paint(this, elapsed)
         }
+        drawHitboxIfEnabled(drawScope)
     }
 }

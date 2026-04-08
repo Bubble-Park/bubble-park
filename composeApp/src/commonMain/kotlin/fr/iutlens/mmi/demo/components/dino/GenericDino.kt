@@ -1,10 +1,12 @@
 package fr.iutlens.mmi.demo.components.dino
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.slow_debuff
@@ -145,6 +147,17 @@ abstract class GenericDino(
     private fun releaseCaptured() {
         reset(x, 0f)
         spawnTimer = 0
+    }
+
+    protected fun drawHitboxIfEnabled(drawScope: DrawScope) {
+        if (!SHOW_HITBOXES) return
+        val box = boundingBox
+        drawScope.drawRect(
+            color = Color(0xFFFF0000.toInt()),
+            topLeft = Offset(box.left, box.top),
+            size = Size(box.width, box.height),
+            style = Stroke(width = 3f)
+        )
     }
 
     protected open fun onStun() {}

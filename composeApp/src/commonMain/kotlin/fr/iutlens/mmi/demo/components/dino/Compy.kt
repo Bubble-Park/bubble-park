@@ -40,5 +40,6 @@ class Compy(
         }) {
             super.paint(this, elapsed)
         }
+        drawHitboxIfEnabled(drawScope)
     }
 }

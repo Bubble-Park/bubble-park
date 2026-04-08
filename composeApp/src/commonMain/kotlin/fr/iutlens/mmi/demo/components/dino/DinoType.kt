@@ -2,6 +2,8 @@ package fr.iutlens.mmi.demo.components.dino
 
 import androidx.compose.ui.graphics.Color
 
+const val SHOW_HITBOXES = false
+
 data class DinoType(
     val name: String,
     val scoreValue: Int,

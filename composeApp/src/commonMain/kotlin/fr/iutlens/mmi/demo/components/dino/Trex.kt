@@ -53,5 +53,6 @@ class Trex(
         }) {
             super.paint(this, elapsed)
         }
+        drawHitboxIfEnabled(drawScope)
     }
 }

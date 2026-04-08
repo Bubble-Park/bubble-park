@@ -27,7 +27,7 @@ class Raptor(
 ) {
     companion object {
         const val VISUAL_SCALE = 1.2f
-        const val HIT_RADIUS = 55f
+        const val HIT_RADIUS = 65f
         const val VERTICAL_OFFSET = 0f
     }
 
@@ -42,5 +42,6 @@ class Raptor(
         }) {
             super.paint(this, elapsed)
         }
+        drawHitboxIfEnabled(drawScope)
     }
 }
