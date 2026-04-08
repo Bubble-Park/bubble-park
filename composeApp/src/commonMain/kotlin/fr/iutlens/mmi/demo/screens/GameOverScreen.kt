@@ -105,7 +105,7 @@ fun GameOverScreen(
                     fallY += fallVy * dtSec
                     fallRotation -= 180f * dtSec * if (deathState.facingRight) 1f else -1f
                     spriteNdx = 3
-                    val floorY = canvasHeight - scaledSpriteH / 2f
+                    val floorY = canvasHeight - scaledSpriteH / 4f
                     if (fallY >= floorY) {
                         fallY = floorY
                         landedY = floorY
