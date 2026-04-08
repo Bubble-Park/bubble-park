@@ -29,6 +29,7 @@ fun App(modifier: Modifier = Modifier) {
     var currentState by remember { mutableStateOf(GameState.MENU) }
     var lastScore by remember { mutableStateOf(0) }
     var lastLevel by remember { mutableStateOf(0) }
+
     var transitionKey by remember { mutableStateOf(0) }
     var showCloudOverlay by remember { mutableStateOf(false) }
     val coverProgress = remember { Animatable(0f) }
