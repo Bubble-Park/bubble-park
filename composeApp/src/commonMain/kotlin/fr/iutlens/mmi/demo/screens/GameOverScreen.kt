@@ -86,8 +86,8 @@ fun GameOverScreen(
 
     val gravity = 800f
     val vyMax = 1200f
-    val standRotation = if (deathState.facingRight) 90f else -90f
-    val walkSpeed = 200f
+    val standRotation = if (deathState.facingRight) -90f else 90f
+    val walkSpeed = 320f
 
     LaunchedEffect(Unit) {
         var lastMs = withFrameMillis { it }
@@ -125,12 +125,12 @@ fun GameOverScreen(
                 }
                 FallPhase.STANDING_UP -> {
                     phaseMs += dt
-                    val progress = (phaseMs / 400f).coerceAtMost(1f)
+                    val progress = (phaseMs / 250f).coerceAtMost(1f)
                     fallRotation = standRotation * (1f - progress)
                     val walkY = canvasHeight - scaledSpriteH / 2f
                     fallY = landedY + (walkY - landedY) * progress
                     spriteNdx = 0
-                    if (phaseMs >= 400L) {
+                    if (phaseMs >= 250L) {
                         fallRotation = 0f
                         fallY = walkY
                         phase = FallPhase.STANDING
