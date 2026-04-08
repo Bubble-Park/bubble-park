@@ -194,6 +194,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             .focusRequester(focusRequester)
             .focusable()
             .onKeyEvent { event ->
+                if (showLevelPanel) return@onKeyEvent false
                 // Boutons
                 if (event.key == SHOOT_KEY) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
@@ -459,7 +460,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                 choices = gameData.upgradeChoices,
                 onUpgradeSelected = { upgrade -> gameData.selectUpgrade(upgrade) }
             )
-        } else {
+        } else if (!showLevelPanel) {
             Controllers(
                 modifier = Modifier.fillMaxSize().scale(scaleControllers.value),
                 onJoystickChange = { pos -> gameData.game.joystickPosition = pos },
@@ -490,6 +491,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                         pendingNextLevel = false
                         gameData.loadNextLevel()
                     }
+                    gameData.game.paused = false
+                    gameData.chrono.resume()
                 }
             )
         }
