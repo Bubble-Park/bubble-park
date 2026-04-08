@@ -167,8 +167,13 @@ class Player(
                 deathRotation -= 3f * if (facingRight) 1f else -1f
                 deathAnimTimer++
                 //ndx = jumpFrame
-            } else if (!isDeathAnimationComplete) {
-                isDeathAnimationComplete = true
+            } else {
+                if (!isDeathAnimationComplete) {
+                    isDeathAnimationComplete = true
+                }
+                vy += gravity
+                y += (vy/2)
+                deathRotation -= 3f * if (facingRight) 1f else -1f
             }
             super.update()
             return
