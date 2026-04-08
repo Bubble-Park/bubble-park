@@ -114,6 +114,7 @@ class BubblePark : GameData() {
     }
 
     val upgradeManager = UpgradeManager()
+    var showBonusIntro by mutableStateOf(false)
     var showUpgradeScreen by mutableStateOf(false)
     var upgradeChoices by mutableStateOf<List<Upgrade>>(emptyList())
 
@@ -245,7 +246,7 @@ class BubblePark : GameData() {
                     val choices = upgradeManager.getRandomCandidates(3)
                     if (choices.isNotEmpty()) {
                         upgradeChoices = choices
-                        showUpgradeScreen = true
+                        showBonusIntro = true
                     } else {
                         onLevelEnd?.invoke(true)
                     }
@@ -629,6 +630,11 @@ class BubblePark : GameData() {
                 else -> sprites.add(Stegosaurus(Res.drawable.stego_sprite, x, y, tileArea, distanceMap, platformGraph))
             }
         }
+    }
+
+    fun startUpgradeFromBonus() {
+        showBonusIntro = false
+        showUpgradeScreen = true
     }
 
     fun selectUpgrade(upgrade: Upgrade) {
