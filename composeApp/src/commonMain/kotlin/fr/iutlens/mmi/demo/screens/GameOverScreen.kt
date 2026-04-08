@@ -69,7 +69,7 @@ fun GameOverScreen(
     var fallX by remember { mutableStateOf(0f) }
     var fallXInitialized by remember { mutableStateOf(false) }
     var fallY by remember { mutableStateOf(-200f) }
-    var fallVy by remember { mutableStateOf(1f) }
+    var fallVy by remember { mutableStateOf(2f) }
     var fallRotation by remember { mutableStateOf(deathState.rotation) }
     var spriteNdx by remember { mutableStateOf(3) }
     var walkFacingRight by remember { mutableStateOf(false) }
@@ -83,8 +83,8 @@ fun GameOverScreen(
     var phase by remember { mutableStateOf(FallPhase.FALLING) }
     var phaseMs by remember { mutableStateOf(0L) }
 
-    val gravity = 1.5f
-    val vyMax = 80f
+    val gravity = 3.5f
+    val vyMax = 180f
     val standRotation = if (deathState.facingRight) 90f else -90f
     val walkSpeed = 200f
 
