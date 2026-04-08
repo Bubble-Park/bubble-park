@@ -65,23 +65,21 @@ fun GameOverScreen(
     val rotVolume = squareWaveRotation(elapsed * 0.0025f + 4f, 1.5f)
 
     var fallY by remember { mutableStateOf(-200f) }
-    var fallVy by remember { mutableStateOf(0f) }
+    var fallVy by remember { mutableStateOf(5f) }
     var fallRotation by remember { mutableStateOf(deathState.rotation) }
     val fallDir = if (deathState.facingRight) 1f else -1f
-    val gravity = 0.25f
-    val vyMax = 7f
+    val gravity = 5.5f
+    val vyMax = 280f
 
     var canvasHeight by remember { mutableStateOf(1000f) }
 
     LaunchedEffect(Unit) {
         while (true) {
             withFrameMillis { }
-            fallVy = (fallVy + gravity).coerceAtMost(vyMax)
-            fallY += fallVy / 2f
-            fallRotation -= 3f * fallDir
-            if (fallY > canvasHeight + 200f) {
-                fallY = -200f
-                fallVy = 5f
+            if (fallY <= canvasHeight + 200f) {
+                fallVy = (fallVy + gravity).coerceAtMost(vyMax)
+                fallY += fallVy / 2f
+                fallRotation -= 3f * fallDir
             }
         }
     }
