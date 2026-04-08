@@ -220,6 +220,12 @@ class BubblePark : GameData() {
         game.paused = true
 
         game.animation(20) {
+            if (player.isDeathAnimationComplete) {
+                player.update()
+                game.invalidate()
+                return@animation
+            }
+
             checkComboReset()
             handleCollisions()
 
