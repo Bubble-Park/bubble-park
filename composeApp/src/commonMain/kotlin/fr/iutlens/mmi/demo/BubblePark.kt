@@ -242,6 +242,7 @@ class BubblePark : GameData() {
                     isBossRound = false
                     bossGigano = null
                     game.paused = true
+                    chrono.pause()
                     val choices = upgradeManager.getRandomCandidates(3)
                     if (choices.isNotEmpty()) {
                         upgradeChoices = choices
