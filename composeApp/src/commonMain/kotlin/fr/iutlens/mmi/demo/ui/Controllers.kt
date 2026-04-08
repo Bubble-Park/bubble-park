@@ -35,7 +35,8 @@ fun Controllers(
         Buttons(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = sidePadding, bottom=buttonsBottomPadding),
+                .padding(end = sidePadding, bottom = buttonsBottomPadding),
+            minDim = minDim,
             onActionA = onActionA,
             onActionB = onActionB
         )

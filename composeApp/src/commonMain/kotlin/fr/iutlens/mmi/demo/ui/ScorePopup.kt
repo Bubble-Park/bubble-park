@@ -25,6 +25,7 @@ fun ScorePopupText(
     popup: BubblePark.ScorePopup,
     screenXDp: Float,
     screenYDp: Float,
+    minDim: Float,
     onDone: () -> Unit
 ) {
     val duduFont = FontFamily(Font(Res.font.dudu_font))
@@ -36,7 +37,7 @@ fun ScorePopupText(
         launch { scale.animateTo(1.5f, tween(120)) }
         kotlinx.coroutines.delay(120)
         launch { scale.animateTo(1.0f, tween(80)) }
-        launch { offsetY.animateTo(-55f, tween(700)) }
+        launch { offsetY.animateTo(-minDim * 0.07f, tween(700)) }
         kotlinx.coroutines.delay(350)
         alpha.animateTo(0f, tween(350))
         onDone()
@@ -49,7 +50,7 @@ fun ScorePopupText(
             .scale(scale.value)
             .alpha(alpha.value),
         color = Color(0xFFFF69B4),
-        fontSize = 28.sp,
+        fontSize = (minDim * 0.035f).sp,
         fontFamily = duduFont
     )
 }
