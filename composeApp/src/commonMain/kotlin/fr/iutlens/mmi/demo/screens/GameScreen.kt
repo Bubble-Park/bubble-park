@@ -303,7 +303,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             painter = painterResource(Res.drawable.damage_border),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize().alpha(0.2f).scale(damageScaleAnim.value + damagePulse)
+            modifier = Modifier.fillMaxSize().alpha(1f).scale(damageScaleAnim.value + damagePulse)
         )
 
         Row(

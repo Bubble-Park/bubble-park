@@ -70,7 +70,7 @@ fun GameOverScreen(score: Int, levelIndex: Int = 0, onReplay: () -> Unit, onQuit
             painter = painterResource(Res.drawable.damage_border),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize().alpha(0.8f).scale(1f)
+            modifier = Modifier.fillMaxSize().alpha(1f).scale(1f)
         )
 
         Column(
