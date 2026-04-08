@@ -72,7 +72,7 @@ object GameSound {
     }
 
     /** Joue le son de marche (à appeler manuellement en boucle depuis le Player). */
-    fun playWalk() = Music.playSound(WALK, leftVolume = 0.1f, rightVolume = 0.1f)
+    fun playWalk() = Music.playSound(WALK, leftVolume = 0.02f, rightVolume = 0.02f)
 
     /** Stoppe immédiatement le son de marche. */
     fun stopWalk() = Music.stopSound(WALK)
