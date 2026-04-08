@@ -41,7 +41,8 @@ import org.jetbrains.compose.resources.Font
 import fr.iutlens.mmi.demo.dudu_font
 
 import androidx.compose.foundation.focusable
-import androidx.compose.runtime.LaunchedEffect import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
