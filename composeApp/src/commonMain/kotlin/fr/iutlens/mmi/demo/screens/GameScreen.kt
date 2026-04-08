@@ -452,6 +452,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                 },
                 onQuit = onExit
             )
+        } else if (gameData.showBonusIntro) {
+            BonusIntroScreen(onDone = { gameData.startUpgradeFromBonus() })
         } else if (gameData.showUpgradeScreen) {
             UpgradeScreen(
                 choices = gameData.upgradeChoices,

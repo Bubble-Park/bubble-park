@@ -56,7 +56,7 @@ fun UpgradeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height((screenH * 0.18f).dp))
+            Spacer(modifier = Modifier.height((screenH * 0.10f).dp))
 
             Text(
                 text = "Choisissez une amélioration",
