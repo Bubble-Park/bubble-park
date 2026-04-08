@@ -66,7 +66,8 @@ fun GameOverScreen(
     val rotQuitter = squareWaveRotation(elapsed * 0.0018f + 2f, 1.5f)
     val rotVolume = squareWaveRotation(elapsed * 0.0025f + 4f, 1.5f)
 
-    var fallX by remember { mutableStateOf(-1f) }
+    var fallX by remember { mutableStateOf(0f) }
+    var fallXInitialized by remember { mutableStateOf(false) }
     var fallY by remember { mutableStateOf(-200f) }
     var fallVy by remember { mutableStateOf(5f) }
     var fallRotation by remember { mutableStateOf(deathState.rotation) }
@@ -94,7 +95,7 @@ fun GameOverScreen(
             val dt = (nowMs - lastMs).coerceAtMost(100L)
             lastMs = nowMs
 
-            if (fallX < 0f) continue
+            if (!fallXInitialized) continue
 
             when (phase) {
                 FallPhase.FALLING -> {
@@ -178,7 +179,7 @@ fun GameOverScreen(
             canvasWidth = size.width
             val scale = if (deathState.gameWorldWidth > 0f) size.width / deathState.gameWorldWidth else 1f
             currentScale = scale
-            if (fallX < 0f) fallX = deathState.x * scale
+            if (!fallXInitialized) { fallX = deathState.x * scale; fallXInitialized = true }
 
             if (SpriteSheet.isLoaded(Res.drawable.bubblechtein_sprites)) {
                 val sheet = SpriteSheet[Res.drawable.bubblechtein_sprites]
