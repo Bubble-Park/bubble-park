@@ -39,7 +39,7 @@ import fr.iutlens.mmi.demo.utils.SpriteSheet
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
 
-private enum class FallPhase { FALLING, LANDED, STANDING_UP, STANDING, WALKING }
+private enum class FallPhase { FALLING, LANDED, STANDING_UP, STANDING, WALKING, DONE }
 
 @Composable
 fun GameOverScreen(
@@ -144,16 +144,10 @@ fun GameOverScreen(
                     fallX -= walkSpeed * dt / 1000f
                     spriteNdx = if ((phaseMs / 200L) % 2L == 0L) 0 else 1
                     if (fallX < -scaledSpriteW) {
-                        fallX = deathState.x * currentScale
-                        fallY = -200f
-                        fallVy = 5f
-                        fallRotation = deathState.rotation
-                        walkFacingRight = deathState.facingRight
-                        spriteNdx = 3
-                        phase = FallPhase.FALLING
-                        phaseMs = 0L
+                        phase = FallPhase.DONE
                     }
                 }
+                FallPhase.DONE -> {}
             }
         }
     }
