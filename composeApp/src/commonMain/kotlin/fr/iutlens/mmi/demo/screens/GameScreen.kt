@@ -296,7 +296,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
         val density = LocalDensity.current
         val canvasWidthPx = with(density) { maxWidth.toPx() }
         val canvasHeightPx = with(density) { maxHeight.toPx() }
-        ScorePopupsLayer(gameData = gameData, canvasWidthPx = canvasWidthPx, canvasHeightPx = canvasHeightPx)
+        ScorePopupsLayer(gameData = gameData, canvasWidthPx = canvasWidthPx, canvasHeightPx = canvasHeightPx, minDim = minDim.value)
 
         Image(
             painter = painterResource(Res.drawable.damage_border),
@@ -583,13 +583,17 @@ private fun CountdownNumber(number: Int, minDim: androidx.compose.ui.unit.Dp) {
             color = Color(0xFFFF7EEA),
             fontSize = (minDim.value * 0.40f).sp,
             modifier = Modifier.scale(scale.value)
+        )
+    }
+}
+
 /**
  * Rendu des score popups isolé dans son propre composable.
  * Seul ce composable recompose quand scorePopups change,
  * pas l'intégralité de GameScreen.
  */
 @Composable
-private fun ScorePopupsLayer(gameData: BubblePark, canvasWidthPx: Float, canvasHeightPx: Float) {
+private fun ScorePopupsLayer(gameData: BubblePark, canvasWidthPx: Float, canvasHeightPx: Float, minDim: Float) {
     val density = LocalDensity.current
     val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
     gameData.scorePopups.forEach { popup ->
@@ -600,6 +604,7 @@ private fun ScorePopupsLayer(gameData: BubblePark, canvasWidthPx: Float, canvasH
             popup = popup,
             screenXDp = screenXDp,
             screenYDp = screenYDp,
+            minDim = minDim,
             onDone = { gameData.scorePopups.remove(popup) }
         )
     }
