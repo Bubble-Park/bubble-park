@@ -185,7 +185,7 @@ fun GameOverScreen(
             canvasWidth = size.width
             val scale = if (deathState.gameWorldWidth > 0f) size.width / deathState.gameWorldWidth else 1f
             currentScale = scale
-            if (!fallXInitialized) { fallX = deathState.x * scale; fallXInitialized = true }
+            if (!fallXInitialized) { fallX = deathState.x * size.width; fallXInitialized = true }
 
             if (SpriteSheet.isLoaded(Res.drawable.bubblechtein_sprites)) {
                 val sheet = SpriteSheet[Res.drawable.bubblechtein_sprites]

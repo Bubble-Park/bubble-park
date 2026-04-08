@@ -302,7 +302,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int, deathSta
             painter = painterResource(Res.drawable.damage_border),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize().alpha(1f).scale(damageScaleAnim.value + damagePulse)
+            modifier = Modifier.fillMaxSize().alpha(0.2f).scale(damageScaleAnim.value + damagePulse)
         )
 
         Row(
@@ -495,6 +495,23 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int, deathSta
                 }
             )
         }
+
+        LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
+            if (gameData.player.isDeathAnimationComplete) {
+                val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+                val screenPos = matrix.map(Offset(gameData.player.x, gameData.player.y))
+                onGameOver(
+                    gameData.score.get(),
+                    gameData.levelIndex,
+                    fr.iutlens.mmi.demo.PlayerDeathState(
+                        x = screenPos.x / canvasWidthPx,
+                        gameWorldWidth = gameData.gameWorldWidth,
+                        rotation = gameData.player.deathRotation,
+                        facingRight = gameData.player.facingRight
+                    )
+                )
+            }
+        }
     }
 
 
@@ -502,24 +519,10 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int, deathSta
         focusRequester.requestFocus()
     }
 
-    // Re-prend le focus après fermeture de l'upgrade screen (le click sur une carte le vole)
     LaunchedEffect(gameData.showUpgradeScreen) {
         if (!gameData.showUpgradeScreen) {
             focusRequester.requestFocus()
         }
-    }
-
-    LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
-        if (gameData.player.isDeathAnimationComplete) onGameOver(
-            gameData.score.get(),
-            gameData.levelIndex,
-            fr.iutlens.mmi.demo.PlayerDeathState(
-                x = gameData.player.x,
-                gameWorldWidth = gameData.gameWorldWidth,
-                rotation = gameData.player.deathRotation,
-                facingRight = gameData.player.facingRight
-            )
-        )
     }
 
     LaunchedEffect(Unit) {
