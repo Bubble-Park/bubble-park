@@ -1,6 +1,7 @@
 package fr.iutlens.mmi.demo.screens
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.Text
 import androidx.compose.animation.core.Animatable
@@ -23,11 +24,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import fr.iutlens.mmi.demo.Res
-import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.damage_border
 import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.game.sprite.squareWaveRotation
-import fr.iutlens.mmi.demo.trou
 import fr.iutlens.mmi.demo.ui.LevelIndicator
 import fr.iutlens.mmi.demo.ui.ShowLife
 import org.jetbrains.compose.resources.Font
@@ -59,12 +58,7 @@ fun GameOverScreen(score: Int, levelIndex: Int = 0, onReplay: () -> Unit, onQuit
         val contentWidthFraction = 0.64f
         val scoreFontSize = (screenH * 0.13f).sp
 
-        Image(
-            painter = painterResource(Res.drawable.background),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
+        Box(modifier = Modifier.fillMaxSize().background(Color(0x99000000)))
 
         Image(
             painter = painterResource(Res.drawable.damage_border),
@@ -82,14 +76,9 @@ fun GameOverScreen(score: Int, levelIndex: Int = 0, onReplay: () -> Unit, onQuit
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth().weight(0.5f),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(Res.drawable.trou),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxHeight(0.85f).aspectRatio(1f)
-                )
                 Box(modifier = Modifier.padding(end = (screenW * 0.02f).dp)) {
                     ShowLife(0, heartSize = (screenH * 0.12f).dp)
                 }
