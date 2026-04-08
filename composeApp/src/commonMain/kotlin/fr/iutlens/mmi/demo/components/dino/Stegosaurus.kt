@@ -27,7 +27,7 @@ class Stegosaurus(
 ) {
     companion object {
         const val VISUAL_SCALE = 2f
-        const val HIT_RADIUS = 65f
+        const val HIT_RADIUS = 115f
         const val VERTICAL_OFFSET = 15f
     }
 
@@ -42,5 +42,6 @@ class Stegosaurus(
         }) {
             super.paint(this, elapsed)
         }
+        drawHitboxIfEnabled(drawScope)
     }
 }

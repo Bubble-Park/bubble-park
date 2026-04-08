@@ -26,7 +26,7 @@ class Parasaur(
 ) {
     companion object {
         const val VISUAL_SCALE = 1.1f
-        const val HIT_RADIUS = 60f
+        const val HIT_RADIUS = 90f
     }
 
     override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE
@@ -40,5 +40,6 @@ class Parasaur(
         }) {
             super.paint(this, elapsed)
         }
+        drawHitboxIfEnabled(drawScope)
     }
 }

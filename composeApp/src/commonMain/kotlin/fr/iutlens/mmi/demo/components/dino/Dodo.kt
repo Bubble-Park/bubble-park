@@ -40,5 +40,6 @@ class Dodo(
         }) {
             super.paint(this, elapsed)
         }
+        drawHitboxIfEnabled(drawScope)
     }
 }
