@@ -293,23 +293,10 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             gameData = gameData
         )
 
-        // Score popups
         val density = LocalDensity.current
         val canvasWidthPx = with(density) { maxWidth.toPx() }
         val canvasHeightPx = with(density) { maxHeight.toPx() }
-        val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
-        gameData.scorePopups.toList().forEach { popup ->
-            val screenPosPx = matrix.map(Offset(popup.worldX, popup.worldY))
-            val screenXDp = density.run { screenPosPx.x.toDp().value }
-            val screenYDp = density.run { screenPosPx.y.toDp().value }
-            ScorePopupText(
-                popup = popup,
-                screenXDp = screenXDp,
-                screenYDp = screenYDp,
-                minDim = minDim.value,
-                onDone = { gameData.scorePopups.remove(popup) }
-            )
-        }
+        ScorePopupsLayer(gameData = gameData, canvasWidthPx = canvasWidthPx, canvasHeightPx = canvasHeightPx)
 
         Image(
             painter = painterResource(Res.drawable.damage_border),
@@ -511,6 +498,13 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
         focusRequester.requestFocus()
     }
 
+    // Re-prend le focus après fermeture de l'upgrade screen (le click sur une carte le vole)
+    LaunchedEffect(gameData.showUpgradeScreen) {
+        if (!gameData.showUpgradeScreen) {
+            focusRequester.requestFocus()
+        }
+    }
+
     LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
         if (gameData.player.isDeathAnimationComplete) onGameOver(gameData.score.get(), gameData.levelIndex)
     }
@@ -589,6 +583,24 @@ private fun CountdownNumber(number: Int, minDim: androidx.compose.ui.unit.Dp) {
             color = Color(0xFFFF7EEA),
             fontSize = (minDim.value * 0.40f).sp,
             modifier = Modifier.scale(scale.value)
+/**
+ * Rendu des score popups isolé dans son propre composable.
+ * Seul ce composable recompose quand scorePopups change,
+ * pas l'intégralité de GameScreen.
+ */
+@Composable
+private fun ScorePopupsLayer(gameData: BubblePark, canvasWidthPx: Float, canvasHeightPx: Float) {
+    val density = LocalDensity.current
+    val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+    gameData.scorePopups.forEach { popup ->
+        val screenPosPx = matrix.map(Offset(popup.worldX, popup.worldY))
+        val screenXDp = density.run { screenPosPx.x.toDp().value }
+        val screenYDp = density.run { screenPosPx.y.toDp().value }
+        ScorePopupText(
+            popup = popup,
+            screenXDp = screenXDp,
+            screenYDp = screenYDp,
+            onDone = { gameData.scorePopups.remove(popup) }
         )
     }
 }
