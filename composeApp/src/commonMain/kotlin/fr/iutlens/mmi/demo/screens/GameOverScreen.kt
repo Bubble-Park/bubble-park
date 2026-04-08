@@ -83,8 +83,8 @@ fun GameOverScreen(
     var phase by remember { mutableStateOf(FallPhase.FALLING) }
     var phaseMs by remember { mutableStateOf(0L) }
 
-    val gravity = 350f
-    val vyMax = 500f
+    val gravity = 800f
+    val vyMax = 1200f
     val standRotation = if (deathState.facingRight) 90f else -90f
     val walkSpeed = 200f
 
