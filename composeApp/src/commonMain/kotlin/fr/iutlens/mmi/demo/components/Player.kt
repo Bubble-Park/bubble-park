@@ -51,13 +51,13 @@ class Player(
     // Variables d'animation de mort
     private val DEATH_ANIM_DURATION = 60
     private var deathAnimTimer = 0
-    private var deathRotation = 0f
+    var deathRotation = 0f
 
     var isDeathAnimationComplete by mutableStateOf(false)
         private set
 
     // Variables d'animation
-    private var facingRight = true
+    var facingRight = true
     private var walkPhase = 0f
 
     private val WALK_SOUND_INTERVAL_FRAMES = 130
@@ -166,9 +166,14 @@ class Player(
                 y += (vy/2)
                 deathRotation -= 3f * if (facingRight) 1f else -1f
                 deathAnimTimer++
-                //ndx = jumpFrame
-            } else if (!isDeathAnimationComplete) {
-                isDeathAnimationComplete = true
+            } else {
+                if (!isDeathAnimationComplete) {
+                    isDeathAnimationComplete = true
+                }
+                vy += gravity
+                if (vy > mapArea.h - 1f) vy = mapArea.h - 1f
+                y += (vy/2)
+                deathRotation -= 3f * if (facingRight) 1f else -1f
             }
             super.update()
             return

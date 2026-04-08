@@ -115,7 +115,7 @@ fun dinosForLevel(levelNumber: Int): List<DrawableResource> {
 }
 
 @Composable
-fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit) {
+fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int, deathState: fr.iutlens.mmi.demo.PlayerDeathState) -> Unit) {
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 4, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
@@ -195,7 +195,6 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             .focusable()
             .onKeyEvent { event ->
                 if (showLevelPanel) return@onKeyEvent false
-                // Boutons
                 if (event.key == SHOOT_KEY) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
                         gameData.player.shoot()
@@ -318,18 +317,18 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = (minDim * 0.03f), end = (minDim * 0.03f))) {
                 Image(
-                    painter = painterResource(Res.drawable.pause),
-                    contentDescription = "Pause",
-                    modifier = Modifier
-                        .size(minDim * 0.13f)
-                        .padding(minDim * 0.01f)
-                        .scale(scalePause.value)
-                        .clickable {
-                            isPaused = true
-                            gameData.game.paused = true
-                            gameData.chrono.pause()
-                        }
-                )
+                        painter = painterResource(Res.drawable.pause),
+                        contentDescription = "Pause",
+                        modifier = Modifier
+                            .size(minDim * 0.13f)
+                            .padding(minDim * 0.01f)
+                            .scale(scalePause.value)
+                            .clickable {
+                                isPaused = true
+                                gameData.game.paused = true
+                                gameData.chrono.pause()
+                            }
+                    )
                 val duduFont = FontFamily(Font(Res.font.dudu_font))
                 if (SlowEffect.isActive) {
                     Row(
@@ -496,6 +495,23 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
                 }
             )
         }
+
+        LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
+            if (gameData.player.isDeathAnimationComplete) {
+                val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+                val screenPos = matrix.map(Offset(gameData.player.x, gameData.player.y))
+                onGameOver(
+                    gameData.score.get(),
+                    gameData.levelIndex,
+                    fr.iutlens.mmi.demo.PlayerDeathState(
+                        x = screenPos.x / canvasWidthPx,
+                        gameWorldWidth = gameData.gameWorldWidth,
+                        rotation = gameData.player.deathRotation,
+                        facingRight = gameData.player.facingRight
+                    )
+                )
+            }
+        }
     }
 
 
@@ -503,15 +519,10 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int) -> Unit)
         focusRequester.requestFocus()
     }
 
-    // Re-prend le focus après fermeture de l'upgrade screen (le click sur une carte le vole)
     LaunchedEffect(gameData.showUpgradeScreen) {
         if (!gameData.showUpgradeScreen) {
             focusRequester.requestFocus()
         }
-    }
-
-    LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
-        if (gameData.player.isDeathAnimationComplete) onGameOver(gameData.score.get(), gameData.levelIndex)
     }
 
     LaunchedEffect(Unit) {

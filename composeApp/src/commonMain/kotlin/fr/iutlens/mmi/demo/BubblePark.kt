@@ -125,6 +125,9 @@ class BubblePark : GameData() {
     private lateinit var platformGraph: PlatformGraph
     private lateinit var distanceMap: DistanceMap
 
+    val gameWorldWidth: Float
+        get() = (tileArea.tileMap.geometry.sizeX * tileArea.w).toFloat()
+
     var onLevelEnd: ((hasNextLevel: Boolean) -> Unit)? = null
     var levelIndex by mutableStateOf(0)
 
@@ -220,6 +223,12 @@ class BubblePark : GameData() {
         game.paused = true
 
         game.animation(20) {
+            if (player.isDeathAnimationComplete) {
+                player.update()
+                game.invalidate()
+                return@animation
+            }
+
             checkComboReset()
             handleCollisions()
 
