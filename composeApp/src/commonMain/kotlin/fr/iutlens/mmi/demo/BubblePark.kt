@@ -151,6 +151,7 @@ class BubblePark : GameData() {
         currentLevelDiff = DifficultyManager.getLevelDifficulty(index + 1)
         spawnRatios = DifficultyManager.getSpawnRatios(index + 1)
         chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
+        chrono.pause()
         spawnTimerMs = 0L
         levelElapsedMs = 0L
         bonusTimerMs = 0L
@@ -210,10 +211,12 @@ class BubblePark : GameData() {
         }
 
         if (!isFirstLevel) {
-            findSpawnPoint()?.let { (x, y) ->
-                (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(x, y, player))
+            findSpawnPoint()?.let { (x, _) ->
+                (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(x, 0f, player))
             }
         }
+
+        game.paused = true
 
         game.animation(20) {
             checkComboReset()
