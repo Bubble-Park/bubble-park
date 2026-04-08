@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.tooling.preview.Preview
-import fr.iutlens.mmi.demo.menu_accueil
 import fr.iutlens.mmi.demo.screens.GameOverScreen
 import fr.iutlens.mmi.demo.screens.GameScreen
 import fr.iutlens.mmi.demo.screens.MenuHost
