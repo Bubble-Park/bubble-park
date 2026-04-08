@@ -68,6 +68,7 @@ fun GameOverScreen(
     var fallVy by remember { mutableStateOf(0f) }
     var fallRotation by remember { mutableStateOf(deathState.rotation) }
     val fallDir = if (deathState.facingRight) 1f else -1f
+    var fallCount by remember { mutableStateOf(0) }
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val screenW = maxWidth.value
@@ -85,10 +86,16 @@ fun GameOverScreen(
         LaunchedEffect(Unit) {
             while (true) {
                 withFrameMillis { }
-                if (fallY <= canvasHeightPx + 200f) {
-                    fallVy = (fallVy + physGravity).coerceAtMost(physVyMax)
-                    fallY += fallVy
-                    fallRotation -= 3f * fallDir
+                if (fallCount < 3) {
+                    if (fallY > canvasHeightPx + 200f) {
+                        fallY = -200f
+                        fallVy = 0f
+                        fallCount++
+                    } else {
+                        fallVy = (fallVy + physGravity).coerceAtMost(physVyMax)
+                        fallY += fallVy
+                        fallRotation -= 3f * fallDir
+                    }
                 }
             }
         }
