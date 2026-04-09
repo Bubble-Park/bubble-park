@@ -52,6 +52,7 @@ import fr.iutlens.mmi.demo.game.BossDifficultyConfig
 import fr.iutlens.mmi.demo.game.BossConfig
 import fr.iutlens.mmi.demo.game.upgrade.Upgrade
 import fr.iutlens.mmi.demo.game.upgrade.UpgradeManager
+import fr.iutlens.mmi.demo.utils.SpriteSheet
 
 class BubblePark : GameData() {
 
@@ -138,6 +139,11 @@ class BubblePark : GameData() {
 
     private var bonusTimerMs = 0L
     private var lastBonusIndex = -1
+    private var pendingInitialSpawn = false
+    private var pendingBossRound = false
+    private var pendingPlayerReset = false
+    private var pendingStartTileX = 0f
+    private var pendingStartTileY = 0f
 
     var isBossRound by mutableStateOf(false)
     var bossGigano: Gigano? by mutableStateOf(null)
@@ -178,10 +184,13 @@ class BubblePark : GameData() {
         }
         val maxLife = upgradeManager.getMaxLife()
         val savedLife = if (isFirstLevel) maxLife else player.life.coerceIn(1, maxLife)
+        pendingStartTileX = levelData.startX
+        pendingStartTileY = (tileMap.geometry.sizeY - levelData.startY).toFloat()
+        pendingPlayerReset = true
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
-            x = levelData.startX * tileArea.w,
-            y = (tileMap.geometry.sizeY - levelData.startY) * tileArea.h,
+            x = 0f,
+            y = 0f,
             mapArea = tileArea,
             joystickProvider = { game.joystickPosition },
             jumpActionProvider = { game.actionButtonB },
@@ -208,21 +217,35 @@ class BubblePark : GameData() {
         bossWaveTimerMs = 0L
         bossBonusTimerMs = 0L
 
-        if (BossDifficultyConfig.isBossLevel(levelIndex)) {
-            startBossRound()
-        } else {
-            spawnInitialDinos()
-        }
-
-        if (!isFirstLevel) {
-            findSpawnPoint()?.let { (x, _) ->
-                (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(x, 0f, player))
-            }
-        }
+        pendingBossRound = BossDifficultyConfig.isBossLevel(levelIndex)
+        pendingInitialSpawn = !pendingBossRound
 
         game.paused = true
 
         game.animation(20) {
+            if ((pendingPlayerReset || pendingInitialSpawn || pendingBossRound)
+                && SpriteSheet.isLoaded(tileArea.res, Res.drawable.bubblechtein_sprites)) {
+                if (pendingPlayerReset) {
+                    pendingPlayerReset = false
+                    player.x = pendingStartTileX * tileArea.w
+                    player.y = pendingStartTileY * tileArea.h
+                    distanceMap.update()
+                }
+                if (pendingInitialSpawn) {
+                    pendingInitialSpawn = false
+                    spawnInitialDinos()
+                    if (!isFirstLevel) {
+                        findSpawnPoint()?.let { (x, _) ->
+                            (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(x, 0f, player))
+                        }
+                    }
+                }
+                if (pendingBossRound) {
+                    pendingBossRound = false
+                    startBossRound()
+                }
+            }
+
             if (player.isDeathAnimationComplete) {
                 player.update()
                 game.invalidate()

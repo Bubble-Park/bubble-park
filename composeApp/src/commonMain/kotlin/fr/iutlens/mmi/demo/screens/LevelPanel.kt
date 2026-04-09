@@ -176,7 +176,7 @@ fun LevelPanel(
         Box(
             modifier = Modifier
                 .align(Alignment.BottomStart)
-                .offset(y = (screenH * 0.08f).dp)
+                .offset(x = -(minDim * 0.18f), y = (screenH * 0.08f).dp)
                 .scale(scale.value)
                 .rotate(rotation.value)
         ) {
