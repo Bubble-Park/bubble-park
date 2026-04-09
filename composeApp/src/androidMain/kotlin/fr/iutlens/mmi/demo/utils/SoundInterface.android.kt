@@ -27,12 +27,12 @@ actual open class MusicPlayer actual constructor(
             .setMediaSourceFactory(
                 DefaultMediaSourceFactory(
                     ResolvingByteArrayDataSource.Factory { uri ->
-                        runBlocking { Res.readBytes(uri.path!!) }
+                        runBlocking { Res.readBytes(uri.path!!.removePrefix("/")) }
                     }
                 )
             )
             .build()?.apply {
-                setMediaItem(MediaItem.fromUri(resource))
+                setMediaItem(MediaItem.fromUri("files/$resource"))
                 prepare()
                 if (autoplay) {
                     play()
