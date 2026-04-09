@@ -10,10 +10,13 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import fr.iutlens.mmi.demo.App
 import fr.iutlens.mmi.demo.game.currentGame
+import androidx.compose.ui.window.WindowPlacement
+import androidx.compose.ui.window.rememberWindowState
 
 fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
+        state = rememberWindowState(WindowPlacement.Maximized),
         focusable = true,
         title = "KMPTest",
         onKeyEvent = { event ->
