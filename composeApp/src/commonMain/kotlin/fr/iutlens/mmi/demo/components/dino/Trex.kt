@@ -32,8 +32,18 @@ class Trex(
 
     override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE
 
+    private var _bboxCX = Float.NaN
+    private var _bboxCY = Float.NaN
+    private var _bbox = Rect.Zero
+
     override val boundingBox: Rect
-        get() = Rect(x - Trex.Companion.HIT_RADIUS, y - Trex.Companion.HIT_RADIUS/2, x + Trex.Companion.HIT_RADIUS, y + Trex.Companion.HIT_RADIUS/2)
+        get() {
+            if (x != _bboxCX || y != _bboxCY) {
+                _bboxCX = x; _bboxCY = y
+                _bbox = Rect(x - HIT_RADIUS, y - HIT_RADIUS / 2, x + HIT_RADIUS, y + HIT_RADIUS / 2)
+            }
+            return _bbox
+        }
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.withTransform({
@@ -43,5 +53,6 @@ class Trex(
         }) {
             super.paint(this, elapsed)
         }
+        drawHitboxIfEnabled(drawScope)
     }
 }

@@ -16,8 +16,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.Button
-import androidx.compose.material.ButtonDefaults
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,14 +38,9 @@ import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.logo_medium
 import fr.iutlens.mmi.demo.background
 import fr.iutlens.mmi.demo.menu_accueil
-import fr.iutlens.mmi.demo.menu_content_fond
-import fr.iutlens.mmi.demo.menu_nuages
-import fr.iutlens.mmi.demo.menu_premier_plan_up
-import fr.iutlens.mmi.demo.menu_second_plan
 import fr.iutlens.mmi.demo.utils.Music
 import fr.iutlens.mmi.demo.volume_cut
 import fr.iutlens.mmi.demo.volume_full
-import fr.iutlens.mmi.demo.bestiaire
 import org.jetbrains.compose.resources.painterResource
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,7 +50,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.unit.IntOffset
-import fr.iutlens.mmi.demo.menu_volcan
 import fr.iutlens.mmi.demo.ui.CloudsOverlay
 import androidx.compose.runtime.withFrameMillis
 
@@ -313,17 +306,19 @@ fun MenuButton(
 ) {
     val clickScale = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
-    Button(
-        onClick = {
-            scope.launch {
-                clickScale.animateTo(1.3f, tween(80))
-                clickScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+    Box(
+        modifier = Modifier
+            .scale(clickScale.value)
+            .clickable(
+                indication = null,
+                interactionSource = remember { MutableInteractionSource() }
+            ) {
+                scope.launch {
+                    clickScale.animateTo(1.15f, tween(80))
+                    clickScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+                }
+                onClick()
             }
-            onClick()
-        },
-        colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent),
-        elevation = ButtonDefaults.elevation(0.dp),
-        modifier = Modifier.scale(clickScale.value)
     ) {
         OutlineText(
             text = text,

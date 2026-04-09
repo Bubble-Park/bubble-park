@@ -27,12 +27,12 @@ class Raptor(
 ) {
     companion object {
         const val VISUAL_SCALE = 1.2f
-        const val HIT_RADIUS = 55f
+        const val HIT_RADIUS = 65f
         const val VERTICAL_OFFSET = 0f
     }
 
     override val halfHeight get() = spriteSheet.spriteHeight / 2f * VISUAL_SCALE - VERTICAL_OFFSET
-    override val boundingBox: Rect get() = Rect(x - HIT_RADIUS, y - HIT_RADIUS, x + HIT_RADIUS, y + HIT_RADIUS)
+    override val hitRadius: Float get() = HIT_RADIUS
 
     override fun paint(drawScope: DrawScope, elapsed: Long) {
         drawScope.withTransform({
@@ -42,5 +42,6 @@ class Raptor(
         }) {
             super.paint(this, elapsed)
         }
+        drawHitboxIfEnabled(drawScope)
     }
 }

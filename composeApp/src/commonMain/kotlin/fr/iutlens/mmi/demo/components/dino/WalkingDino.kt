@@ -35,8 +35,23 @@ open class WalkingDino(
     override val halfHeight get() = spriteSheet.spriteHeight / 2f
     override val halfWidth get() = radius
 
+    /** Rayon utilisé pour la bounding box. Les sous-classes peuvent surcharger. */
+    protected open val hitRadius: Float get() = radius
+
+    // Cache de la bounding box : recalculée uniquement quand x ou y change.
+    private var _bboxCX = Float.NaN
+    private var _bboxCY = Float.NaN
+    private var _bbox = Rect.Zero
+
     override val boundingBox: Rect
-        get() = Rect(x - radius, y - radius, x + radius, y + radius)
+        get() {
+            if (x != _bboxCX || y != _bboxCY) {
+                _bboxCX = x; _bboxCY = y
+                val r = hitRadius
+                _bbox = Rect(x - r, y - r, x + r, y + r)
+            }
+            return _bbox
+        }
 
     protected var idleTimer: Int = Random.nextInt(10, 100)
     protected var dirX: Float = 0f

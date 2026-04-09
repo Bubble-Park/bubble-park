@@ -56,7 +56,7 @@ fun UpgradeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Spacer(modifier = Modifier.height((screenH * 0.1f).dp))
+            Spacer(modifier = Modifier.height((screenH * 0.10f).dp))
 
             Text(
                 text = "Choisissez une amélioration",
@@ -89,7 +89,7 @@ fun UpgradeScreen(
 }
 
 @Composable
-private fun UpgradeCard(
+internal fun UpgradeCard(
     upgrade: Upgrade,
     index: Int,
     dinoFont: FontFamily,
@@ -97,12 +97,14 @@ private fun UpgradeCard(
     screenW: Float,
     screenH: Float,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    animateIn: Boolean = true
 ) {
     val rotation = listOf(-5f, 7f, -6f).getOrElse(index) { 0f }
-    val cardScale = remember { Animatable(0f) }
+    val cardScale = remember { Animatable(if (animateIn) 0f else 1f) }
 
     LaunchedEffect(index) {
+        if (!animateIn) return@LaunchedEffect
         delay(index * 120L)
         cardScale.animateTo(
             1f,

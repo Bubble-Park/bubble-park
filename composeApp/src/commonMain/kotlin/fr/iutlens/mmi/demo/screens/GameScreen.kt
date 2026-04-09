@@ -16,7 +16,9 @@ import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.bubblechtein_sprites
 import fr.iutlens.mmi.demo.parasaur_sprite
 import fr.iutlens.mmi.demo.galliminus_sprite
-import fr.iutlens.mmi.demo.level_background
+import fr.iutlens.mmi.demo.background
+import fr.iutlens.mmi.demo.bord_droit
+import fr.iutlens.mmi.demo.bord_gauche
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.slow_debuff
 import fr.iutlens.mmi.demo.slow_bonus
@@ -39,7 +41,8 @@ import org.jetbrains.compose.resources.Font
 import fr.iutlens.mmi.demo.dudu_font
 
 import androidx.compose.foundation.focusable
-import androidx.compose.runtime.LaunchedEffect import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -54,8 +57,11 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.IntSize
 import fr.iutlens.mmi.demo.pause
 import fr.iutlens.mmi.demo.JoystickPosition
+import fr.iutlens.mmi.demo.SHOOT_KEY
+import fr.iutlens.mmi.demo.JUMP_KEY
 import fr.iutlens.mmi.demo.bubble_sprite
 import fr.iutlens.mmi.demo.ui.ShowChrono
+import fr.iutlens.mmi.demo.ui.LevelIndicator
 import fr.iutlens.mmi.demo.ui.ShowLife
 import fr.iutlens.mmi.demo.ui.ShowScore
 import fr.iutlens.mmi.demo.ui.ScorePopupText
@@ -63,7 +69,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.ContentScale
 import fr.iutlens.mmi.demo.environnement_map_sprite
-import fr.iutlens.mmi.demo.niveau1_fond
 import fr.iutlens.mmi.demo.trex_sprite
 import fr.iutlens.mmi.demo.raptor_sprite
 import fr.iutlens.mmi.demo.soleil
@@ -81,6 +86,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.util.lerp
 import fr.iutlens.mmi.demo.compy_sprite
 import fr.iutlens.mmi.demo.dodo_sprite
@@ -92,11 +98,24 @@ import kotlin.math.sin
 import kotlinx.coroutines.launch
 import androidx.compose.ui.unit.IntOffset
 
+import fr.iutlens.mmi.demo.game.BossDifficultyConfig
+import fr.iutlens.mmi.demo.game.DifficultyManager
+import org.jetbrains.compose.resources.DrawableResource
 import org.jetbrains.compose.resources.painterResource
 
+fun dinosForLevel(levelNumber: Int): List<DrawableResource> {
+    val ratios = DifficultyManager.getSpawnRatios(levelNumber)
+    val dinos = mutableListOf<DrawableResource>()
+    if (ratios.wander > 0.04f) { dinos += Res.drawable.compy_sprite; dinos += Res.drawable.dodo_sprite }
+    if (ratios.flee > 0.04f) { dinos += Res.drawable.parasaur_sprite; dinos += Res.drawable.galliminus_sprite }
+    if (ratios.defensive > 0.04f) { dinos += Res.drawable.trice_sprite; dinos += Res.drawable.stego_sprite }
+    if (ratios.chase > 0.08f) { dinos += Res.drawable.trex_sprite; dinos += Res.drawable.raptor_sprite }
+    if (BossDifficultyConfig.isBossLevel(levelNumber - 1)) dinos += Res.drawable.gigano_sprite
+    return dinos
+}
+
 @Composable
-fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
-    SpriteSheet.load(Res.drawable.niveau1_fond, 1, 1)
+fun GameScreen(onExit: () -> Unit, onGameOver: (score: Int, level: Int, deathState: fr.iutlens.mmi.demo.PlayerDeathState) -> Unit) {
     SpriteSheet.load(Res.drawable.environnement_map_sprite, 5, 4, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubblechtein_sprites, 2, 2, filterQuality = FilterQuality.High)
     SpriteSheet.load(Res.drawable.bubble_sprite, 4, 3, filterQuality = FilterQuality.High)
@@ -117,10 +136,9 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     val gameData = remember { BubblePark() }
     var isPaused by remember { mutableStateOf(false) }
-    fun lifeToScale(life: Int) = when (life) {
-        3 -> 2f
-        2 -> 1.3f
-        else -> 1.1f
+    fun lifeToScale(life: Int): Float {
+        val ratio = life.toFloat() / gameData.player.maxLife.toFloat()
+        return 1.1f + 0.9f * (ratio * ratio * ratio)
     }
     val damageScaleAnim = remember { Animatable(lifeToScale(gameData.player.life)) }
     val damagePulse by rememberInfiniteTransition(label = "damagePulse").animateFloat(
@@ -157,21 +175,27 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
 
     val shakeX = remember { Animatable(0f) }
     val shakeY = remember { Animatable(0f) }
+    val bonusScale = remember { Animatable(1f) }
     val scalePause = remember { Animatable(0f) }
     val scaleControllers = remember { Animatable(0f) }
+    val scaleTree = remember { Animatable(0f) }
     val clickScalePause = remember { Animatable(1f) }
+    val borderSlide = remember { Animatable(1f) }
     val scope = rememberCoroutineScope()
+    var showLevelPanel by remember { mutableStateOf(true) }
+    var pendingNextLevel by remember { mutableStateOf(false) }
 
     // Ecran de jeu
     BoxWithConstraints(
         Modifier
             .fillMaxSize()
+            .scale(bonusScale.value)
             .offset { IntOffset(shakeX.value.roundToInt(), shakeY.value.roundToInt()) }
             .focusRequester(focusRequester)
             .focusable()
             .onKeyEvent { event ->
-                // Boutons
-                if (event.key == Key.A) {
+                if (showLevelPanel) return@onKeyEvent false
+                if (event.key == SHOOT_KEY) {
                     if (event.type == KeyEventType.KeyDown && !gameData.game.actionButtonA) {
                         gameData.player.shoot()
                     }
@@ -180,7 +204,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                     return@onKeyEvent true
                 }
 
-                if (event.key == Key.Z) {
+                if (event.key == JUMP_KEY) {
                     gameData.game.actionButtonB = (event.type == KeyEventType.KeyDown)
                     return@onKeyEvent true
                 }
@@ -199,7 +223,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     ) {
 
         Image(
-            painter = painterResource(Res.drawable.level_background),
+            painter = painterResource(Res.drawable.background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -214,7 +238,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         val debuffFontSize = (minDim.value * 0.09f).sp
         val elapsed = gameData.game.elapsed
         val sunProgress = (1f - gameData.chrono.value / DifficultyConfig.TOTAL_LEVEL_TIME).coerceIn(0f, 1f)
-        val sunX = lerp(-240f, screenW + 240f, sunProgress)
+        val sunSizeDp = minDim * 0.30f
+        val sunX = lerp(-sunSizeDp.value, screenW + sunSizeDp.value, sunProgress)
         val sunY = screenH * 0.3f - sin(sunProgress * PI).toFloat() * screenH * 0.6f
         val sunPhase = elapsed * PI.toFloat() / 500f
         val sunRotation = squareWaveRotation(sunPhase, 5f)
@@ -225,7 +250,27 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             modifier = Modifier
                 .offset(x = sunX.dp, y = sunY.dp)
                 .rotate(sunRotation)
-                .size(240.dp)
+                .size(sunSizeDp)
+        )
+
+        Image(
+            painter = painterResource(Res.drawable.bord_gauche),
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight,
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.CenterStart)
+                .graphicsLayer { translationX = -size.width * borderSlide.value }
+        )
+
+        Image(
+            painter = painterResource(Res.drawable.bord_droit),
+            contentDescription = null,
+            contentScale = ContentScale.FillHeight,
+            modifier = Modifier
+                .fillMaxHeight()
+                .align(Alignment.CenterEnd)
+                .graphicsLayer { translationX = size.width * borderSlide.value }
         )
 
         // Arbre décoratif (derrière la grille)
@@ -239,6 +284,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             modifier = Modifier
                 .offset(x = treeX.dp, y = treeY.dp)
                 .size(treeSizeDp)
+                .scale(scaleTree.value)
         )
 
         // Rendu du jeu
@@ -247,22 +293,10 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             gameData = gameData
         )
 
-        // Score popups
         val density = LocalDensity.current
         val canvasWidthPx = with(density) { maxWidth.toPx() }
         val canvasHeightPx = with(density) { maxHeight.toPx() }
-        val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
-        gameData.scorePopups.toList().forEach { popup ->
-            val screenPosPx = matrix.map(Offset(popup.worldX, popup.worldY))
-            val screenXDp = density.run { screenPosPx.x.toDp().value }
-            val screenYDp = density.run { screenPosPx.y.toDp().value }
-            ScorePopupText(
-                popup = popup,
-                screenXDp = screenXDp,
-                screenYDp = screenYDp,
-                onDone = { gameData.scorePopups.remove(popup) }
-            )
-        }
+        ScorePopupsLayer(gameData = gameData, canvasWidthPx = canvasWidthPx, canvasHeightPx = canvasHeightPx, minDim = minDim.value)
 
         Image(
             painter = painterResource(Res.drawable.damage_border),
@@ -283,24 +317,24 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             }
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(top = (minDim * 0.03f), end = (minDim * 0.03f))) {
                 Image(
-                    painter = painterResource(Res.drawable.pause),
-                    contentDescription = "Pause",
-                    modifier = Modifier
-                        .size(minDim * 0.13f)
-                        .padding(minDim * 0.01f)
-                        .scale(scalePause.value)
-                        .clickable {
-                            isPaused = true
-                            gameData.game.paused = true
-                            gameData.chrono.pause()
-                        }
-                )
+                        painter = painterResource(Res.drawable.pause),
+                        contentDescription = "Pause",
+                        modifier = Modifier
+                            .size(minDim * 0.13f)
+                            .padding(minDim * 0.01f)
+                            .scale(scalePause.value)
+                            .clickable {
+                                isPaused = true
+                                gameData.game.paused = true
+                                gameData.chrono.pause()
+                            }
+                    )
                 val duduFont = FontFamily(Font(Res.font.dudu_font))
                 if (SlowEffect.isActive) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(end = 8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(minDim * 0.01f),
+                        modifier = Modifier.padding(end = minDim * 0.015f)
                     ) {
                         Image(
                             painter = painterResource(Res.drawable.slow_bonus),
@@ -318,8 +352,8 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 if (FastAmmoEffect.isActive) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp),
-                        modifier = Modifier.padding(end = 8.dp)
+                        horizontalArrangement = Arrangement.spacedBy(minDim * 0.01f),
+                        modifier = Modifier.padding(end = minDim * 0.015f)
                     ) {
                         Image(
                             painter = painterResource(Res.drawable.fastammo_bonus),
@@ -347,7 +381,7 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
             Column(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
-                    .padding(top = 12.dp),
+                    .padding(top = minDim * 0.015f),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(
@@ -359,25 +393,33 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 Box(
                     modifier = Modifier
                         .width((screenW * 0.45f).dp)
-                        .height(14.dp)
-                        .background(Color(0xFF333333), shape = RoundedCornerShape(7.dp))
+                        .height(minDim * 0.018f)
+                        .background(Color(0xFF333333), shape = RoundedCornerShape(percent = 50))
                 ) {
                     Box(
                         modifier = Modifier
                             .fillMaxHeight()
                             .fillMaxWidth(hpFraction)
-                            .background(Color(0xFFCC2200), shape = RoundedCornerShape(7.dp))
+                            .background(Color(0xFFCC2200), shape = RoundedCornerShape(percent = 50))
                     )
                 }
             }
+        }
+
+        if (!gameData.isBossRound) {
+            LevelIndicator(
+                levelIndex = gameData.levelIndex,
+                minDim = minDim,
+                modifier = Modifier.align(Alignment.TopCenter).padding(top = (minDim * 0.02f))
+            )
         }
 
         // Combo près du joueur (masqué si x1)
         if (gameData.comboMultiplier > 1) {
             val comboMatrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
             val playerScreenPx = comboMatrix.map(Offset(gameData.player.x, gameData.player.y))
-            val comboXDp = density.run { (playerScreenPx.x + 55f).toDp() }
-            val comboYDp = density.run { (playerScreenPx.y - 30f).toDp() }
+            val comboXDp = density.run { playerScreenPx.x.toDp() } + minDim * 0.034f
+            val comboYDp = density.run { playerScreenPx.y.toDp() } - minDim * 0.019f
             val comboFont = FontFamily(Font(Res.font.dudu_font))
             val comboFadeThresholdMs = BubblePark.COMBO_RESET_INTERVAL_MS / 2f
             val comboScale = (gameData.comboTimeRemainingMs / comboFadeThresholdMs).coerceIn(0f, 1f)
@@ -399,7 +441,9 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 life = gameData.player.life,
                 maxLife = gameData.player.maxLife,
                 score = gameData.score.get(),
+                levelIndex = gameData.levelIndex,
                 damageScale = damageScaleAnim.value + damagePulse,
+                acquiredUpgrades = gameData.upgradeManager.catalogue.filter { it.acquiredCount > 0 },
                 onResume = {
                     isPaused = false
                     gameData.game.paused = false
@@ -408,12 +452,14 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 },
                 onQuit = onExit
             )
+        } else if (gameData.showBonusIntro) {
+            BonusIntroScreen(onDone = { gameData.startUpgradeFromBonus() })
         } else if (gameData.showUpgradeScreen) {
             UpgradeScreen(
                 choices = gameData.upgradeChoices,
                 onUpgradeSelected = { upgrade -> gameData.selectUpgrade(upgrade) }
             )
-        } else {
+        } else if (!showLevelPanel) {
             Controllers(
                 modifier = Modifier.fillMaxSize().scale(scaleControllers.value),
                 onJoystickChange = { pos -> gameData.game.joystickPosition = pos },
@@ -424,20 +470,67 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
                 onActionB = { pressed -> gameData.game.actionButtonB = pressed }
             )
         }
+
+        val chronoInt = gameData.chrono.value.toInt()
+        if (!gameData.isBossRound && chronoInt in 0..3) {
+            CountdownNumber(number = chronoInt, minDim = minDim)
+        }
+
+        if (showLevelPanel) {
+            val levelNumber = if (pendingNextLevel) gameData.levelIndex + 2 else gameData.levelIndex + 1
+            LevelPanel(
+                levelNumber = levelNumber,
+                life = gameData.player.life,
+                maxLife = gameData.player.maxLife,
+                dinoSprites = dinosForLevel(levelNumber),
+                acquiredUpgrades = gameData.upgradeManager.catalogue.filter { it.acquiredCount > 0 },
+                onDone = {
+                    showLevelPanel = false
+                    if (pendingNextLevel) {
+                        pendingNextLevel = false
+                        gameData.loadNextLevel()
+                    }
+                    gameData.game.paused = false
+                    gameData.chrono.resume()
+                }
+            )
+        }
+
+        LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
+            if (gameData.player.isDeathAnimationComplete) {
+                val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+                val screenPos = matrix.map(Offset(gameData.player.x, gameData.player.y))
+                onGameOver(
+                    gameData.score.get(),
+                    gameData.levelIndex,
+                    fr.iutlens.mmi.demo.PlayerDeathState(
+                        x = screenPos.x / canvasWidthPx,
+                        gameWorldWidth = gameData.gameWorldWidth,
+                        rotation = gameData.player.deathRotation,
+                        facingRight = gameData.player.facingRight
+                    )
+                )
+            }
+        }
     }
+
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
     }
 
-    LaunchedEffect(gameData.player.isDeathAnimationComplete, gameData.levelIndex) {
-        if (gameData.player.isDeathAnimationComplete) onGameOver(gameData.score.get())
+    LaunchedEffect(gameData.showUpgradeScreen) {
+        if (!gameData.showUpgradeScreen) {
+            focusRequester.requestFocus()
+        }
     }
 
     LaunchedEffect(Unit) {
         gameData.onLevelEnd = { hasNextLevel ->
-            if (hasNextLevel) gameData.loadNextLevel()
-            else onExit()
+            if (hasNextLevel) {
+                pendingNextLevel = true
+                showLevelPanel = true
+            } else onExit()
         }
     }
 
@@ -448,11 +541,31 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
     LaunchedEffect(gameData.levelIndex) {
         scalePause.snapTo(0f)
         scaleControllers.snapTo(0f)
-        launch { scalePause.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)) }
+        scaleTree.snapTo(0f)
+        borderSlide.snapTo(1f)
+        val cloudDelay = if (gameData.levelIndex == 0) 2300L else 0L
         launch {
-            kotlinx.coroutines.delay(150L)
-            scaleControllers.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+            kotlinx.coroutines.delay(cloudDelay)
+            borderSlide.animateTo(0f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessHigh))
         }
+        launch {
+            kotlinx.coroutines.delay(cloudDelay + 150L)
+            scaleTree.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+        }
+        launch {
+            kotlinx.coroutines.delay(cloudDelay + 200L)
+            scalePause.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+        }
+        launch {
+            kotlinx.coroutines.delay(cloudDelay + 300L)
+            scaleControllers.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
+        }
+    }
+
+    LaunchedEffect(gameData.bonusCollectedCount) {
+        if (gameData.bonusCollectedCount == 0) return@LaunchedEffect
+        bonusScale.animateTo(1.06f, tween(100, easing = EaseInOut))
+        bonusScale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessMedium))
     }
 
     LaunchedEffect(gameData.comboMultiplier) {
@@ -464,5 +577,51 @@ fun GameScreen(onExit: () -> Unit, onGameOver: (Int) -> Unit) {
         }
         launch { shakeX.animateTo(0f, tween(40)) }
         launch { shakeY.animateTo(0f, tween(40)) }
+    }
+}
+
+@Composable
+private fun CountdownNumber(number: Int, minDim: androidx.compose.ui.unit.Dp) {
+    val scale = remember(number) { Animatable(0f) }
+    LaunchedEffect(number) {
+        scale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
+        kotlinx.coroutines.delay(500L)
+        scale.animateTo(0f, tween(200))
+    }
+    val duduFont = androidx.compose.ui.text.font.FontFamily(Font(Res.font.dudu_font))
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "$number",
+            fontFamily = duduFont,
+            color = Color(0xFFFF7EEA),
+            fontSize = (minDim.value * 0.40f).sp,
+            modifier = Modifier.scale(scale.value)
+        )
+    }
+}
+
+/**
+ * Rendu des score popups isolé dans son propre composable.
+ * Seul ce composable recompose quand scorePopups change,
+ * pas l'intégralité de GameScreen.
+ */
+@Composable
+private fun ScorePopupsLayer(gameData: BubblePark, canvasWidthPx: Float, canvasHeightPx: Float, minDim: Float) {
+    val density = LocalDensity.current
+    val matrix = gameData.game.transform.getMatrix(Size(canvasWidthPx, canvasHeightPx))
+    gameData.scorePopups.forEach { popup ->
+        val screenPosPx = matrix.map(Offset(popup.worldX, popup.worldY))
+        val screenXDp = density.run { screenPosPx.x.toDp().value }
+        val screenYDp = density.run { screenPosPx.y.toDp().value }
+        ScorePopupText(
+            popup = popup,
+            screenXDp = screenXDp,
+            screenYDp = screenYDp,
+            minDim = minDim,
+            onDone = { gameData.scorePopups.remove(popup) }
+        )
     }
 }

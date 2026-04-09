@@ -52,6 +52,7 @@ import fr.iutlens.mmi.demo.game.BossDifficultyConfig
 import fr.iutlens.mmi.demo.game.BossConfig
 import fr.iutlens.mmi.demo.game.upgrade.Upgrade
 import fr.iutlens.mmi.demo.game.upgrade.UpgradeManager
+import fr.iutlens.mmi.demo.utils.SpriteSheet
 
 class BubblePark : GameData() {
 
@@ -66,7 +67,7 @@ class BubblePark : GameData() {
         const val COMBO_RESET_INTERVAL_MS = 3000L   // délai sans capture avant reset du combo (ms)
 
         // Bonus spawn interval (manches normales)
-        const val BONUS_INTERVAL_START_MS = 12000L  // délai au niveau 1
+        const val BONUS_INTERVAL_START_MS = 9000L   // délai au niveau 1
         const val BONUS_INTERVAL_MIN_MS   = 4000L   // délai minimum atteint au niveau 15
         const val BONUS_INTERVAL_MAX_LEVEL = 14     // index du niveau où l'on atteint le minimum (niveau 15)
 
@@ -78,6 +79,7 @@ class BubblePark : GameData() {
     val scorePopups = mutableStateListOf<ScorePopup>()
     private var popupCounter = 0L
 
+    var bonusCollectedCount by mutableStateOf(0)
     var comboMultiplier by mutableStateOf(1)
     var comboTimeRemainingMs by mutableStateOf(0L)
     private var captureCount = 0
@@ -113,6 +115,7 @@ class BubblePark : GameData() {
     }
 
     val upgradeManager = UpgradeManager()
+    var showBonusIntro by mutableStateOf(false)
     var showUpgradeScreen by mutableStateOf(false)
     var upgradeChoices by mutableStateOf<List<Upgrade>>(emptyList())
 
@@ -122,6 +125,9 @@ class BubblePark : GameData() {
     private lateinit var tileArea: TiledArea
     private lateinit var platformGraph: PlatformGraph
     private lateinit var distanceMap: DistanceMap
+
+    val gameWorldWidth: Float
+        get() = (tileArea.tileMap.geometry.sizeX * tileArea.w).toFloat()
 
     var onLevelEnd: ((hasNextLevel: Boolean) -> Unit)? = null
     var levelIndex by mutableStateOf(0)
@@ -133,6 +139,11 @@ class BubblePark : GameData() {
 
     private var bonusTimerMs = 0L
     private var lastBonusIndex = -1
+    private var pendingInitialSpawn = false
+    private var pendingBossRound = false
+    private var pendingPlayerReset = false
+    private var pendingStartTileX = 0f
+    private var pendingStartTileY = 0f
 
     var isBossRound by mutableStateOf(false)
     var bossGigano: Gigano? by mutableStateOf(null)
@@ -150,6 +161,7 @@ class BubblePark : GameData() {
         currentLevelDiff = DifficultyManager.getLevelDifficulty(index + 1)
         spawnRatios = DifficultyManager.getSpawnRatios(index + 1)
         chrono = Chrono((DifficultyConfig.TOTAL_LEVEL_TIME * 1000f).toLong())
+        chrono.pause()
         spawnTimerMs = 0L
         levelElapsedMs = 0L
         bonusTimerMs = 0L
@@ -166,15 +178,19 @@ class BubblePark : GameData() {
             .map { levelData.mapCode.indexOf(it) }
             .filter { it >= 0 }
             .associateWith { 2f..3f }
-        tileArea = TiledArea(levelData.tileSetRes, tileMap, decorScales)
-
         val isFirstLevel = !::player.isInitialized
+        tileArea = TiledArea(levelData.tileSetRes, tileMap, decorScales).also {
+            if (isFirstLevel) it.popDelay = 2550L
+        }
         val maxLife = upgradeManager.getMaxLife()
         val savedLife = if (isFirstLevel) maxLife else player.life.coerceIn(1, maxLife)
+        pendingStartTileX = levelData.startX
+        pendingStartTileY = (tileMap.geometry.sizeY - levelData.startY).toFloat()
+        pendingPlayerReset = true
         player = Player(
             res = Res.drawable.bubblechtein_sprites,
-            x = levelData.startX * tileArea.w,
-            y = (tileMap.geometry.sizeY - levelData.startY) * tileArea.h,
+            x = 0f,
+            y = 0f,
             mapArea = tileArea,
             joystickProvider = { game.joystickPosition },
             jumpActionProvider = { game.actionButtonB },
@@ -184,7 +200,7 @@ class BubblePark : GameData() {
             initialLife = savedLife,
             initialMaxLife = maxLife
         )
-        player.spawnDelay = tileArea.spawnEndMs()
+        player.spawnDelay = 0L
         upgradeManager.restoreStats(player)
 
         platformGraph = PlatformGraph(tileArea, jumpHeight = 6)
@@ -201,19 +217,41 @@ class BubblePark : GameData() {
         bossWaveTimerMs = 0L
         bossBonusTimerMs = 0L
 
-        if (BossDifficultyConfig.isBossLevel(levelIndex)) {
-            startBossRound()
-        } else {
-            spawnInitialDinos()
-        }
+        pendingBossRound = BossDifficultyConfig.isBossLevel(levelIndex)
+        pendingInitialSpawn = !pendingBossRound
 
-        if (!isFirstLevel) {
-            findSpawnPoint()?.let { (x, y) ->
-                (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(x, y, player))
-            }
-        }
+        game.paused = true
 
         game.animation(20) {
+            if ((pendingPlayerReset || pendingInitialSpawn || pendingBossRound)
+                && SpriteSheet.isLoaded(tileArea.res, Res.drawable.bubblechtein_sprites)) {
+                if (pendingPlayerReset) {
+                    pendingPlayerReset = false
+                    player.x = pendingStartTileX * tileArea.w
+                    player.y = pendingStartTileY * tileArea.h
+                    distanceMap.update()
+                }
+                if (pendingInitialSpawn) {
+                    pendingInitialSpawn = false
+                    spawnInitialDinos()
+                    if (!isFirstLevel) {
+                        findSpawnPoint()?.let { (x, _) ->
+                            (game.spriteList as? MutableList<Sprite>)?.add(LifeBonus(x, 0f, player))
+                        }
+                    }
+                }
+                if (pendingBossRound) {
+                    pendingBossRound = false
+                    startBossRound()
+                }
+            }
+
+            if (player.isDeathAnimationComplete) {
+                player.update()
+                game.invalidate()
+                return@animation
+            }
+
             checkComboReset()
             handleCollisions()
 
@@ -237,10 +275,11 @@ class BubblePark : GameData() {
                     isBossRound = false
                     bossGigano = null
                     game.paused = true
+                    chrono.pause()
                     val choices = upgradeManager.getRandomCandidates(3)
                     if (choices.isNotEmpty()) {
                         upgradeChoices = choices
-                        showUpgradeScreen = true
+                        showBonusIntro = true
                     } else {
                         onLevelEnd?.invoke(true)
                     }
@@ -282,11 +321,11 @@ class BubblePark : GameData() {
             distanceMap.update()
 
             val mapHeight = tileArea.tileMap.geometry.sizeY * tileArea.h
-            (game.spriteList as? MutableList<Sprite>)?.apply {
-                removeAll { (it as? Bullet)?.isStopped == true }
-                removeAll { (it as? EnemySprite)?.isDead == true }
-                removeAll { (it as? GenericDino)?.isDead == true }
-                removeAll { it is Bonus && (it.collected || it.y > mapHeight) }
+            (game.spriteList as? MutableList<Sprite>)?.removeAll { sprite ->
+                (sprite is Bullet     && sprite.isStopped)
+                || (sprite is EnemySprite && sprite.isDead)
+                || (sprite is GenericDino && sprite.isDead)
+                || (sprite is Bonus    && (sprite.collected || sprite.y > mapHeight))
             }
 
             game.spriteList.update()
@@ -369,9 +408,9 @@ class BubblePark : GameData() {
                 sprite is EnemySprite && !sprite.isDead -> activeEnemies.add(sprite)
                 sprite is GenericDino && !sprite.isDead -> activeGenericDinos.add(sprite)
                 sprite is Bonus && !sprite.collected -> {
-                    if (sprite.boundingBox.overlaps(player.boundingBox)) {
-                        sprite.onCollect()
-                        sprite.collected = true
+                    if (!sprite.collected && !sprite.isCollecting && sprite.boundingBox.overlaps(player.boundingBox)) {
+                        sprite.startCollect()
+                        bonusCollectedCount++
                         GameSound.playBonus()
                     }
                 }
@@ -406,7 +445,8 @@ class BubblePark : GameData() {
             if (!dino.isCaptured) continue
             if (player.boundingBox.overlaps(dino.boundingBox)) {
                 dino.isDead = true
-                collectCapturedDino(dino.scoreValue, dino.x, dino.y)
+                val baseScore = if (dino.capturedByDiagonal) (dino.scoreValue * 1.2f).toInt() else dino.scoreValue
+                collectCapturedDino(baseScore, dino.x, dino.y)
                 GameSound.playPointCombo(comboMultiplier)
                 break
             }
@@ -418,8 +458,9 @@ class BubblePark : GameData() {
                 if (enemy.isDead) continue
                 if (bullet.boundingBox.overlaps(enemy.boundingBox)) {
                     enemy.isDead = true
-                    score.add(enemy.scoreValue)
-                    scorePopups.add(ScorePopup(popupCounter++, enemy.x, enemy.y, enemy.scoreValue))
+                    val points = if (bullet.isDiagonal) (enemy.scoreValue * 1.2f).toInt() else enemy.scoreValue
+                    score.add(points)
+                    scorePopups.add(ScorePopup(popupCounter++, enemy.x, enemy.y, points))
                     bullet.explode()
                     break
                 }
@@ -432,6 +473,7 @@ class BubblePark : GameData() {
                     dino.onHitByBullet()
                     if (dino.currentHitCount >= dino.effectiveHitCount) {
                         dino.isCaptured = true
+                        dino.capturedByDiagonal = bullet.isDiagonal
                         dino.currentHitCount = 0
                         onDinoCaptured()
                         bullet.capturesMade++
@@ -504,7 +546,7 @@ class BubblePark : GameData() {
         var spawnedTriceratops = 0
         var spawnedStegosaurus = 0
         val sprites = game.spriteList as? MutableList<Sprite> ?: return
-        val dinoSpawnDelay = tileArea.spawnEndMs()
+        val dinoSpawnDelay = tileArea.spawnEndMs() + tileArea.popDelay
 
         repeat(initialCount) {
             val trexNeeded        = (targetTrex - spawnedTrex).coerceAtLeast(0)
@@ -623,6 +665,11 @@ class BubblePark : GameData() {
         }
     }
 
+    fun startUpgradeFromBonus() {
+        showBonusIntro = false
+        showUpgradeScreen = true
+    }
+
     fun selectUpgrade(upgrade: Upgrade) {
         upgradeManager.acquire(upgrade, player)
         showUpgradeScreen = false
@@ -632,6 +679,6 @@ class BubblePark : GameData() {
     }
 
     init {
-        loadLevel(0)
+        loadLevel(4)
     }
 }

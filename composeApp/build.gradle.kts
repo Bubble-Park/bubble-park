@@ -135,8 +135,19 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb, TargetFormat.Exe)
-            packageName = myPackage
+            packageName = myBaseName
             packageVersion = myVersionName
+
+            macOS {
+                iconFile.set(project.file("favicon.icns"))
+                bundleID = "fr.iutlens.mmi.bubblepark"
+            }
+            windows {
+                iconFile.set(project.file("favicon.ico"))
+            }
+            linux {
+                iconFile.set(project.file("favicon.png"))
+            }
         }
     }
 }
@@ -146,4 +157,3 @@ compose.resources {
     packageOfResClass = myPackage
     generateResClass = always
 }
-

@@ -1,10 +1,12 @@
 package fr.iutlens.mmi.demo.components.dino
 
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
 import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.slow_debuff
@@ -16,7 +18,7 @@ import fr.iutlens.mmi.demo.game.sprite.spawnScale
 import fr.iutlens.mmi.demo.game.sprite.spawnRotation
 import fr.iutlens.mmi.demo.game.sprite.TiledArea
 import fr.iutlens.mmi.demo.utils.DistanceMap
-import fr.iutlens.mmi.demo.utils.PathPlan
+import fr.iutlens.mmi.demo.utils.MoveAction
 import fr.iutlens.mmi.demo.utils.PlatformGraph
 import fr.iutlens.mmi.demo.utils.SpriteSheet
 import org.jetbrains.compose.resources.DrawableResource
@@ -34,6 +36,7 @@ abstract class GenericDino(
     override val scoreValue get() = type.scoreValue
 
     var currentHitCount = 0
+    var capturedByDiagonal: Boolean = false
     open val isStunImmune: Boolean = false
 
     val effectiveHitCount: Int
@@ -49,7 +52,8 @@ abstract class GenericDino(
         get() = if (isCaptured || currentHitCount == 0) 1f else 1f / (currentHitCount + 1)
 
     companion object {
-        const val PATH_REFRESH_INTERVAL = 25
+        /** Singleton réutilisé à chaque frame pour éviter une allocation par dino par rendu. */
+        val slowColorFilter = ColorFilter.tint(Color(0x880000FF.toInt()), BlendMode.SrcAtop)
     }
 
     override fun reset(x: Float, y: Float) {
@@ -67,7 +71,7 @@ abstract class GenericDino(
             val w2 = spriteSheet.spriteWidth / 2
             val h2 = spriteSheet.spriteHeight / 2
             val (rotation, scaleF) = when {
-                isCaptured -> squareWaveRotation(phase = captureTimer * 0.08f, intensity = 5f) to 1f
+                isCaptured -> squareWaveRotation(phase = captureTimer * 0.5f, intensity = 20f) to 1f
                 spawnTimer > SPAWN_ANIM_DURATION -> {
                     val ratio = (spawnTimer - SPAWN_ANIM_DURATION).toFloat() / SPAWN_ANIM_DURATION
                     spawnRotation(ratio) to spawnScale(ratio)
@@ -84,7 +88,7 @@ abstract class GenericDino(
                 if (rotation != 0f) rotate(rotation, pivot = Offset.Zero)
                 if (!facingRight) scale(-1f, 1f, pivot = Offset.Zero)
             }) {
-                val colorFilter = if (SlowEffect.isActive) ColorFilter.tint(Color(0x880000FF.toInt()), BlendMode.SrcAtop) else null
+                val colorFilter = if (SlowEffect.isActive) slowColorFilter else null
                 spriteSheet.paint(this, frameNdx, -w2, -h2, alpha = paintAlpha, colorFilter = colorFilter)
             }
         }
@@ -143,6 +147,17 @@ abstract class GenericDino(
     private fun releaseCaptured() {
         reset(x, 0f)
         spawnTimer = 0
+    }
+
+    protected fun drawHitboxIfEnabled(drawScope: DrawScope) {
+        if (!SHOW_HITBOXES) return
+        val box = boundingBox
+        drawScope.drawRect(
+            color = Color(0xFFFF0000.toInt()),
+            topLeft = Offset(box.left, box.top),
+            size = Size(box.width, box.height),
+            style = Stroke(width = 3f)
+        )
     }
 
     protected open fun onStun() {}
@@ -234,12 +249,21 @@ open class FleeDino(
 
         when (fleePhase) {
             FleePhase.FLEEING -> {
+                // Greedy via DistanceMap partagée — O(degree) par frame, zéro Dijkstra.
                 if (!isOnGround) {
                     dirX = savedPathDirX
                 } else {
-                    val path = currentPath
-                    if (path == null || path.isDone) recomputeFleePath(i, j, dm)
-                    else followPath(i, j)
+                    val move = dm.nextFleeWithAction(i to j)
+                    if (move != null) {
+                        dirX = move.dirX
+                        if (move.dirX != 0f) savedPathDirX = move.dirX
+                        if (move.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {
+                            jump()
+                            jumpCooldown = 50
+                        }
+                    } else {
+                        dirX = 0f
+                    }
                 }
             }
             FleePhase.IDLE -> {
@@ -266,11 +290,6 @@ open class FleeDino(
         applyPhysics()
     }
 
-    private fun recomputeFleePath(i: Int, j: Int, dm: DistanceMap) {
-        val steps = graph.findFleePathTo(i to j, dm.targetTile)
-        currentPath = if (steps.isNotEmpty()) PathPlan(steps) else null
-        stepTimeout = 0
-    }
 }
 
 // --- Defensive (wander + chase on hit) ---
@@ -287,19 +306,16 @@ open class DefensiveDino(
     private val b get() = type.behavior as DinoBehavior.Defensive
     private var isAggressive = false
     private var wanderMoving = false
-    private var pathRefreshTimer = 0
 
     override fun reset(x: Float, y: Float) {
         super.reset(x, y)
         isAggressive = false
         wanderMoving = false
-        pathRefreshTimer = 0
     }
 
     override fun onHitByBullet() {
         isAggressive = true
         currentPath = null
-        pathRefreshTimer = 0
     }
 
     override fun updateBehavior(i: Int, j: Int) {
@@ -315,19 +331,20 @@ open class DefensiveDino(
                 dirX = 0f
                 idleTimer = Random.nextInt(25, 101)
             } else {
-                if (--pathRefreshTimer <= 0) {
-                    recomputeAttackPath(i, j, dm)
-                    pathRefreshTimer = PATH_REFRESH_INTERVAL
-                }
+                // nextWithAction : DistanceMap partagée, zéro Dijkstra.
                 if (!isOnGround) {
                     dirX = lastDirX
                 } else {
-                    val path = currentPath
-                    if (path == null || path.isDone) recomputeAttackPath(i, j, dm)
-                    else {
-                        val done = followPath(i, j)
-                        if (dirX != 0f) lastDirX = dirX
-                        if (done) recomputeAttackPath(i, j, dm)
+                    val move = dm.nextWithAction(i to j)
+                    if (move != null) {
+                        dirX = move.dirX
+                        if (move.dirX != 0f) lastDirX = move.dirX
+                        if (move.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {
+                            jump()
+                            jumpCooldown = 50
+                        }
+                    } else {
+                        dirX = 0f
                     }
                 }
                 val speed = b.attackSpeed * SlowEffect.speedMultiplier
@@ -357,12 +374,6 @@ open class DefensiveDino(
         moveX(dirX * speed, speed)
         applyPhysics()
     }
-
-    private fun recomputeAttackPath(i: Int, j: Int, dm: DistanceMap) {
-        val steps = graph.findPath(i to j, dm.targetTile)
-        currentPath = if (steps.isNotEmpty()) PathPlan(steps) else null
-        stepTimeout = 0
-    }
 }
 
 // --- Chase player ---
@@ -377,42 +388,27 @@ open class ChaseDino(
 ) : GenericDino(type, res, x, y, mapArea, graph) {
 
     private val b get() = type.behavior as DinoBehavior.ChasePlayer
-    private var pathRefreshTimer = 0
-
-    override fun reset(x: Float, y: Float) {
-        super.reset(x, y)
-        pathRefreshTimer = 0
-    }
 
     override fun updateBehavior(i: Int, j: Int) {
-        val dm = distanceMap
-
-        if (--pathRefreshTimer <= 0) {
-            recomputeAttackPath(i, j, dm)
-            pathRefreshTimer = PATH_REFRESH_INTERVAL
-        }
-
+        // nextWithAction : gradient sur la DistanceMap partagée, zéro Dijkstra.
         if (!isOnGround) {
             dirX = lastDirX
         } else {
-            val path = currentPath
-            if (path == null || path.isDone) {
-                recomputeAttackPath(i, j, dm)
+            val move = distanceMap.nextWithAction(i to j)
+            if (move != null) {
+                dirX = move.dirX
+                if (move.dirX != 0f) lastDirX = move.dirX
+                if (move.action == MoveAction.JUMP && jumpCooldown <= 0 && j > 0) {
+                    jump()
+                    jumpCooldown = 50
+                }
             } else {
-                val done = followPath(i, j)
-                if (dirX != 0f) lastDirX = dirX
-                if (done) recomputeAttackPath(i, j, dm)
+                dirX = 0f
             }
         }
 
         val speed = b.speed * SlowEffect.speedMultiplier
         moveX(dirX * speed, speed)
         applyPhysics()
-    }
-
-    private fun recomputeAttackPath(i: Int, j: Int, dm: DistanceMap) {
-        val steps = graph.findPath(i to j, dm.targetTile)
-        currentPath = if (steps.isNotEmpty()) PathPlan(steps) else null
-        stepTimeout = 0
     }
 }
