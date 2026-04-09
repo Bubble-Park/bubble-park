@@ -6,6 +6,7 @@ import kotlinx.dom.appendElement
 import org.jetbrains.compose.resources.ExperimentalResourceApi
 import org.w3c.dom.Audio
 import org.w3c.dom.HTMLAudioElement
+import org.w3c.dom.events.Event
 import kotlin.contracts.ExperimentalContracts
 
 @OptIn(ExperimentalResourceApi::class,
@@ -26,14 +27,22 @@ actual open class MusicPlayer actual constructor(
         document.body?.appendElement("audio") {
             this as HTMLAudioElement
             this.id = resId
-            this.src = Res.getUri(resource)
+            this.src = Res.getUri("files/$resource")
             this.loop = autoplay
+            this.muted = true  // nécessaire pour que l'autoplay soit accepté par le navigateur
         }
         if (autoplay) start()
     }
 
     actual fun start() {
-        getPlayerElement()?.play()
+        val audio = getPlayerElement() ?: return
+        audio.play()  // accepté car muted = true
+        audio.muted = false  // fonctionne si le navigateur (MEI) le permet, sinon reste muté
+        // Sur premier geste utilisateur : démuté garanti
+        val unmuteHandler: (Event) -> Unit = { audio.muted = false }
+        document.addEventListener("click",      unmuteHandler)
+        document.addEventListener("keydown",    unmuteHandler)
+        document.addEventListener("touchstart", unmuteHandler)
     }
 
     actual fun pause() {
