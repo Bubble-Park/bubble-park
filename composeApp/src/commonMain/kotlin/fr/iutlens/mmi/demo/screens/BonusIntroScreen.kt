@@ -48,7 +48,7 @@ fun BonusIntroScreen(onDone: () -> Unit) {
             verticalArrangement = Arrangement.Center
         ) {
             Text(
-                text = "BONUS",
+                text = "AMELIORATIONS",
                 fontFamily = duduFont,
                 color = Color(0xFFFF69B4),
                 fontSize = (minDim.value * 0.28f).sp,
