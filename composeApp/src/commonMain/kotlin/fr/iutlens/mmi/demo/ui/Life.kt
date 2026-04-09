@@ -35,6 +35,7 @@ import fr.iutlens.mmi.demo.Res
 import fr.iutlens.mmi.demo.dudu_font
 import fr.iutlens.mmi.demo.player_heart
 import fr.iutlens.mmi.demo.player_heart_empty
+import fr.iutlens.mmi.demo.game.DifficultyConfig
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.painterResource
@@ -93,10 +94,16 @@ fun ShowChrono(time: Float, fontSize: TextUnit = 44.sp) {
     LaunchedEffect(Unit) {
         scale.animateTo(1f, spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow))
     }
+    val urgencyThreshold = DifficultyConfig.TOTAL_LEVEL_TIME * 0.25f
+    val color = when {
+        time <= urgencyThreshold * 0.5f -> Color(0xFFCC2200)
+        time <= urgencyThreshold        -> Color(0xFFE07800)
+        else                            -> Color(0xFF474534)
+    }
     Text(
         text = "Temps : ${time.toInt()}s",
         modifier = Modifier.padding(start = 16.dp).scale(scale.value),
-        color = Color(0xFF474534),
+        color = color,
         fontSize = fontSize,
         fontFamily = duduFont
     )

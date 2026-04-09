@@ -67,7 +67,7 @@ class BubblePark : GameData() {
         const val COMBO_RESET_INTERVAL_MS = 3000L   // délai sans capture avant reset du combo (ms)
 
         // Bonus spawn interval (manches normales)
-        const val BONUS_INTERVAL_START_MS = 12000L  // délai au niveau 1
+        const val BONUS_INTERVAL_START_MS = 9000L   // délai au niveau 1
         const val BONUS_INTERVAL_MIN_MS   = 4000L   // délai minimum atteint au niveau 15
         const val BONUS_INTERVAL_MAX_LEVEL = 14     // index du niveau où l'on atteint le minimum (niveau 15)
 
