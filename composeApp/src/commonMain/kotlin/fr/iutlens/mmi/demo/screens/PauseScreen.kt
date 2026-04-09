@@ -96,7 +96,7 @@ fun PauseScreen(life: Int, maxLife: Int = 3, score: Int, levelIndex: Int = 0, da
             painter = painterResource(Res.drawable.damage_border),
             contentDescription = null,
             contentScale = ContentScale.FillBounds,
-            modifier = Modifier.fillMaxSize().alpha(0.8f).scale(damageScale)
+            modifier = Modifier.fillMaxSize().alpha(1f).scale(damageScale)
         )
 
         Column(
